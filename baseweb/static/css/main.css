@@ -1,0 +1,18 @@
+body {
+  margin:  0px;
+  padding: 0px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  padding: 10px;
+}
+
+DIV.notification.vue-notification {
+  font-size: 18px;
+}
+
+fieldset {
+  border: 0px;
+}

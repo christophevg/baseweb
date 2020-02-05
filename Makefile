@@ -1,4 +1,8 @@
-GUNICORN=. venv/bin/activate; gunicorn
+VENV=. venv/bin/activate;
+GUNICORN=${VENV} gunicorn
+PYTHON=${VENV} python
+PIP=${VENV} pip
+TWINE=${VENV} twine
 
 all: run
 
@@ -8,7 +12,7 @@ run: requirements
 
 requirements: venv requirements.txt
 	@echo "*** setting up requirements"
-	@. venv/bin/activate; pip install --upgrade -r requirements.txt > /dev/null
+	@${PIP} install --upgrade -r requirements.txt > /dev/null
 
 venv:
 	@echo "*** building a virtual environment"
@@ -17,14 +21,36 @@ venv:
 
 upgrade: requirements
 	@echo "*** upgrading requirements"
-	@. venv/bin/activate; pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+	@${PIP} list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 
 dist: requirements
 	@echo "*** building distribution"
-	@. venv/bin/activate; python setup.py sdist bdist_wheel
+	@${PYTHON} setup.py sdist bdist_wheel
 
 
 tag:
 	@echo "*** tagging as ${TAG}"
 	@git tag ${TAG} -m "${MSG}"
 	@git push --tags
+
+
+publish-test: dist
+	${TWINE} upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+publish: dist
+	${TWINE} upload dist/*
+
+test: requirements
+	${VENV} tox
+
+coverage: test
+	${VENV} coverage report
+
+docs: requirements
+	${VENV} cd docs; make html
+	open docs/_build/html/index.html
+
+clean:
+	find . | grep '\.backup' | xargs rm
+
+.PHONY: dist docs

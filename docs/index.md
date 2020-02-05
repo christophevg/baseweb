@@ -11,8 +11,10 @@
 
 
 
-## Documentation
+## Contents
 
-Visit [Read the Docs](https://baseweb.readthedocs.org) for the full documentation, including overviews and several examples.
+* [What is in the Box](whats-in-the-box.md)
+* [Getting Started](getting-started.md)
+* [Contributing](contributing.md)
 
 

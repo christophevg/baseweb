@@ -23,10 +23,13 @@ requires:
 - python-dotenv
 - websocket-client
 scripts: []
-your_author_name: Christophe VG
-your_email_address: contact@christophe.vg
-your_full_name: Christophe Van Ginneken
 skip:
 - docs
 - tests
 - (package_module_name)
+- Makefile
+- requirements.txt
+- MANIFEST.in
+your_author_name: Christophe VG
+your_email_address: contact@christophe.vg
+your_full_name: Christophe Van Ginneken

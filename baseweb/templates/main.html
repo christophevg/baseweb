@@ -42,7 +42,7 @@
 
       <v-navigation-drawer fixed clipped app v-model="drawer">
         <v-list>
-          <template v-for="section in sections">
+          <template v-for="section in orderedSections">
             <v-list-group v-if="section.group" :prepend-icon="section.icon" no-action value="true">
               <v-list-tile slot="activator">
                 <v-list-tile-content>

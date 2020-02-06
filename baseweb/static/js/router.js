@@ -4,6 +4,13 @@ var router = new VueRouter({
   mode  : 'history'
 });
 
+function order(a, b) {
+  if( !a.index || !b.index ) { return 0;  }
+  if(  a.index  <  b.index ) { return -1; }
+  if(  a.index  >  b.index ) { return 1;  }
+  return 0;
+}
+
 var app = new Vue({
   el: "#app",
   delimiters: ['${', '}'],
@@ -16,6 +23,12 @@ var app = new Vue({
     initialized: false,
     drawer: null,
     sections: []
+  },
+  computed: {
+    orderedSections : function() {
+      this.sections.sort(order);
+      return this.sections;
+    }
   },
   methods: {
     fixVuetifyCSS : function() {

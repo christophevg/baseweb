@@ -153,7 +153,8 @@ router.addRoutes([
 app.sections.push({
   icon  : "home",
   text  : "Index",
-  path  : "/"    
+  path  : "/",
+  index : 1    
 });
 
 

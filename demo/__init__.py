@@ -33,3 +33,5 @@ logging.getLogger().handlers[0].setFormatter(formatter)
 from baseweb.web import server
 
 import demo.pages.index
+import demo.pages.page1
+import demo.pages.page2

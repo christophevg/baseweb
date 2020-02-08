@@ -17,8 +17,22 @@ router.addRoutes([
   { path: '/page1', component: Page1 },
 ])
 
-app.sections.push({
-  icon  : "home",
+var groupSection = app.sections.find(function(item) {
+  return "group" in item && item.group && item.text == "Index";
+});
+if(! groupSection ) {
+  groupSection = {
+    index      : 1,
+    group      : true,
+    icon       : "home",
+    text       : "Index",
+    subsections: []
+  }
+  app.sections.push(groupSection);
+}
+
+groupSection.subsections.push({
+  icon  : "description",
   text  : "Page1",
   path  : "/page1",
   index : 2

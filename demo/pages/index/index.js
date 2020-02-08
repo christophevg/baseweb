@@ -150,13 +150,26 @@ router.addRoutes([
   { path: '/', component: Index },
 ])
 
-app.sections.push({
+var groupSection = app.sections.find(function(item) {
+  return "group" in item && item.group && item.text == "Index";
+});
+if(! groupSection ) {
+  groupSection = {
+    index      : 1,
+    group      : true,
+    icon       : "home",
+    text       : "Index",
+    subsections: []
+  }
+  app.sections.push(groupSection);
+}
+
+groupSection.subsections.push({
   icon  : "home",
   text  : "Index",
   path  : "/",
   index : 1    
 });
-
 
 // set up page specific part in the store
 

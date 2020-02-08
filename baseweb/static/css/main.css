@@ -16,3 +16,20 @@ DIV.notification.vue-notification {
 fieldset {
   border: 0px;
 }
+
+/* basic syntax highlighting for json */
+pre {
+  padding: 5px;
+  margin: 5px;
+}
+
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+
+.col-centered {
+  margin: 0 auto;
+  float: none;
+}

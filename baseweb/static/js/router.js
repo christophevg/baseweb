@@ -27,6 +27,11 @@ var app = new Vue({
   computed: {
     orderedSections : function() {
       this.sections.sort(order);
+      $.each(this.sections, function(idx, section) {
+        if( "subsections" in section ) {
+          section.subsections.sort(order);
+        }
+      });
       return this.sections;
     }
   },

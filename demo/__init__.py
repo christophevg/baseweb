@@ -32,6 +32,16 @@ logging.getLogger().handlers[0].setFormatter(formatter)
 
 from baseweb.web import server
 
+from baseweb.security import add_authenticator
+
+def authenticator(scope, request, *args, **kwargs):
+  logger.debug("AUTH: scope:{} / request:{} / args:{} / kwargs:{}".format(
+    scope, str(request), str(args), str(kwargs)
+  ))
+  return True
+
+add_authenticator(authenticator)
+
 import demo.pages.index
 import demo.pages.page1
 import demo.pages.page2

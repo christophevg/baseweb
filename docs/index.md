@@ -15,6 +15,7 @@
 
 * [What is in the Box](whats-in-the-box.md)
 * [Getting Started](getting-started.md)
+* [Building Your First baseweb App](building-your-first-baseweb-app.md)
+* [Adding Security](adding-security.md)
 * [Contributing](contributing.md)
-
 

@@ -8,7 +8,7 @@ $ pip install baseweb
 
 ## Minimal Survival Commands
 
-From the repository...
+From a cloned instance of the baseweb repository, simply issue `make` to get a running instance of the demo app that is part of the repository: 
 
 ```bash
 $ make
@@ -30,10 +30,8 @@ done.
 [2020-02-05 00:12:11 +0100] [baseweb.interface] [51461] [INFO] registered component index.js from /Users/xtof/Workspace/baseweb/demo/pages/index
 ```
 
-Now visit [http://localhost:8000](http://localhost:8000), enter your name a press some buttons...
+Now visit [http://localhost:8000](http://localhost:8000), enter your name and press a few buttons to see the demo app in action, presenting some of the standard features offered by baseweb.
 
 ![baseweb demo](baseweb-demo.png)
 
-Finally inspect the `demo/` folder to see how to build the application.
-
-More to come...
+Finally inspect the `demo/` folder to see how to build the application or read on for a step by step walk through of [building your first baseweb app](building-your-first-baseweb-app.md).

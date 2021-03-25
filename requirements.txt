@@ -45,7 +45,7 @@ python-dotenv==0.14.0
 python-engineio==3.13.1
 python-socketio==4.6.0
 pytz==2020.1
-PyYAML==5.3.1
+PyYAML==5.4
 readme-renderer==26.0
 recommonmark==0.6.0
 requests==2.24.0

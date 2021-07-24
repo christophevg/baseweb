@@ -21,12 +21,11 @@ CLASSIFIERS      = [
   
 ]
 INSTALL_REQUIRES = [
-  "Flask",
-  "Flask-RESTful",
-  "Flask-SocketIO",
+  "Flask==1.1.2",
+  "Flask-RESTful==0.3.8",
+  "Flask-SocketIO==4.3.1",
   "python-dotenv",
-  "websocket-client",
-  
+  "websocket-client==0.57.0"
 ]
 ENTRY_POINTS = {
   

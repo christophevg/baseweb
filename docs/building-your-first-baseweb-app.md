@@ -19,9 +19,11 @@ $ . venv/bin/activate
 This is enough to install baseweb. Now to run your first baseweb app, you will need a webserver, like `gunicorn` with `eventlet` support:
 
 ```bash
-(venv) $ pip install gunicorn
-(venv) $ pip install eventlet
+(venv) $ pip install gunicorn==20.1.0
+(venv) $ pip install eventlet==0.30.2
 ```
+
+(There's an issue requiring these specific versions: [https://stackoverflow.com/questions/67409452/gunicorn-importerror-cannot-import-name-already-handled-from-eventlet-wsgi](https://stackoverflow.com/questions/67409452/gunicorn-importerror-cannot-import-name-already-handled-from-eventlet-wsgi))
 
 All set. Let's meet baseweb...
 

@@ -1,56 +1,50 @@
-VENV=. venv/bin/activate;
-GUNICORN=${VENV} gunicorn
-PYTHON=${VENV} python
-PIP=${VENV} pip
-TWINE=${VENV} twine
-
 all: run
 
-run: requirements
+run:
 	@echo "*** starting the web container"
-	@${GUNICORN} -k eventlet -w 1 demo:server
-
-requirements: venv requirements.txt
-	@echo "*** setting up requirements"
-	@${PIP} install --upgrade -r requirements.txt > /dev/null
-
-venv:
-	@echo "*** building a virtual environment"
-	@virtualenv -p python3 $@
-
-
-upgrade: requirements
-	@echo "*** upgrading requirements"
-	@${PIP} list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-
-dist: requirements
-	@echo "*** building distribution"
-	@${PYTHON} setup.py sdist bdist_wheel
-
+	@gunicorn -k eventlet -w 1 demo:server
 
 tag:
-	@echo "*** tagging as ${TAG}"
-	@git tag ${TAG} -m "${MSG}"
-	@git push --tags
+	git tag ${TAG} -m "${MSG}"
+	git push --tags
 
+.python-version:
+	@pyenv virtualenv $$(basename ${CURDIR}) > /dev/null 2>&1 || true
+	@pyenv local $$(basename ${CURDIR})
+	@pyenv version
 
-publish-test: dist
-	${TWINE} upload --repository-url https://test.pypi.org/legacy/ dist/*
+requirements: .python-version requirements.txt
+	@pip install --upgrade -r requirements.txt > /dev/null
 
-publish: dist
-	${TWINE} upload dist/*
+upgrade: requirements
+	@pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 
 test: requirements
-	${VENV} tox
+	tox
+
+dist: requirements
+	rm -rf $@
+	python setup.py sdist bdist_wheel
+
+publish-test: dist
+	twine upload --repository testpypi dist/*
+
+publish: dist
+	twine upload dist/*
 
 coverage: test
-	${VENV} coverage report
+	coverage report
 
 docs: requirements
-	${VENV} cd docs; make html
+	cd docs; make html
 	open docs/_build/html/index.html
 
+PROJECT:=`find . -name '__init__.py' -maxdepth 2 | xargs dirname | grep -v docs`
+
+lint:
+	@PYTHONPATH=. pylint ${PROJECT} | tee lint.txt
+
 clean:
-	find . | grep '\.backup' | xargs rm
+	find . -type f -name "*.backup" | xargs rm
 
 .PHONY: dist docs

@@ -7,9 +7,7 @@
 [![Build Status](https://secure.travis-ci.org/christophevg/baseweb.svg?branch=master)](http://travis-ci.org/christophevg/baseweb)
 [![Documentation Status](https://readthedocs.org/projects/baseweb/badge/?version=latest)](https://baseweb.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/christophevg/baseweb/badge.svg?branch=master)](https://coveralls.io/github/christophevg/baseweb?branch=master)
-[![Built with PyPi Template](https://img.shields.io/badge/PyPi_Template-v0.1.1-blue.svg)](https://github.com/christophevg/pypi-template)
-
-
+[![Built with PyPi Template](https://img.shields.io/badge/PyPi_Template-v0.2.0-blue.svg)](https://github.com/christophevg/pypi-template)
 
 ## Documentation
 

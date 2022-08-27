@@ -12,6 +12,7 @@ first_year_of_publication: '2020'
 github_account: christophevg
 github_repo_name: baseweb
 keywords_describing_the_package: Flask Vue REST SocketIO
+license: MIT
 package_module_name: baseweb
 package_name: baseweb
 package_tagline: A Pythonic base for building interactive web applications
@@ -33,3 +34,4 @@ skip:
 your_author_name: Christophe VG
 your_email_address: contact@christophe.vg
 your_full_name: Christophe Van Ginneken
+your_name: Christophe VG

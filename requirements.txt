@@ -16,7 +16,7 @@ cryptography==37.0.4
 distlib==0.3.6
 dnspython==1.16.0
 docutils==0.17.1
-eventlet==0.30.2
+eventlet==0.31.0
 filelock==3.8.0
 fire==0.4.0
 Flask==2.2.2

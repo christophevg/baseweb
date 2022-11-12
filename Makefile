@@ -2,7 +2,7 @@ all: run
 
 run:
 	@echo "*** starting the web container"
-	@gunicorn -k eventlet -w 1 demo:server
+	@gunicorn -b 0.0.0.0:8000 -k eventlet -w 1 demo:server
 
 tag:
 	git tag ${TAG} -m "${MSG}"

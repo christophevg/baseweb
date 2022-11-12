@@ -39,6 +39,11 @@ def send_app_static(filename):
 def send_main_js():
   return render("store.js")
 
+if app.style == "pwa":
+  @server.route("/manifest.json")
+  def manifest():
+    return render("manifest.json")
+
 # catch-all to always render the main page, which will handle the URL
 
 @server.route("/<path:section>")

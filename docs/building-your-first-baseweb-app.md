@@ -1,26 +1,31 @@
 # Building Your First baseweb App
 
-The following walkthrough starts from literally nothing and shows every step to get to the standard demo app, as it is included in the repository.
+The following walkthrough starts from literally nothing and shows every step to get to the standard demo app, as can be found in [https://github.com/christophevg/baseweb-demo](https://github.com/christophevg/baseweb-demo).
 
-> Well, nothing is maybe too little. I assume you have access to a computer with a command line, python and [virtualenv](https://pypi.org/project/virtualenv/) installed. Oh, and in all honesty, you might also want a browser.
+> Well, nothing is maybe too little. I assume you have access to a computer with a command line, python and ideally some virtual environment manager. Oh, and in all honesty, you might also want a browser ;-)
+
+## Setup an environment
+
+This is optional, still very much advised: prepare a suitable execution environment, with your favorite virtual environment runner - mine is PyEnv:
+
+```console
+% mkdir my-app
+% cd my-app
+% pyenv virtualenv my-app
+% pyenv local my-app
+```
 
 ## Getting baseweb
 
-Let's start with some basic groundwork and construct a virtual environment with baseweb installed:
-
-```bash
-$ mkdir my-app
-$ cd my-app
-$ virtualenv -p python3 venv
-$ . venv/bin/activate
-(venv) $ pip install baseweb
+```console
+% pip install baseweb
 ```
 
 This is enough to install baseweb. Now to run your first baseweb app, you will need a webserver, like `gunicorn` with `eventlet` support:
 
 ```bash
-(venv) $ pip install https://github.com/benoitc/gunicorn/archive/ff58e0c6da83d5520916bc4cc109a529258d76e1.zip#egg=gunicorn==20.1.0
-(venv) $ pip install eventlet==0.33.0
+% pip install https://github.com/benoitc/gunicorn/archive/ff58e0c6da83d5520916bc4cc109a529258d76e1.zip#egg=gunicorn==20.1.0
+% pip install eventlet==0.33.2
 ```
 
 (There's an issue requiring these specific versions: [https://stackoverflow.com/questions/67409452/gunicorn-importerror-cannot-import-name-already-handled-from-eventlet-wsgi](https://stackoverflow.com/questions/67409452/gunicorn-importerror-cannot-import-name-already-handled-from-eventlet-wsgi))
@@ -31,9 +36,9 @@ All set. Let's meet baseweb...
 
 You can simply run baseweb from your app folder:
 
-```bash
-(venv) $ gunicorn -k eventlet -w 1 baseweb.web:server
-[2020-06-27 12:40:24 +0200] [68179] [INFO] Starting gunicorn 20.0.4
+```console
+% gunicorn -k eventlet -w 1 baseweb.web:server
+[2020-06-27 12:40:24 +0200] [68179] [INFO] Starting gunicorn 20.1.0
 [2020-06-27 12:40:24 +0200] [68179] [INFO] Listening at: http://127.0.0.1:8000 (68179)
 [2020-06-27 12:40:24 +0200] [68179] [INFO] Using worker: eventlet
 [2020-06-27 12:40:24 +0200] [68182] [INFO] Booting worker with pid: 68182
@@ -46,14 +51,14 @@ And visit [http://localhost:8000](http://localhost:8000)...
 Notice that baseweb has take the name of your app folder and uses that as the name for the application. That is in fact a fall-back in case the name isn't provided as an enrionment variable. Try starting baseweb using the following command:
 
 ```bash
-(venv) $ APP_NAME=hello gunicorn -k eventlet -w 1 baseweb.web:server
+% APP_NAME=hello gunicorn -k eventlet -w 1 baseweb.web:server
 ```
 
 ![Hello baseweb](hello-baseweb-2.png)
 
 ## Hello myapp
 
-Although there is already a lot in your current browser window to talk about, running baseweb in this 'naked' form, results in pretty much an empty shell. Let's build our actual app on top of "baseweb as a Python module".
+Although there is already a lot in your current browser window to talk about, running baseweb in this 'naked' form, results in pretty much an empty frame. Let's build our actual app on top of "baseweb as a Python module".
 
 Create a file, `hello.py`:
 
@@ -85,12 +90,12 @@ router.addRoutes([
 Now run your own baseweb app:
 
 ```bash
-(venv) kibo:my-app xtof$ gunicorn -k eventlet -w 1 hello:server
+% gunicorn -k eventlet -w 1 hello:server
 ```
 
 ![Hello myapp](hello-myapp-1.png)
 
-So what did you just do? You created a Vue.js component (`Hello`), registered it with baseweb, which hosts it in its, previously empty, Vue.js shell, and shows it when the 'route' points to the 'root'.
+So what did you just do? You created a Vue.js component (`Hello`), registered it with baseweb, which hosts it in its, previously empty, Vuetify-enabled frame, and shows it when the 'route' points to the 'root'.
 
 > There is a lot to discover and do with Vue.js. Baseweb leverages this enormous amount of power by wrapping a lot of the boilerplate in a way that it can be structured from Python. From there on, its mostly Vue.js magic for you to explore ;-)
 
@@ -208,6 +213,6 @@ def on_hello(name):
 
 ## At the End of This Tour...
 
-... you are ready to take a look at the demo app that is included in the repo, and see that, given some additional nuts and bolts, you basically have compiled the entire demo app yourself.
+... you are ready to take a look at the [baseweb demo app](https://github.com/christophevg/baseweb-demo), and see that, given some additional nuts and bolts, you basically have compiled the entire demo app yourself.
 
 Make sure to look into [adding security](adding-security.md) in the mix and watch this documentation for more examples in the future or consider [contributing](contributing.md) in any way.

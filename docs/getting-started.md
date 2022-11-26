@@ -8,6 +8,27 @@ $ pip install baseweb
 
 ## Minimal Survival Commands
 
+To actually run baseweb you need additionally a web server, like gunicorn, optionally with async support, e.g. using eventlet.
+
+```bash
+$ pip install https://github.com/benoitc/gunicorn/archive/ff58e0c6da83d5520916bc4cc109a529258d76e1.zip
+$ pip install eventlet
+```
+
+Now you can start a stock baseweb using:
+
+```bash
+$ gunicorn -k eventlet -w 1 baseweb.web:server
+```
+
+And you will get...
+
+![baseweb stock](baseweb-stock.png)
+
+Which is an empty baseweb, serving a (non-existing) application from your current folder (in my case called Workspace).
+
+## A little more...
+
 From a cloned instance of the baseweb repository, simply issue `make` to get a running instance of the demo app that is part of the repository: 
 
 ```bash

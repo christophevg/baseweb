@@ -21,11 +21,11 @@ Now you can start a stock baseweb using:
 $ gunicorn -k eventlet -w 1 baseweb.web:server
 ```
 
-And you will get...
+And when you visit [http://localhost:8000](http://localhost:8000) you will get...
 
-![baseweb stock](baseweb-stock.png)
+![baseweb stock](baseweb-frame.png)
 
-Which is an empty baseweb, serving a (non-existing) application from your current folder (in my case called Workspace).
+Which is an empty baseweb, serving a (non-existing) application from your current folder (in my case called Workspace). This is the baseweb frame in which your pages can be injected.
 
 ## A little more...
 

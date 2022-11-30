@@ -1,26 +1,9 @@
-function syntaxHighlight(obj, height) {
-  try {
-    var json = JSON.stringify(obj, null, 2);
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    var html = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-      var cls = 'number';
-      if (/^"/.test(match)) {
-        if (/:$/.test(match)) {
-          cls = 'key';
-        } else {
-          cls = 'string';
-        }
-      } else if (/true|false/.test(match)) {
-        cls = 'boolean';
-      } else if (/null/.test(match)) {
-        cls = 'null';
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    });
-    return "<pre style='background-color: #eee; max-height:"+height+"px; overflow:auto;'>" + html + "</pre>";
-  } catch(err) {
-    return json;
+function syntaxHighlight(src, height) {
+  if(typeof src !== "string" && !(src instanceof String)) {
+    src = JSON.stringify(src, null, 2);
   }
+  var html = hljs.highlightAuto(src).value;
+  return "<pre style='background-color: #fafafa; padding:10px; max-height:"+height+"px; overflow:auto;'>" + html + "</pre>";
 }
 
 Vue.filter( "syntaxHighlight", syntaxHighlight);
@@ -44,3 +27,38 @@ function uuid() {
     return v.toString(16);
   });
 }
+
+// setup sections + infrastructure to manage them
+
+(function (globals) {
+  var sections = {};
+  
+  function add_group(section, icon, text) {
+    sections[section] = {
+      index      : Object.keys(sections).length+1,
+      group      : true,
+      icon       : icon,
+      text       : text,
+      subsections: []
+    }
+    app.sections.push(sections[section]);
+  }
+  
+  function add_page(section, icon, text, path, component) {
+    sections[section].subsections.push({
+      icon  : icon,
+      text  : text,
+      path  : path,
+      index : sections[section].subsections.length+1
+    });
+    router.addRoutes([
+      { path: path, component: component }
+    ]);
+  }
+
+  globals.Navigation = {
+    "add_group" : add_group,
+    "add_page"  : add_page
+  };
+
+})(window);

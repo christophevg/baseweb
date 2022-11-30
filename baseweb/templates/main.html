@@ -20,10 +20,9 @@
     <link href="/static/vendor/css/vfg.css"                      rel="stylesheet">
     <link href="/static/vendor/css/vue-multiselect.min.css"      rel="stylesheet">
     <link href="/static/vendor/css/bootstrap-datetimepicker.css" rel="stylesheet">
-    
-    <link href="/static/css/main.css"      rel="stylesheet">
+    <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
 
-    {% block moreCSS %}{% endblock %}
+    <link href="/static/css/main.css"                            rel="stylesheet">
   </head>
 
   <body>
@@ -116,12 +115,15 @@
     <script src="/static/vendor/js/bootstrap.min.js"></script>
     <script src="/static/vendor/js/moment.min.js"></script>
     <script src="/static/vendor/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="/static/vendor/js/highlight.min.js"></script>
 
     <script src="/static/js/common.js"></script>
     <script src="/static/js/socketio.js"></script>
 
     <script src="/static/js/store.js"></script>
     <script src="/static/js/router.js"></script>
+
+    <script src="/static/js/components/CollectionView.js"></script>
 
     {% for file in components %}
     <script src="/app/{{ file }}"></script>

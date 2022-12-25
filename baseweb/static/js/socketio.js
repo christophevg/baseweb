@@ -1,11 +1,25 @@
-var socket = io("//" + document.domain + ":" + location.port);
+if( app.socketio ) {
 
-socket.on("connect", function() {
-  app.connected = true;
-  console.log("CONNECTED");
-});
+  var socket = io("//" + document.domain + ":" + location.port);
 
-socket.on("disconnect", function() {
-  app.connected = false;
-  console.log("DISCONNECTED");
-});
+  socket.on("connect", function() {
+    app.connected = true;
+    console.log("CONNECTED");
+  });
+
+  socket.on("disconnect", function() {
+    app.connected = false;
+    console.log("DISCONNECTED");
+  });
+
+} else {
+  var socket = {
+    "on" : function() {
+      console.log("no socketio support enabled...");    
+    },
+    "emit" : function(channel, args, callback) {
+      console.log("no socketio support enabled...");
+      callback("no socketio support enabled...");
+    }
+  }
+}

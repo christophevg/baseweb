@@ -22,7 +22,8 @@ var app = new Vue({
     connected:   false,
     initialized: false,
     drawer: null,
-    sections: []
+    sections: [],
+    socketio: false
   },
   computed: {
     orderedSections : function() {

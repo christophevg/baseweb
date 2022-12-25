@@ -5,7 +5,7 @@ import os
 
 import socket
 
-from baseweb       import __version__
+from baseweb import __version__
 
 CWD = os.getcwd()
 
@@ -29,6 +29,7 @@ class app(object):
   color       = os.environ.get("APP_COLOR",            "rgb(21, 101, 192)")
   bgcolor     = os.environ.get("APP_BACKGROUND_COLOR", "rgb(21, 101, 192)")
   style       = os.environ.get("APP_STYLE",            "web")
+  icon        = os.environ.get("APP_ICON",             None)
 
 logger.debug("baseAdmin config = " + str({
   "app" : {

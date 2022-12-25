@@ -33,27 +33,35 @@ function uuid() {
 (function (globals) {
   var sections = {};
   
-  function add_group(section, icon, text) {
+  function add_group(section, icon, text, index, group, path) {
     sections[section] = {
-      index      : Object.keys(sections).length+1,
-      group      : true,
+      index      : index || Object.keys(sections).length+1,
+      group      : group !== false,
       icon       : icon,
       text       : text,
-      subsections: []
+      subsections: [],
+      path       : path
     }
     app.sections.push(sections[section]);
   }
   
-  function add_page(section, icon, text, path, component) {
-    sections[section].subsections.push({
-      icon  : icon,
-      text  : text,
-      path  : path,
-      index : sections[section].subsections.length+1
-    });
-    router.addRoutes([
-      { path: path, component: component }
-    ]);
+  function add_page(section, icon, text, path, component, index) {
+    if(! section) {
+      // top-level page
+      add_group(text, icon, text, index, false, path)
+      router.addRoutes([ { path: path, component: component } ]);
+    } else {
+      // page in section
+      sections[section].subsections.push({
+        icon  : icon,
+        text  : text,
+        path  : path,
+        index : index
+      });
+      router.addRoutes([
+        { path: path, component: component }
+      ]);
+    }
   }
 
   globals.Navigation = {

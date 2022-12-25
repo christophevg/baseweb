@@ -38,6 +38,12 @@ def register_stylesheet(filename, path):
   logger.info("registered stylesheet {0} from {1}".format(filename, path))
   stylesheets[filename] = path
 
+def register_static_folder(folder):
+  global send_local_app_static
+  @server.route('/app/static/<path:filename>')
+  def send_local_app_static(filename):
+    return send_from_directory(folder, filename)
+
 @server.route("/app/style/<path:filename>")
 @authenticated("ui.app.filename")
 def send_app_style(filename):

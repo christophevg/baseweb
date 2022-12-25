@@ -23,6 +23,10 @@
     <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
 
     <link href="/static/css/main.css"                            rel="stylesheet">
+    
+    {% for file in stylesheets %}
+    <link href="/app/style/{{ file }}" rel="stylesheet">
+    {% endfor %}
   </head>
 
   <body>

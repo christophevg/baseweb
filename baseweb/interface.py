@@ -11,7 +11,8 @@ from baseweb.config   import app
 from baseweb.web      import server
 from baseweb.security import authenticated
 
-components = {}
+components  = {}
+stylesheets = {}
 
 def render(template="main.html"):
   try:
@@ -19,7 +20,6 @@ def render(template="main.html"):
   except TemplateNotFound:
     abort(404)
   
-
 @server.route("/")
 @authenticated("ui.landing")
 def render_landing():
@@ -33,6 +33,15 @@ def register_component(filename, path):
 @authenticated("ui.app.filename")
 def send_app_static(filename):
   return send_from_directory(os.path.join(components[filename]), filename)
+
+def register_stylesheet(filename, path):
+  logger.info("registered stylesheet {0} from {1}".format(filename, path))
+  stylesheets[filename] = path
+
+@server.route("/app/style/<path:filename>")
+@authenticated("ui.app.filename")
+def send_app_style(filename):
+  return send_from_directory(os.path.join(stylesheets[filename]), filename)
 
 @server.route("/static/js/store.js")
 @authenticated("ui.static.store.js")

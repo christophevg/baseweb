@@ -19,6 +19,8 @@ def to_camel_case(text):
     return text
   return "".join(i.capitalize() for i in s)
 
+OK = [ "yes", "true", "ok" ]
+
 class app(object):
   version     = __version__
   name        = os.environ.get("APP_NAME",             os.path.basename(CWD))
@@ -32,7 +34,13 @@ class app(object):
   bgcolor     = os.environ.get("APP_BACKGROUND_COLOR", "rgb(21, 101, 192)")
   style       = os.environ.get("APP_STYLE",            "web")
   icon        = os.environ.get("APP_ICON",             None)
-  socketio    = os.environ.get("APP_SOCKETIO",         "yes").lower() in [ "yes", "true", "ok" ]
+  socketio    = os.environ.get("APP_SOCKETIO",         "yes").lower() in OK
+  favicon     = {
+    "support"          : os.environ.get("APP_FAVICON_SUPPORT",         "no") in OK,
+    "mask_icon_color"  : os.environ.get("APP_FAVICON_MASK_ICON_COLOR", None),
+    "msapp_tile_color" : os.environ.get("APP_FAVICON_MSAPP_TILE_COLOR", None),
+    
+  }
 
 logger.debug("baseAdmin config = " + str({
   "app" : {
@@ -48,6 +56,7 @@ logger.debug("baseAdmin config = " + str({
     "bgcolor"     : app.bgcolor,
     "style"       : app.style,
     "icon"        : app.icon,
-    "socketio"    : app.socketio
+    "socketio"    : app.socketio,
+    "favicon"     : app.favicon
   }
 }))

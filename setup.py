@@ -27,7 +27,8 @@ INSTALL_REQUIRES = [
   "Flask-SocketIO",
   "websocket-client",
   "python-engineio",
-  "python-socketio"
+  "python-socketio",
+  "dotmap"
 ]
 ENTRY_POINTS = {
   

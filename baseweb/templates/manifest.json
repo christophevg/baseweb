@@ -3,7 +3,7 @@
   "short_name": "{{ app.short_name }}",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "{{ app.bgcolor }}",
+  "background_color": "{{ app.background_color }}",
   "theme_color": "{{ app.color }}",
   "orientation": "portrait-primary",
   "icons": [

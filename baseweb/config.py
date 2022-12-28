@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
+from dotmap import DotMap
 
 import socket
 
@@ -19,44 +20,35 @@ def to_camel_case(text):
     return text
   return "".join(i.capitalize() for i in s)
 
+app = DotMap({
+  k : os.environ.get(f"APP_{k.upper()}", v)
+  for k, v in {
+    "version"                  : __version__,
+    "name"                     : os.path.basename(CWD),
+    "short_name"               : None,
+    "author"                   : "Unknown Author",
+    "description"              : "A baseweb app",
+    "color_scheme"             : "dark",
+    "color"                    : "rgb(21, 101, 192)",
+    "color_name"               : "blue",
+    "background_color"         : "rgb(21, 101, 192)",
+    "style"                    : "web",
+    "icon"                     : None,
+    "socketio"                 : "yes",
+    "favicon_support"          : "no",
+    "favicon_mask_icon_color"  : None,
+    "favicon_msapp_tile_color" : None
+}.items()})
+
+if app.short_name is None:
+  app.short_name = to_camel_case(app.name)
+
+if app.color_scheme == "dark":
+  app.color_name += " darken-3"
+
 OK = [ "yes", "true", "ok" ]
 
-class app(object):
-  version     = __version__
-  name        = os.environ.get("APP_NAME",             os.path.basename(CWD))
-  short_name  = os.environ.get("APP_SHORT_NAME",       to_camel_case(name))
-  root        = os.environ.get("APP_ROOT",             CWD)
-  author      = os.environ.get("APP_AUTHOR",           "Unknown Author")
-  description = os.environ.get("APP_DESCRIPTION",      "A baseweb app")
-  scheme      = os.environ.get("APP_COLOR_SCHEME",     "dark")
-  color       = os.environ.get("APP_COLOR",            "rgb(21, 101, 192)")
-  color_name  = os.environ.get("APP_COLOR_NAME",       "blue") + " darken-3" if scheme == "dark" else ""
-  bgcolor     = os.environ.get("APP_BACKGROUND_COLOR", "rgb(21, 101, 192)")
-  style       = os.environ.get("APP_STYLE",            "web")
-  icon        = os.environ.get("APP_ICON",             None)
-  socketio    = os.environ.get("APP_SOCKETIO",         "yes").lower() in OK
-  favicon     = {
-    "support"          : os.environ.get("APP_FAVICON_SUPPORT",         "no") in OK,
-    "mask_icon_color"  : os.environ.get("APP_FAVICON_MASK_ICON_COLOR", None),
-    "msapp_tile_color" : os.environ.get("APP_FAVICON_MSAPP_TILE_COLOR", None),
-    
-  }
+app.socketio = app.socketio.lower() in OK
+app.favicon_support = app.favicon_support.lower() in OK
 
-logger.debug("baseAdmin config = " + str({
-  "app" : {
-    "version"     : app.version,
-    "name"        : app.name,
-    "short_name"  : app.short_name,
-    "root"        : app.root,
-    "author"      : app.author,
-    "description" : app.description,
-    "scheme"      : app.scheme,
-    "color"       : app.color,
-    "color_name"  : app.color_name,
-    "bgcolor"     : app.bgcolor,
-    "style"       : app.style,
-    "icon"        : app.icon,
-    "socketio"    : app.socketio,
-    "favicon"     : app.favicon
-  }
-}))
+logger.debug("baseweb config = " + str(app.toDict()))

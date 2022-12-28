@@ -46,7 +46,7 @@
           <v-toolbar-side-icon @click.stop="drawer = !drawer">
           {% if app.icon %}<{{ app.icon }}/>{% endif %}
           </v-toolbar-side-icon>
-          <span class="hidden-xs-only">{{ app.name }}</span>
+          <span>{{ app.name }}</span>
         </v-toolbar-title>
         {% if app.socketio %}
         <v-spacer></v-spacer>

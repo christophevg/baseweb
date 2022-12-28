@@ -37,10 +37,10 @@ var app = new Vue({
     }
   },
   methods: {
-    fixVuetifyCSS : function() {
-      this.$vuetify.theme.info  = '#ffffff';
-      this.$vuetify.theme.error = '#ffffff';
-    },
+    // fixVuetifyCSS : function() {
+    //   this.$vuetify.theme.info  = '#ffffff';
+    //   this.$vuetify.theme.error = '#ffffff';
+    // },
     registerClientComponent: function(component) {
       store.commit("clientComponent", component);
     },
@@ -50,4 +50,5 @@ var app = new Vue({
   }
 }).$mount('#app');
 
-app.fixVuetifyCSS();
+// :-( can't remember why I did this ;-)
+// app.fixVuetifyCSS();

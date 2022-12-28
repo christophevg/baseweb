@@ -1,6 +1,6 @@
 var store = new Vuex.Store({
   state: {
-    config : {{ app.toDict() | tojson }},
+    config : {{ app.toDict() | tojson }}
   },
   mutations: {
   },

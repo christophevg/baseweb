@@ -43,7 +43,7 @@
     <v-app id="app">
       <v-toolbar color="{{ app.color_name }}" {{ app.color_scheme }} app clipped-left fixed>
         <v-toolbar-title :style="$vuetify.breakpoint.smAndUp ? 'width: 300px; min-width: 250px' : 'min-width: 72px'" class="ml-0 pl-3">
-          <v-toolbar-side-icon @click.stop="drawer = !drawer">
+          <v-toolbar-side-icon @click.stop="toggle_drawer">
           {% if app.icon %}<{{ app.icon }}/>{% endif %}
           </v-toolbar-side-icon>
           <span>{{ app.name }}</span>
@@ -55,40 +55,7 @@
         {% endif %}
       </v-toolbar>
 
-      <v-navigation-drawer fixed clipped app v-model="drawer">
-        <v-list>
-          <template v-for="section in orderedSections">
-            <v-list-group v-if="section.group" :prepend-icon="section.icon" no-action value="true">
-              <v-list-tile slot="activator">
-                <v-list-tile-content>
-                  <v-list-tile-title>${ section.text }</v-list-tile-title>
-                </v-list-tile-content>
-              </v-list-tile>
-
-              <template v-for="subsection in section.subsections">
-                <v-list-tile :to="subsection.path">
-                  <v-list-tile-content>
-                    <v-list-tile-title>${ subsection.text }</v-list-tile-title>
-                  </v-list-tile-content>
-                  <v-list-tile-action>
-                    <v-icon>${ subsection.icon }</v-icon>
-                  </v-list-tile-action>
-                </v-list-tile>
-              </template>
-            </v-list-group>
-
-            <v-list-tile v-if="! section.group" :to="section.path">
-              <v-list-tile-action>
-                <v-icon>${ section.icon }</v-icon>
-              </v-list-tile-action>
-              <v-list-tile-content>
-                <v-list-tile-title>${ section.text }</v-list-tile-title>
-              </v-list-tile-content>
-            </v-list-tile>
-
-          </template>
-        </v-list>
-      </v-navigation-drawer>
+      <NavigationDrawer></NavigationDrawer>
 
       <v-content>
         <div class="content-wrapper">
@@ -129,6 +96,9 @@
       Vue.component('Multiselect', VueMultiselect.Multiselect);
     </script>
 
+    <script src="/static/js/store.js"></script>
+    <script src="/static/js/components/NavigationDrawer.js"></script>
+
     <script src="/static/vendor/js/socket.io.slim.js"></script>
 
     <script src="/static/vendor/js/Chart.min.js"></script>
@@ -139,8 +109,8 @@
     <script src="/static/vendor/js/bootstrap-datetimepicker.min.js"></script>
     <script src="/static/vendor/js/highlight.min.js"></script>
 
-    <script src="/static/js/store.js"></script>
     <script src="/static/js/router.js"></script>
+    <script src="/static/js/app.js"></script>
     {% if app.socketio %}
     <script>
       app.socketio = true;
@@ -150,7 +120,6 @@
     <script src="/static/js/common.js"></script>
     <script src="/static/js/socketio.js"></script>
 
-
     <script src="/static/js/components/Page.js"></script>
     <script src="/static/js/components/PageWithBanner.js"></script>
     <script src="/static/js/components/CollectionView.js"></script>
@@ -158,6 +127,10 @@
     {% for file in components %}
     <script src="/app/{{ file }}"></script>
     {% endfor %}
+
+    <script>
+      app.$mount('#app')
+    </script>
 
   </body>
 </html>

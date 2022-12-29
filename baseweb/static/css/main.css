@@ -16,3 +16,7 @@ DIV.notification.vue-notification {
 fieldset {
   border: 0px;
 }
+
+.vue-form-generator DIV.form-group.error {
+  background-color: white !important;
+}

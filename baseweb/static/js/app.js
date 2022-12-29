@@ -1,32 +1,29 @@
 var app = new Vue({
-  el: "#app",
+  el:         "#app",
   delimiters: ['${', '}'],
-  router: router,
+  router:     router,
   components: {
-    multiselect: VueMultiselect.Multiselect,
+    multiselect:      VueMultiselect.Multiselect,
     navigationdrawer: NavigationDrawer
   },
   data: {
     connected:   false,
     initialized: false,
-    socketio: false
+    socketio:    false
   },
   methods: {
-    // fixVuetifyCSS : function() {
-    //   this.$vuetify.theme.info  = '#ffffff';
-    //   this.$vuetify.theme.error = '#ffffff';
+    // deprecated ?
+    // registerClientComponent: function(component) {
+    //   store.commit("clientComponent", component);
     // },
-    registerClientComponent: function(component) {
-      store.commit("clientComponent", component);
-    },
-    registerGroupComponent: function(component) {
-      store.commit("groupComponent", component);
-    },
+    // registerGroupComponent: function(component) {
+    //   store.commit("groupComponent", component);
+    // },
+
+    // used from main to access drawer store in NavigationDrawer
     toggle_drawer: function() {
       store.commit('toggle_drawer');
     }
   }
 });
 
-// :-( can't remember why I did this ;-)
-// app.fixVuetifyCSS();

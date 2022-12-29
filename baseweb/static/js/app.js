@@ -27,3 +27,10 @@ var app = new Vue({
   }
 });
 
+function before_app_mount(f) {
+  if( app.$options.beforeMount ) {
+    app.$options.beforeMount.push(f);
+  } else {
+    app.$options.beforeMount = [ f ];
+  }
+}

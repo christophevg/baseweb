@@ -13,10 +13,11 @@ from baseweb.security import authenticated
 
 components  = {}
 stylesheets = {}
+scripts     = []
 
 def render(template="main.html"):
   try:
-    return render_template(template, app=app, components=components)
+    return render_template(template, app=app, components=components, scripts=scripts)
   except TemplateNotFound:
     abort(404)
   
@@ -37,6 +38,10 @@ def send_app_static(filename):
 def register_stylesheet(filename, path):
   logger.info("registered stylesheet {0} from {1}".format(filename, path))
   stylesheets[filename] = path
+
+def register_external_script(url):
+  logger.info(f"registered external script {url}")
+  scripts.append(url)
 
 def register_static_folder(folder):
   global send_local_app_static

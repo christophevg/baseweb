@@ -4,6 +4,8 @@ logger = logging.getLogger(__name__)
 import os
 from dotmap import DotMap
 
+import json
+
 import socket
 
 from baseweb import __version__
@@ -51,4 +53,4 @@ OK = [ "yes", "true", "ok" ]
 app.socketio = app.socketio.lower() in OK
 app.favicon_support = app.favicon_support.lower() in OK
 
-logger.debug("baseweb config = " + str(app.toDict()))
+logger.info(json.dumps(app.toDict(), indent=2))

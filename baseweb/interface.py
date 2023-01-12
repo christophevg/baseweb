@@ -27,7 +27,7 @@ def render_landing():
   return render()
 
 def register_component(filename, path):
-  logger.info("registered component {0} from {1}".format(filename, path))
+  logger.debug("registered component {0} from {1}".format(filename, path))
   components[filename] = path
 
 @server.route("/app/<path:filename>")
@@ -36,11 +36,11 @@ def send_app_static(filename):
   return send_from_directory(os.path.join(components[filename]), filename)
 
 def register_stylesheet(filename, path):
-  logger.info("registered stylesheet {0} from {1}".format(filename, path))
+  logger.debug("registered stylesheet {0} from {1}".format(filename, path))
   stylesheets[filename] = path
 
 def register_external_script(url):
-  logger.info(f"registered external script {url}")
+  logger.debug(f"registered external script {url}")
   scripts.append(url)
 
 def register_static_folder(folder):

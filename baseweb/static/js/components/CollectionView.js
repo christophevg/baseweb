@@ -248,7 +248,6 @@ Vue.component("CollectionView", {
       });
     },
     delete: function(id) {
-      if(! store.getters.env("FA_URL") ) { return; }
       this.loading = true
       var self = this;
       $.ajax({

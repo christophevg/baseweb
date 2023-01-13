@@ -28,7 +28,8 @@ INSTALL_REQUIRES = [
   "websocket-client",
   "python-engineio",
   "python-socketio",
-  "dotmap"
+  "dotmap",
+  "pyfiglet"
 ]
 ENTRY_POINTS = {
   

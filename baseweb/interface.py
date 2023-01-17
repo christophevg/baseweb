@@ -17,7 +17,7 @@ scripts     = []
 
 def render(template="main.html"):
   try:
-    return render_template(template, app=app, components=components, scripts=scripts)
+    return render_template(template, app=app, components=components, scripts=scripts, stylesheets=stylesheets)
   except TemplateNotFound:
     abort(404)
   
@@ -52,7 +52,7 @@ def register_static_folder(folder):
 @server.route("/app/style/<path:filename>")
 @authenticated("ui.app.filename")
 def send_app_style(filename):
-  return send_from_directory(os.path.join(stylesheets[filename]), filename)
+  return send_from_directory(stylesheets[filename], filename)
 
 @server.route("/static/js/store.js")
 @authenticated("ui.static.store.js")

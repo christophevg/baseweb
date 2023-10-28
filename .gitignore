@@ -9,3 +9,4 @@ docs/_build
 *.backup
 .python-version
 baseweb-demo
+.DS_Store

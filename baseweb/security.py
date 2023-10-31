@@ -1,11 +1,12 @@
 import logging
-logger = logging.getLogger(__name__)
 
 from functools import wraps
 
 from flask import request, Response
 
 from baseweb import config
+
+logger = logging.getLogger(__name__)
 
 authenticator = None
 
@@ -15,7 +16,8 @@ def add_authenticator(f):
   authenticator = f
 
 def valid_credentials(scope, *args, **kwargs):
-  if authenticator is None: return True
+  if authenticator is None:
+    return True
   if not authenticator(scope, request, *args, **kwargs):
     logger.warn("incorrect credentials")
     return False

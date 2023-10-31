@@ -1,15 +1,16 @@
 import os
 
 import logging
-logger = logging.getLogger(__name__)
 
 from flask  import render_template, send_from_directory
-from flask  import request, redirect, abort
+from flask  import abort
 from jinja2 import TemplateNotFound
 
 from baseweb.config   import app
 from baseweb.web      import server
 from baseweb.security import authenticated
+
+logger = logging.getLogger(__name__)
 
 components  = {}
 stylesheets = {}

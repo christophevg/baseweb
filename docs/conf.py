@@ -23,7 +23,7 @@ project = u'baseweb'
 copyright = u'2020-2020, Christophe Van Ginneken'
 author = u'Christophe VG'
 
-from baseweb import __version__
+from baseweb import __version__ # noqa
 # The short X.Y version
 version = __version__
 # The full version, including alpha/beta/rc tags
@@ -50,8 +50,8 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 # source_suffix = '.rst'
 
-from recommonmark.parser import CommonMarkParser
-from recommonmark.transform import AutoStructify
+from recommonmark.parser import CommonMarkParser  # noqa
+from recommonmark.transform import AutoStructify  # noqa
 source_parsers = { ".md": CommonMarkParser }
 source_suffix  = ['.rst', '.md']
 

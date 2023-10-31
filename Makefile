@@ -7,18 +7,40 @@ tag:
 	@pyenv local $$(basename ${CURDIR})
 	@pyenv version
 
-requirements: .python-version requirements.txt
-	@pip install --upgrade -r requirements.txt > /dev/null
+# dependencies targets
 
-upgrade: requirements
-	@pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+requirements: requirements.txt
+	@pip install --upgrade -r $< > /dev/null
+	@if [ -f requirements.local.txt ]; then pip install --upgrade -r requirements.local.txt > /dev/null; fi
 
-test: requirements
+upgrade:
+	@pip list --outdated | tail +3 | cut -d " " -f 1 | xargs -n1 pip install -U
+
+# functional targets
+
+test: lint
 	tox
 
-dist: requirements
-	rm -rf $@
+coverage: test
+	coverage report
+
+PYTHON_VERSION=py38
+
+lint:
+	ruff --select=E9,F63,F7,F82 --target-version=$(PYTHON_VERSION) .
+	ruff --target-version=$(PYTHON_VERSION) .
+
+docs:
+	cd docs; make html
+	open docs/_build/html/index.html
+
+# packaging targets
+
+dist: dist-clean
 	python setup.py sdist bdist_wheel
+
+dist-clean:
+	rm -rf dist build *.egg-info
 
 publish-test: dist
 	twine upload --repository testpypi dist/*
@@ -26,19 +48,11 @@ publish-test: dist
 publish: dist
 	twine upload dist/*
 
-coverage: test
-	coverage report
-
-docs: requirements
-	cd docs; make html
-	open docs/_build/html/index.html
-
-PROJECT:=`find . -name '__init__.py' -maxdepth 2 | xargs dirname | grep -v docs`
-
-lint:
-	@PYTHONPATH=. pylint ${PROJECT} | tee lint.txt
-
 clean:
 	find . -type f -name "*.backup" | xargs rm
 
 .PHONY: dist docs
+
+# include optional a personal/local touch
+
+-include Makefile.mak

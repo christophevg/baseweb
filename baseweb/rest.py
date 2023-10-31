@@ -1,5 +1,3 @@
-import logging
-
 import flask_restful
 from flask import make_response
 

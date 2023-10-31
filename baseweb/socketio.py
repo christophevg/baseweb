@@ -1,14 +1,13 @@
 import logging
-logger = logging.getLogger(__name__)
-
-from functools import wraps
 
 from flask import request
 
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
+from flask_socketio import SocketIO
 
 from baseweb.web      import server
 from baseweb.security import authenticated
+
+logger = logging.getLogger(__name__)
 
 socketio = SocketIO(server)
 

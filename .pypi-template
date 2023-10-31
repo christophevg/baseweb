@@ -33,7 +33,6 @@ skip:
 - docs
 - tests
 - (package_module_name)
-- Makefile
 - MANIFEST.in
 your_author_name: Christophe VG
 your_email_address: contact@christophe.vg

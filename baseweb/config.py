@@ -1,14 +1,13 @@
 import logging
-logger = logging.getLogger(__name__)
 
 import os
 from dotmap import DotMap
 
 import json
 
-import socket
-
 from baseweb import __version__
+
+logger = logging.getLogger(__name__)
 
 CWD = os.getcwd()
 

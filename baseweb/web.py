@@ -1,14 +1,11 @@
 import logging
-logger = logging.getLogger(__name__)
 
 # import traceback
 
 from flask import Flask
 
-server = Flask(__name__)
+logger = logging.getLogger(__name__)
 
-import baseweb.interface
-import baseweb.rest
-import baseweb.socketio
+server = Flask(__name__)
 
 logger.info("baseweb web server is ready...")

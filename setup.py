@@ -21,15 +21,12 @@ CLASSIFIERS      = [
   
 ]
 INSTALL_REQUIRES = [
-  "python-dotenv",
   "Flask",
   "Flask-RESTful",
   "Flask-SocketIO",
+  "python-dotenv",
   "websocket-client",
-  "python-engineio",
-  "python-socketio",
-  "dotmap",
-  "pyfiglet"
+  
 ]
 ENTRY_POINTS = {
   

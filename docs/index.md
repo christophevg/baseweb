@@ -12,9 +12,11 @@
 
 ## Contents
 
-* [What is in the Box](whats-in-the-box.md)
-* [Getting Started](getting-started.md)
-* [Building Your First baseweb App](building-your-first-baseweb-app.md)
-* [Adding Security](adding-security.md)
-* [Contributing](contributing.md)
-
+```{toctree}
+:maxdepth: 1
+whats-in-the-box.md
+getting-started.md
+building-your-first-baseweb-app.md
+adding-security.md
+contributing.md
+```

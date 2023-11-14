@@ -6,5 +6,10 @@ requirements.local.txt:
 
 .PHONY: requirements.local.txt
 
+clean-requirements:
+	pip freeze | cut -d'=' -f1 | xargs pip uninstall -y
+	pip install -r requirements.txt
+	pip install -r requirements.base.txt
+
 run:
 	gunicorn -k eventlet -w 1 baseweb-demo:server

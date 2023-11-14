@@ -11,8 +11,7 @@ $ pip install baseweb
 To actually run baseweb you need additionally a web server, like gunicorn, optionally with async support, e.g. using eventlet.
 
 ```bash
-$ pip install https://github.com/benoitc/gunicorn/archive/ff58e0c6da83d5520916bc4cc109a529258d76e1.zip
-$ pip install eventlet
+$ pip install gunicorn eventlet
 ```
 
 Now you can start a stock baseweb using:
@@ -33,6 +32,7 @@ To quickly add a little more, clone the baseweb-demo repository and give that a 
 
 ```bash
 % git clone https://github.com/christophevg/baseweb-demo
+% pip install oatk
 % gunicorn -k eventlet -w 1 baseweb-demo:server
 ```
 

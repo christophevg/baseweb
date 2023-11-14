@@ -5,3 +5,6 @@ requirements.local.txt:
 	rm req.local.txt req.txt
 
 .PHONY: requirements.local.txt
+
+run:
+	gunicorn -k eventlet -w 1 baseweb-demo:server

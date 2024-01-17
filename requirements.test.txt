@@ -1,3 +1,4 @@
+# baseweb
 Flask
 Flask-RESTful
 Flask-SocketIO
@@ -7,6 +8,9 @@ python-engineio
 python-socketio
 dotmap
 pyfiglet
-gunicorn
-eventlet
-pypi-template
+
+# testing
+pytest
+tox
+coverage
+ruff

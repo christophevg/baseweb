@@ -8,3 +8,8 @@ python-engineio
 python-socketio
 dotmap
 pyfiglet
+
+# demo
+gunicorn
+eventlet
+oatk

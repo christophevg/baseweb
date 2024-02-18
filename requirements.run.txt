@@ -8,3 +8,9 @@ python-engineio
 python-socketio
 dotmap
 pyfiglet
+dnspython==2.5.0
+
+# demo
+gunicorn
+eventlet
+oatk

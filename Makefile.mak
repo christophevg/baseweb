@@ -1,18 +1,7 @@
-run: env-demo
-	gunicorn -k eventlet -w 1 baseweb-demo:server
-
-env-%: local-env-% clean-env	
-	pip install -r requirements.$*.txt
-
-local-env-%:
-	pyenv local baseweb-$*
-
-clean-env:
-	pip freeze | cut -d"@" -f1 | cut -d'=' -f1 | xargs pip uninstall -y
-
-pypi:
-	pyenv local baseweb
-
-test-docs: env-docs docs
-
-test-test: env-test test
+ifneq ("$(wildcard baseweb-demo)","")
+	RUN_CMD=gunicorn -k eventlet -w 1 baseweb-demo:server
+else
+	INSTALL_CMD="git clone https://github.com/christophevg/baseweb-demo"
+	ERROR_MSG="🛑‍ baseweb-demo is not present, so nothing to run..."
+	RUN_CMD=@echo "$(RED)$(ERROR_MSG)$(NC)\nInstall using $(GREEN)$(INSTALL_CMD)$(NC)"
+endif

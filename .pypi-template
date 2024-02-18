@@ -35,6 +35,7 @@ skip:
 - tests
 - (package_module_name)
 - MANIFEST.in
+- .gitignore
 your_author_name: Christophe VG
 your_email_address: contact@christophe.vg
 your_full_name: Christophe Van Ginneken

@@ -30,6 +30,7 @@ INSTALL_REQUIRES = [
   "python-socketio",
   "dotmap",
   "pyfiglet",
+  "dnspython==2.5.0",
   
 ]
 ENTRY_POINTS = {

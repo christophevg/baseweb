@@ -28,6 +28,7 @@ requires:
 - python-socketio
 - dotmap
 - pyfiglet
+- dnspython==2.5.0
 scripts: []
 skip:
 - docs

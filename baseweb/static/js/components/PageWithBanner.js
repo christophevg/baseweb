@@ -1,10 +1,11 @@
+// basic page with a persistent banner
+
 Vue.component("PageWithBanner", {
   template : `
 <Page>
   <v-alert v-model="banner.alert" :dismissible="banner.dismissible" :type="banner.type">{{ banner.message }}</v-alert>
-  <div style="padding:15px">
-    <slot></slot>
-  </div>
+  <div style="padding-top:15px" v-if="banner.alert">&nbsp;</div>
+  <slot></slot>
 </Page>
 `,
   computed: {

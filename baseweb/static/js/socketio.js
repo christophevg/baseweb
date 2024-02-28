@@ -4,22 +4,22 @@ if( app.socketio ) {
 
   socket.on("connect", function() {
     app.connected = true;
-    console.log("CONNECTED");
+    console.log("🛜 socketio: connected to backend...");
   });
 
   socket.on("disconnect", function() {
     app.connected = false;
-    console.log("DISCONNECTED");
+    console.log("🛜 socketio: disconnected from backend");
   });
 
 } else {
   var socket = {
     "on" : function() {
-      console.log("no socketio support enabled...");    
+      console.log("socketio: support not enabled...");    
     },
     "emit" : function(channel, args, callback) {
-      console.log("no socketio support enabled...");
-      callback("no socketio support enabled...");
+      console.log("socketio: support not enabled...");
+      callback("🛜 socketio: support not enabled...");
     }
   }
 }

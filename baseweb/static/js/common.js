@@ -1,8 +1,12 @@
-function syntaxHighlight(src, height) {
+function syntaxHighlight(src, height, lang) {
   if(typeof src !== "string" && !(src instanceof String)) {
     src = JSON.stringify(src, null, 2);
   }
-  var html = hljs.highlightAuto(src).value;
+  if(lang) {
+    var html = hljs.highlight(src, {language: lang}).value;
+  } else {
+    var html = hljs.highlightAuto(src).value;    
+  }
   return "<pre style='background-color: #fafafa; padding:10px; max-height:"+height+"px; overflow:auto;'>" + html + "</pre>";
 }
 
@@ -27,4 +31,3 @@ function uuid() {
     return v.toString(16);
   });
 }
-

@@ -23,6 +23,8 @@
     <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
 
     <link href="/static/css/main.css"                            rel="stylesheet">
+
+    <link href="/static/css/process_diagram.css"                 rel="stylesheet">
     
     {% for file in stylesheets %}
     <link href="/app/style/{{ file }}" rel="stylesheet">
@@ -125,6 +127,7 @@
     <script src="/static/js/components/PageWithStatus.js"></script>
     <script src="/static/js/components/CollectionView.js"></script>
     <script src="/static/js/components/LineChart.js"></script>
+    <script src="/static/js/components/ProcessDiagram.js"></script>
 
     {% for file in components %}
     <script src="/app/{{ file }}"></script>

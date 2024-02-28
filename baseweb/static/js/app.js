@@ -11,14 +11,6 @@ var app = new Vue({
     socketio:    false
   },
   methods: {
-    // deprecated ?
-    // registerClientComponent: function(component) {
-    //   store.commit("clientComponent", component);
-    // },
-    // registerGroupComponent: function(component) {
-    //   store.commit("groupComponent", component);
-    // },
-
     // used from main to access drawer store in NavigationDrawer
     toggle_drawer: function() {
       store.commit('toggle_drawer');

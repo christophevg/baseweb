@@ -26,9 +26,13 @@ class Baseweb(Flask):
   _banner_shown = False
 
   def __init__(self, name=None, *args, **kwargs):
+    self._show_banner()
     self._load_config()
+
     if name is None:
       name = self.settings.name
+
+    # create the Fask object part
     super().__init__(name, *args, **kwargs)
 
     self.template_folder   = HERE / "templates"  # flask property
@@ -43,7 +47,6 @@ class Baseweb(Flask):
 
     self._files = { "components" : {}, "stylesheets" : {}, "scripts" : [] }
 
-    self._show_banner()
     self._setup_routes()
 
   def _show_banner(self):
@@ -185,4 +188,5 @@ class Baseweb(Flask):
       abort(404)
     return send_from_directory(self.app_static_folder, filename)
 
+# expose the classic global, one-for-all baseweb server instance
 server = Baseweb()

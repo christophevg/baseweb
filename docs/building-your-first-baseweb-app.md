@@ -34,7 +34,7 @@ All set. Let's meet baseweb...
 You can simply run baseweb from your app folder:
 
 ```console
-% gunicorn -k eventlet -w 1 baseweb.web:server
+% gunicorn -k eventlet -w 1 baseweb:server
 [2020-06-27 12:40:24 +0200] [68179] [INFO] Starting gunicorn 20.1.0
 [2020-06-27 12:40:24 +0200] [68179] [INFO] Listening at: http://127.0.0.1:8000 (68179)
 [2020-06-27 12:40:24 +0200] [68179] [INFO] Using worker: eventlet
@@ -48,7 +48,7 @@ And visit [http://localhost:8000](http://localhost:8000)...
 Notice that baseweb has take the name of your app folder and uses that as the name for the application. That is in fact a fall-back in case the name isn't provided as an enrionment variable. Try starting baseweb using the following command:
 
 ```bash
-% APP_NAME=hello gunicorn -k eventlet -w 1 baseweb.web:server
+% APP_NAME=hello gunicorn -k eventlet -w 1 baseweb:server
 ```
 
 ![Hello baseweb](hello-baseweb-2.png)
@@ -62,10 +62,9 @@ Create a file, `hello.py`:
 ```python
 import os
 
-from baseweb.web       import server
-from baseweb.interface import register_component
+from baseweb import server
 
-register_component("hello.js", os.path.dirname(__file__))
+server.register_component("hello.js", os.path.dirname(__file__))
 ```
 
 And also create a Javascript file, `hello.js`:
@@ -103,17 +102,16 @@ Now, extend your `hello.py` with
 ```python
 # set up a REST resource to handle hello requests from the UI
 
-from flask import request
 from flask_restful import Resource
 
-from baseweb.rest import api
+from baseweb import server
 
 class Hello(Resource):
   def get(self):
-    name = request.args["name"]
+    name = server.request.args["name"]
     return "Hello {0}".format(name)
 
-api.add_resource(Hello, "/api/hello")
+server.api.add_resource(Hello, "/api/hello")
 ```
 
 and update your `hello.js` to look like this:
@@ -181,9 +179,9 @@ Besides the more classic IO, baseweb als includes ready-to-use socket IO. Add th
 ```python
 # set up socketio event handlers to handle hello events from the UI
 
-from baseweb.socketio import socketio
+from baseweb import server
 
-@socketio.on("hello")
+@server.socketio.on("hello")
 def on_hello(name):
   return "Hello {0} from socketio!".format(name)
 ```

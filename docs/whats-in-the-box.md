@@ -21,4 +21,4 @@ From a functional point of view baseweb is a rapid prototyping framework, highly
 3. A page consists of a Python backend module and a Vue web component.
 4. The Python module typically defined RESTful or socketio routes to answer calls from the page inside the frame.
 5. The Vue web component leverages all the goodies that Vue, Vuetify, Vuex, Notifications,... to construct a user friendly and consistently designed page.
-6. Through extensive use of Vue From Generator and a growing library of components, the assembling a such a page requires little to no coding.
+6. Through extensive use of Vue From Generator and a growing library of components, assembling such a page requires little to no coding.

@@ -3,15 +3,13 @@
 To setup a layer of access security, baseweb allows to register an authenticator function:
 
 ```python
-from baseweb.security import add_authenticator
+from baseweb import server
 
 def authenticator(scope, request, *args, **kwargs):
-  logger.debug("AUTH: scope:{} / request:{} / args:{} / kwargs:{}".format(
-    scope, str(request), str(args), str(kwargs)
-  ))
+  logger.debug("AUTH: scope:{scope} / request:{request} / args:{args} / kwargs:{kwargs}"))
   return True
 
-add_authenticator(authenticator)
+server.authenticator = authenticator
 ```
 
 After adding this to you initialization code, every request to the user interface part of baseweb will be validated using this function. In this example (taken from the demo app) all requests are logged. From such a log, we can see what the arguments are that are passed to our authenticator function:
@@ -34,23 +32,23 @@ The `request` argument is the standard Flask `request` object, which, amongst ot
 You can use the same mechanism to add security to your own resources and IO:
 
 ```python
-from baseweb.security import authenticated
+from baseweb import server
 
 class Hello(Resource):
-  @authenticated("app.hello.get")
+  @server.authenticated("app.hello.get")
   def get(self):
-    name = request.args["name"]
-    log("received hello from {0} via rest/get".format(name))
-    return "Hello {0} from REST/GET".format(name)
+    name = server.request.args["name"]
+    log(f"received hello from {name} via rest/get")
+    return f"Hello {name} from REST/GET"
     
-  @authenticated("app.hello.post")
+  @server.authenticated("app.hello.post")
   def post(self):
-    name = request.get_json()["name"]
-    log("received hello from {0} via rest/post".format(name))
-    return "Hello {0} from REST/POST".format(name)
+    name = server.request.get_json()["name"]
+    log(f"received hello from {name} via rest/post")
+    return f"Hello {name} from REST/POST"
 ```
 
-By applying the `baseweb.security.authenticated` decorator methods on resources can be secured in exactly the same way as their ui counterparts.
+By applying the `server.authenticated` decorator methods on resources can be secured in exactly the same way as their ui counterparts.
 
 This example also comes from the demo app, so when issuing a get or post request our authenticator function is also called, now with the called instance of our resource:
 
@@ -72,12 +70,12 @@ AUTH: scope:io.disconnect / request:<Request 'http://localhost:8000/socket.io/?E
 Instrumenting our own socket IO event handlers happens in exactly the same way as our resources:
 
 ```python
-from baseweb.security import authenticated
+from baseweb import server
 
-@socketio.on("hello")
-@authenticated("app.io.hello")
+@server.socketio.on("hello")
+@server.authenticated("app.io.hello")
 def on_hello(name):
-  log("received hello from {0} ({1}) via socketio".format(name, request.sid))
-  return "Hello {0} from socketio!".format(name)
+  log(f"received hello from {name} ({server.request.sid}) via socketio")
+  return f"Hello {name} from socketio!"
 ```
 

@@ -1,4 +1,5 @@
-from baseweb.web import server
+from baseweb import Baseweb
 
 def test_placeholder():
-  assert server is not None
+  test = Baseweb("test")
+  assert test.name == "test"

@@ -17,7 +17,7 @@ $ pip install gunicorn eventlet
 Now you can start a stock baseweb using:
 
 ```bash
-$ gunicorn -k eventlet -w 1 baseweb.web:server
+$ gunicorn -k eventlet -w 1 baseweb:server
 ```
 
 And when you visit [http://localhost:8000](http://localhost:8000) you will get...

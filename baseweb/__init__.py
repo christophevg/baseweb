@@ -10,7 +10,7 @@ from dotmap import DotMap
 import json
 
 from flask import Flask, request, Response, render_template, send_from_directory
-from flask import make_response, abort
+from flask import abort
 from jinja2 import TemplateNotFound
 import flask_restful
 import flask_socketio

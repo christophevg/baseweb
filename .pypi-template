@@ -1,12 +1,14 @@
 a_description_for_the_package: A Pythonic base for building interactive web applications
 classifiers:
+- 'Programming Language :: Python :: 3.8'
+- 'Programming Language :: Python :: 3.9'
+- 'Programming Language :: Python :: 3.10'
+- 'Programming Language :: Python :: 3.11'
 - 'Environment :: Web Environment'
-- 'Development Status :: 4 - Beta'
 - 'Intended Audience :: Developers'
 - 'Topic :: Software Development :: Libraries :: Python Modules'
 - 'License :: OSI Approved :: MIT License'
-- 'Programming Language :: Python :: 3'
-- 'Programming Language :: Python :: 3.5'
+- 'Development Status :: 4 - Beta'
 console_scripts: []
 first_year_of_publication: '2020'
 github_account: christophevg
@@ -37,5 +39,5 @@ skip:
 - .gitignore
 your_author_name: Christophe VG
 your_email_address: contact@christophe.vg
-your_full_name: Christophe Van Ginneken
+your_full_name: Christophe VG
 your_name: Christophe VG

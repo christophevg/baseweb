@@ -89,6 +89,7 @@ class Baseweb(Flask):
     self.settings.socketio = self.settings.socketio.lower() in OK
     self.settings.favicon_support = self.settings.favicon_support.lower() in OK
 
+  def log_config(self):
     settings = json.dumps(self.settings.toDict(), indent=2)
     logger.info(f"📌 current settings: {settings}")
 

@@ -11,9 +11,12 @@ PYTHON_VERSIONS ?= 3.8.12 3.9.18 3.10.13 3.11.5
 RUFF_PYTHON_VERSION ?= py38
 
 PROJECT=$(shell basename $(CURDIR))
-PACKAGE_NAME=`cat .pypi-template | grep "^package_module_name" | cut -d":" -f2`
+PACKAGE_NAME=`cat .pypi-template | grep "^package_module_name" | cut -d":" -f2 | xargs`
 
-RUN_CMD?=python -m $(PACKAGE_NAME)
+LOG_LEVEL?=ERROR
+SILENT?=yes
+
+RUN_CMD?=LOG_LEVEL=$(LOG_LEVEL) python -m $(PACKAGE_NAME)
 RUN_ARGS?=
 
 TEST_ENVS=$(addprefix $(PROJECT)-test-,$(PYTHON_VERSIONS))
@@ -49,7 +52,7 @@ $(PROJECT)-test-%:
 	-pyenv virtualenv $* $@ > /dev/null
 	pyenv local $@
 	pip install -U pip > /dev/null
-	pip install -U ruff tox > /dev/null
+	pip install -U ruff tox coverage > /dev/null
 
 uninstall: uninstall-envs
 
@@ -71,28 +74,36 @@ upgrade:
 # env switching
 
 env-%:
-	pyenv local $(PROJECT)-$*
+	@echo "👷‍♂️ $(BLUE)activating $* environment$(NC)"
+	@pyenv local $(PROJECT)-$*
 
 env:
-	pyenv local $(PROJECT)
+	@echo "👷‍♂️ $(BLUE)activating project environment$(NC)"
+	@pyenv local $(PROJECT)
 
 env-test:
-	pyenv local $(TEST_ENVS)
+	@echo "👷‍♂️ $(BLUE)activating test environments$(NC)"
+	@pyenv local $(TEST_ENVS)
 	
 # functional targets
 
 run: env-run
-	$(RUN_CMD) $(RUN_ARGS)
+	@echo "👷‍♂️ $(BLUE)running$(GREEN) $(RUN_CMD) $(RUN_ARGS)$(NC)"
+	@$(RUN_CMD) $(RUN_ARGS)
 
 test: env-test lint
+ifeq ($(SILENT),yes)
+	tox -q
+else
 	tox
+endif
 
 coverage: test
 	coverage report
+	coverage lcov
 
 lint: env-test
-	ruff --select=E9,F63,F7,F82 --target-version=$(RUFF_PYTHON_VERSION) .
-	ruff --target-version=$(RUFF_PYTHON_VERSION) .
+	ruff check --target-version=$(RUFF_PYTHON_VERSION) .
 
 docs: env-docs
 	cd docs; make html

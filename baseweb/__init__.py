@@ -1,4 +1,4 @@
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 import logging
 import os
@@ -64,10 +64,13 @@ class Baseweb(Flask):
       k : os.environ.get(f"APP_{k.upper()}", v)
       for k, v in {
         "version"                  : __version__,
+        "url"                      : None,
         "name"                     : os.path.basename(os.getcwd()),
+        "title"                    : os.path.basename(os.getcwd()),
         "short_name"               : None,
         "author"                   : "Unknown Author",
         "description"              : "A baseweb app",
+        "social_image"             : None,
         "color_scheme"             : "dark",
         "color"                    : "rgb(21, 101, 192)",
         "color_name"               : "blue",

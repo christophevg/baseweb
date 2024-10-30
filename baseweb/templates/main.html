@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <meta name="description" content="{{ app.description }}">
-    <meta name="author" content="{{ app.author }}">
     {% if app.style == "pwa" %}<link rel="manifest" href="/manifest.json" />{% endif %}
     <title>{{ app.name }}{% if self.title() %} - {% endif %} {% block title %}{% endblock %}</title>
 
@@ -23,12 +21,9 @@
     <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
 
     <link href="/static/css/main.css"                            rel="stylesheet">
-
     <link href="/static/css/process_diagram.css"                 rel="stylesheet">
-    
     {% for file in stylesheets %}
-    <link href="/app/style/{{ file }}" rel="stylesheet">
-    {% endfor %}
+    <link href="/app/style/{{ file }}" rel="stylesheet">{% endfor %}
 
     {% if app.favicon_support %}
     <link rel="apple-touch-icon" sizes="180x180" href="/app/static/favicon/apple-touch-icon.png">
@@ -39,6 +34,12 @@
     <meta name="msapplication-TileColor" content="{{ app.favicon_msapp_tile_color }}">
     <meta name="theme-color" content="{{ app.color}}">
     {% endif %}
+    <meta name="title"       property="og:type"        content="website"/>
+    <meta name="title"       property="og:title"       content="{{ app.title }}"/>
+    <meta name="author"      property="og:author"      content="{{ app.author }}"/>
+    <meta name="description" property="og:description" content="{{ app.description }}"/>
+    {% if app.url %}<meta name="url"         property="og:url"         content="//{{ app.url }}"/>{% endif %}
+    {% if app.social_image %}<meta name="image"       property="og:image"       content="{{ app.social_image }}"/>{% endif %}
   </head>
 
   <body>

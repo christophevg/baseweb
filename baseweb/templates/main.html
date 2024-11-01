@@ -62,7 +62,9 @@
 
       <v-content>
         <div class="content-wrapper">
-          <router-view></router-view>
+          {% if app.keep_alive %}<keep-alive>{% endif %}
+            <router-view></router-view>
+          {% if app.keep_alive %}</keep-alive>{% endif %}
           <notifications group="notifications" position="bottom right"/>
         </div>
       </v-content>

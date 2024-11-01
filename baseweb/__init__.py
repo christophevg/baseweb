@@ -1,4 +1,4 @@
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 import logging
 import os
@@ -80,7 +80,8 @@ class Baseweb(Flask):
         "socketio"                 : "yes",
         "favicon_support"          : "no",
         "favicon_mask_icon_color"  : None,
-        "favicon_msapp_tile_color" : None
+        "favicon_msapp_tile_color" : None,
+        "keep_alive"               : "no"
     }.items()})
 
     if self.settings.short_name is None:
@@ -89,8 +90,9 @@ class Baseweb(Flask):
     if self.settings.color_scheme == "dark":
       self.settings.color_name += " darken-3"
 
-    self.settings.socketio = self.settings.socketio.lower() in OK
+    self.settings.socketio        = self.settings.socketio.lower() in OK
     self.settings.favicon_support = self.settings.favicon_support.lower() in OK
+    self.settings.keep_alive      = self.settings.keep_alive.lower() in OK
 
   def log_config(self):
     settings = json.dumps(self.settings.toDict(), indent=2)

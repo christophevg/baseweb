@@ -32,6 +32,8 @@ INSTALL_REQUIRES = [
   "python-socketio",
   "dotmap",
   "pyfiglet",
+  "python-slugify",
+  "tabulate",
   
 ]
 ENTRY_POINTS = {

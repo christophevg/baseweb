@@ -7,4 +7,6 @@ python-engineio
 python-socketio
 dotmap
 pyfiglet
+python-slugify
+tabulate
 

@@ -30,6 +30,8 @@ requires:
 - python-socketio
 - dotmap
 - pyfiglet
+- python-slugify
+- tabulate
 scripts: []
 skip:
 - docs

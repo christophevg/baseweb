@@ -1,4 +1,4 @@
-__version__ = "0.3.2"
+__version__ = "0.4.0"
 
 import logging
 import os
@@ -7,7 +7,10 @@ from pathlib import Path
 
 from pyfiglet import Figlet
 from dotmap import DotMap
-import json
+from slugify import slugify
+from tabulate import tabulate
+
+import re
 
 from flask import Flask, request, Response, render_template, send_from_directory
 from flask import abort
@@ -19,8 +22,9 @@ from baseweb import util
 
 logger = logging.getLogger(__name__)
 
-OK   = [ "yes", "true", "ok" ]
-HERE = Path(__file__).resolve().parent
+OK             = [ "yes", "true", "ok" ]
+HERE           = Path(__file__).resolve().parent
+OPTIONAL_PARAM = re.compile(r"/<[^\d\W]\w*\?.*", re.UNICODE)
 
 class Baseweb(Flask):
   _banner_shown = False
@@ -46,6 +50,7 @@ class Baseweb(Flask):
     self.socketio = flask_socketio.SocketIO(self)
 
     self._files = { "components" : {}, "stylesheets" : {}, "scripts" : [] }
+    self._app_routes = {}
 
     self._setup_routes()
 
@@ -95,8 +100,16 @@ class Baseweb(Flask):
     self.settings.keep_alive      = self.settings.keep_alive.lower() in OK
 
   def log_config(self):
-    settings = json.dumps(self.settings.toDict(), indent=2)
-    logger.info(f"📌 current settings: {settings}")
+    settings = tabulate([ [setting, value]
+      for setting, value in self.settings.toDict().items()
+    ], headers=["setting", "value"], tablefmt="rounded_outline" )
+    logger.info(f"📌 current settings:\n{settings}")
+
+  def log_routes(self):
+    routes = tabulate([ [ route, config["endpoint"], config["security_scope"]]
+      for route, config in self._app_routes.items()
+    ], headers=["route", "endpoint", "security_scope"], tablefmt="rounded_outline")
+    logger.info(f"📌 current app routes:\n{routes}")
 
   # SECURITY
 
@@ -125,9 +138,11 @@ class Baseweb(Flask):
 
   # INTERFACE
   
-  def register_component(self, filename, path):
+  def register_component(self, filename, path, route=None, endpoint=None, security_scope=None):
     self._files["components"][filename] = path
     logger.debug("🧩 registered component {0} from {1}".format(filename, path))
+    if route:
+      self.register_app_route(route, endpoint, security_scope)
 
   def register_stylesheet(self, filename, path):
     self._files["stylesheets"][filename] = path
@@ -137,15 +152,39 @@ class Baseweb(Flask):
     self._files["scripts"].append(url)
     logger.debug(f"🧩 registered external script: {url}")
 
+  def register_app_route(self, route, endpoint=None, security_scope=None):
+    """
+    register a valid app route, which returns the app, just like /
+    NOTE: this explicit registration replaces the previous catch-all approach 🙄
+    """
+    optionless_route = re.sub(OPTIONAL_PARAM, "", route) # cut optional params
+    route = re.sub(r"\?>", ">", route) # remove optional param modifier
+    
+    if optionless_route != route:
+      self.register_app_route(optionless_route)
+        
+    route_slug = slugify(route)
+
+    if not endpoint:
+      endpoint = route_slug
+
+    if not security_scope:
+      security_scope = f"ui.route.{endpoint}"
+
+    self._app_routes[route] = {
+      "endpoint"       : endpoint,
+      "security_scope" : security_scope
+    }
+
+    self.route(route, endpoint=endpoint)(
+      self._render(security_scope=security_scope)
+    )
+    logger.debug(f"🧭 registered app '{route}' on '{endpoint}' as '{security_scope}'")
+
   def _setup_routes(self):
     # landing
     self.route("/", endpoint="landing")(
       self._render(security_scope="ui.landing")
-    )
-
-    # catch-all to always render the main page, which will handle the URL
-    self.route("/<path:section>", endpoint="catch-all")(
-      self._render(security_scope="ui.section")
     )
 
     # the vuex store

@@ -10,7 +10,8 @@ Vue.component("CollectionView", {
     "created",
     "formOptions",
     "labels",
-    "sortBy"
+    "sortBy",
+    "enrich"
   ],
   template : `
 <div>
@@ -231,7 +232,8 @@ Vue.component("CollectionView", {
         success: function(response) {
           self.loading = false;
           self.select({});
-          self.model.results       = response.content;
+          var content = self.enrich ? self.enrich(response.content) : response.content;
+          self.model.results       = content;
           self.model.totalElements = response.totalElements;
           self.initiated = true;
         },

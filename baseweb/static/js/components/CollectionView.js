@@ -92,6 +92,30 @@ Vue.component("CollectionView", {
     </v-card>
   </v-dialog>
 
+  <v-dialog v-model="model.confirm_delete_dialog" persistent max-width="600px">
+    <v-card>
+      <v-card-title class="headline">{{ label('delete it') }}?</v-card-title>
+
+      <v-card-text>
+        {{ label('delete item') }} {{ model.confirm_delete }}?
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+
+        <v-btn color="secondary" @click="model.confirm_delete_dialog = false">
+          {{ label('cancel delete') }}
+        </v-btn>
+
+        <v-btn color="error" @click="do_delete">
+          {{ label('confirm delete') }}
+        </v-btn>
+
+      </v-card-actions>
+
+    </v-card>
+  </v-dialog>
+
 </div>
 `,
   mounted: function() {
@@ -152,7 +176,7 @@ Vue.component("CollectionView", {
           return {
             "color" : "red",
             "icon"  : "delete",
-            "func"  : self.delete
+            "func"  : self.confirm_delete
           }
         }
         var parts = action.split("|");
@@ -249,7 +273,17 @@ Vue.component("CollectionView", {
         }
       });
     },
-    delete: function(id) {
+    confirm_delete: function(id) {
+      this.model.confirm_delete = id;
+      this.model.confirm_delete_dialog = true;
+    },
+    do_delete: function() {
+      var id = this.model.confirm_delete;
+      if(id < 0) {
+        console.warn("invalid id");
+        this.model.confirm_delete_dialog = false;
+        return;
+      }
       this.loading = true
       var self = this;
       $.ajax({
@@ -277,6 +311,8 @@ Vue.component("CollectionView", {
           });
         }
       });
+      this.model.confirm_delete = -1;
+      this.model.confirm_delete_dialog = false;
     }
   },
   watch: {
@@ -303,10 +339,12 @@ Vue.component("CollectionView", {
         sortBy        : null,
       },
       model: {
-        dialog        : false,
-        query         : "",
-        results       : [],
-        totalElements : 0
+        dialog               : false,
+        confirm_delete       : -1,
+        confirm_delete_dialog: false,
+        query                : "",
+        results              : [],
+        totalElements        : 0
       }
     }
   }

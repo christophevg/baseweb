@@ -180,9 +180,9 @@ Vue.component("CollectionView", {
     },
     pages : function() {
       if (this.options.rowsPerPage == null ||
-        this.options.totalItems == null
+        this.model.totalElements == null
       ) return 0
-      return Math.ceil(this.options.totalItems / this.options.rowsPerPage)
+      return Math.ceil(this.model.totalElements / this.options.rowsPerPage)
     }
   },
   methods: {
@@ -301,7 +301,6 @@ Vue.component("CollectionView", {
         page          : 1,
         rowsPerPage   : 5,
         sortBy        : null,
-        totalItems    : 0
       },
       model: {
         dialog        : false,

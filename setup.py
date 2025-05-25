@@ -11,10 +11,10 @@ KEYWORDS         = "Flask Vue REST SocketIO"
 URL              = "https://github.com/christophevg/" + NAME
 README           = ".github/README.md"
 CLASSIFIERS      = [
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Environment :: Web Environment",
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Libraries :: Python Modules",

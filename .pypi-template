@@ -1,9 +1,9 @@
 a_description_for_the_package: A Pythonic base for building interactive web applications
 classifiers:
-- 'Programming Language :: Python :: 3.8'
 - 'Programming Language :: Python :: 3.9'
 - 'Programming Language :: Python :: 3.10'
 - 'Programming Language :: Python :: 3.11'
+- 'Programming Language :: Python :: 3.12'
 - 'Environment :: Web Environment'
 - 'Intended Audience :: Developers'
 - 'Topic :: Software Development :: Libraries :: Python Modules'

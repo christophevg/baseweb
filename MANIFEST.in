@@ -1,6 +1,0 @@
-include .github/README.md
-recursive-include baseweb/components *
-recursive-include baseweb/templates *
-recursive-include baseweb/static *
-global-exclude __pycache__
-global-exclude *.py[co]

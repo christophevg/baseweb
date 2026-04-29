@@ -7,9 +7,17 @@
 ![Build Status](https://github.com/christophevg/baseweb/actions/workflows/test.yaml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/baseweb/badge/?version=latest)](https://baseweb.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/christophevg/baseweb/badge.svg?branch=master)](https://coveralls.io/github/christophevg/baseweb?branch=master)
-[![Built with PyPi Template](https://img.shields.io/badge/PyPi_Template-v1.0.0-blue.svg)](https://github.com/christophevg/pypi-template)
 
+## Important: Async/Quart Migration in Progress
 
+> **Warning:** Baseweb is being migrated from Flask (synchronous) to Quart (asynchronous).
+>
+> - **Version 1.0.0** will be a **breaking change** - it will only support async/Quart.
+> - **Versions < 1.0.0** (current sync/Flask releases) will no longer be actively maintained.
+> - If you're starting a new project, consider waiting for 1.0.0.
+> - Existing applications will need to update their code to use async patterns.
+>
+> See [Functional Analysis](analysis/functional.md) for migration details and timeline.
 
 ## Documentation
 

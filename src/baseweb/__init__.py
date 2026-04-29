@@ -2,21 +2,18 @@ __version__ = "0.4.3"
 
 import logging
 import os
+import re
 from functools import wraps
 from pathlib import Path
 
-from pyfiglet import Figlet
-from dotmap import DotMap
-from slugify import slugify
-from tabulate import tabulate
-
-import re
-
-from flask import Flask, request, Response, render_template, send_from_directory
-from flask import abort
-from jinja2 import TemplateNotFound
 import flask_restful
 import flask_socketio
+from dotmap import DotMap
+from flask import Flask, Response, abort, render_template, request, send_from_directory
+from jinja2 import TemplateNotFound
+from pyfiglet import Figlet
+from slugify import slugify
+from tabulate import tabulate
 
 from baseweb import util
 
@@ -103,13 +100,13 @@ class Baseweb(Flask):
     settings = tabulate([ [setting, value]
       for setting, value in self.settings.toDict().items()
     ], headers=["setting", "value"], tablefmt="rounded_outline" )
-    logger.info(f"📌 current settings:\n{settings}")
+    logger.info(f"current settings:\n{settings}")
 
   def log_routes(self):
     routes = tabulate([ [ route, config["endpoint"], config["security_scope"]]
       for route, config in self._app_routes.items()
     ], headers=["route", "endpoint", "security_scope"], tablefmt="rounded_outline")
-    logger.info(f"📌 current app routes:\n{routes}")
+    logger.info(f"current app routes:\n{routes}")
 
   # SECURITY
 
@@ -122,12 +119,12 @@ class Baseweb(Flask):
         return f(*args, **kwargs)
       return wrapper
     return decorator
-  
+
   def _valid_credentials(self, scope, *args, **kwargs):
     if scope is None or self.authenticator is None:
       return True
     if not self.authenticator(scope, request, *args, **kwargs):
-      logger.warning("👮‍♂️ incorrect credentials")
+      logger.warning("incorrect credentials")
       return False
     return True
 
@@ -137,32 +134,32 @@ class Baseweb(Flask):
     )
 
   # INTERFACE
-  
+
   def register_component(self, filename, path, route=None, endpoint=None, security_scope=None):
     self._files["components"][filename] = path
-    logger.debug("🧩 registered component {0} from {1}".format(filename, path))
+    logger.debug(f"registered component {filename} from {path}")
     if route:
       self.register_app_route(route, endpoint, security_scope)
 
   def register_stylesheet(self, filename, path):
     self._files["stylesheets"][filename] = path
-    logger.debug("🧩 registered stylesheet {0} from {1}".format(filename, path))
+    logger.debug(f"registered stylesheet {filename} from {path}")
 
   def register_external_script(self, url):
     self._files["scripts"].append(url)
-    logger.debug(f"🧩 registered external script: {url}")
+    logger.debug(f"registered external script: {url}")
 
   def register_app_route(self, route, endpoint=None, security_scope=None):
     """
     register a valid app route, which returns the app, just like /
-    NOTE: this explicit registration replaces the previous catch-all approach 🙄
+    NOTE: this explicit registration replaces the previous catch-all approach
     """
     optionless_route = re.sub(OPTIONAL_PARAM, "", route) # cut optional params
     route = re.sub(r"\?>", ">", route) # remove optional param modifier
-    
+
     if optionless_route != route:
       self.register_app_route(optionless_route)
-        
+
     route_slug = slugify(route)
 
     if not endpoint:
@@ -179,7 +176,7 @@ class Baseweb(Flask):
     self.route(route, endpoint=endpoint)(
       self._render(security_scope=security_scope)
     )
-    logger.debug(f"🧭 registered app '{route}' on '{endpoint}' as '{security_scope}'")
+    logger.debug(f"registered app '{route}' on '{endpoint}' as '{security_scope}'")
 
   def _setup_routes(self):
     # landing
@@ -191,7 +188,7 @@ class Baseweb(Flask):
     self.route("/static/js/store.js", endpoint="store")(
       self._render("store.js", security_scope="ui.static.store.js")
     )
-    
+
     # only provide manifest when run as PWA
     if self.settings.style == "pwa":
       self.route("/manifest.json", endpoint="manifest")(
@@ -208,7 +205,7 @@ class Baseweb(Flask):
     self.route("/app/static/<path:filename>")(
       self._send_app_static
     )
-  
+
   def _render(self, template="main.html", security_scope=None):
     def handler(*args, **kwargs):
       if not self._valid_credentials(security_scope):
@@ -216,7 +213,7 @@ class Baseweb(Flask):
       try:
         return render_template(template, app=self.settings, **self._files)
       except TemplateNotFound:
-        logger.fatal(f"🕵️‍♂️ template not found: {template}")
+        logger.fatal(f"template not found: {template}")
         abort(404)
     return handler
 
@@ -229,7 +226,7 @@ class Baseweb(Flask):
 
   def _send_app_static(self, filename):
     if not self.app_static_folder:
-      logger.warning("⚠️ no app static folder configured")
+      logger.warning("no app static folder configured")
       abort(404)
     return send_from_directory(self.app_static_folder, filename)
 

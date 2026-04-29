@@ -1,3 +1,11 @@
+#MODEL=qwen3.5:397b-cloud
+#ARGS += --plugin-dir ./
+ARGS += --plugin-dir ../c3
+ARGS += --agent c3:project-manager
+ARGS += "manage the project!"
+
+-include ~/.claude/Makefile
+
 # colors
 
 GREEN=\033[0;32m
@@ -11,7 +19,7 @@ PYTHON_VERSIONS ?= 3.9.18 3.10.13 3.11.12 3.12.10
 RUFF_PYTHON_VERSION ?= py311
 
 PROJECT=$(shell basename $(CURDIR))
-PACKAGE_NAME=`cat .pypi-template | grep "^package_module_name" | cut -d":" -f2 | xargs`
+PACKAGE_NAME=baseweb
 
 LOG_LEVEL?=ERROR
 SILENT?=yes
@@ -21,11 +29,12 @@ RUN_ARGS?=
 
 TEST_ENVS=$(addprefix $(PROJECT)-test-,$(PYTHON_VERSIONS))
 
-install: install-env-run install-env-docs install-env-test
-	@echo "👷‍♂️ $(BLUE)installing requirements in $(PROJECT)$(NC)"
-	pyenv local $(PROJECT)
-	pip install -U pip > /dev/null
-	pip install -U wheel twine setuptools > /dev/null
+# Virtual environment name
+VENV_NAME=baseweb
+
+install:
+	@echo "👷‍♂️ $(BLUE)installing package in development mode$(NC)"
+	pip install -e ".[dev]"
 
 install-env-run:
 	@echo "👷‍♂️ $(BLUE)creating virtual environment $(PROJECT)-run$(NC)"
@@ -33,8 +42,7 @@ install-env-run:
 	-pyenv virtualenv $(PROJECT)-run > /dev/null
 	pyenv local $(PROJECT)-run
 	pip install -U pip > /dev/null
-	pip install -r requirements.txt > /dev/null
-	[ -f requirements.run.txt ] && pip install -r requirements.run.txt > /dev/null || true
+	pip install -e ".[dev]" > /dev/null
 
 install-env-docs:
 	@echo "👷‍♂️ $(BLUE)creating virtual environment $(PROJECT)-docs$(NC)"
@@ -42,8 +50,8 @@ install-env-docs:
 	-pyenv virtualenv $(PROJECT)-docs > /dev/null
 	pyenv local $(PROJECT)-docs
 	pip install -U pip > /dev/null
-	pip install -r requirements.docs.txt > /dev/null
-	
+	pip install -e ".[dev]" > /dev/null
+
 install-env-test: $(TEST_ENVS)
 
 $(PROJECT)-test-%:
@@ -52,7 +60,7 @@ $(PROJECT)-test-%:
 	-pyenv virtualenv $* $@ > /dev/null
 	pyenv local $@
 	pip install -U pip > /dev/null
-	pip install -U ruff tox coverage > /dev/null
+	pip install -e ".[dev]" > /dev/null
 
 uninstall: uninstall-envs
 
@@ -84,26 +92,22 @@ env:
 env-test:
 	@echo "👷‍♂️ $(BLUE)activating test environments$(NC)"
 	@pyenv local $(TEST_ENVS)
-	
+
 # functional targets
 
 run: env-run
 	@echo "👷‍♂️ $(BLUE)running$(GREEN) $(RUN_CMD) $(RUN_ARGS)$(NC)"
 	@$(RUN_CMD) $(RUN_ARGS)
 
-test: env-test lint
-ifeq ($(SILENT),yes)
-	tox -q
-else
-	tox
-endif
+test: lint
+	pytest --cov=baseweb --cov-report=term-missing
 
 coverage: test
 	coverage report
 	coverage lcov
 
-lint: env-test
-	ruff check --target-version=$(RUFF_PYTHON_VERSION) .
+lint:
+	ruff check src tests
 
 docs: env-docs
 	cd docs; make html
@@ -111,14 +115,14 @@ docs: env-docs
 
 # packaging targets
 
-publish-test: env dist
+publish-test: dist
 	twine upload --repository testpypi dist/*
 
-publish: env dist
+publish: dist
 	twine upload dist/*
 
-dist: env dist-clean
-	python setup.py sdist bdist_wheel
+dist: dist-clean
+	python -m build
 
 dist-clean: clean
 	rm -rf dist build *.egg-info

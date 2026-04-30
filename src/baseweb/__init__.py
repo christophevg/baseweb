@@ -309,12 +309,13 @@ class Baseweb(Quart):
       logger.warning(f"static file not found: {filename}")
       abort(404)
 
-  def add_resource(self, resource_class, route, endpoint=None, security_scope=None):
+  def add_resource(self, resource_or_class, route, endpoint=None, security_scope=None):
     """
-    Register a Resource class at a route.
+    Register a Resource at a route.
 
     Args:
-        resource_class: A Resource subclass with async HTTP methods
+        resource_or_class: A Resource subclass (instantiated on each request)
+                           or a Resource instance (reused across requests)
         route: URL pattern (e.g., '/users/<int:user_id>')
         endpoint: Optional endpoint name (default: auto-generated)
         security_scope: Optional security scope for authentication
@@ -322,20 +323,42 @@ class Baseweb(Quart):
     Returns:
         The handler function
 
-    Example:
+    Examples:
+        # Class - new instance per request (stateless):
         class UserResource(Resource):
             async def get(self, user_id):
                 return {"user": user_id}
-
         server.add_resource(UserResource, '/users/<int:user_id>')
+
+        # Instance - reused across requests (stateful):
+        user_resource = UserResource()
+        user_resource.db = database_connection
+        server.add_resource(user_resource, '/users/<int:user_user_id>')
     """
+    import inspect
+
+    # Determine if we got a class or an instance
+    is_class = inspect.isclass(resource_or_class)
+
+    if is_class:
+      resource_class = resource_or_class
+      resource_instance = None
+    else:
+      resource_class = resource_or_class.__class__
+      resource_instance = resource_or_class
+
     async def handler(*args, **kwargs):
       # Check authentication if security_scope is set
       if security_scope is not None:
         if not await self._valid_credentials(security_scope, *args, **kwargs):
           return await self._return_401()
 
-      resource = resource_class()
+      # Use existing instance or create new one
+      if resource_instance is not None:
+        resource = resource_instance
+      else:
+        resource = resource_class()
+
       method = request.method.lower()
       method_func = getattr(resource, method, None)
       if method_func is None or not callable(method_func):

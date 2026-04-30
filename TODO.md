@@ -26,7 +26,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Unsorted
 
-- currently Resource classes are instantiated on every API call. This might not be what the user wants. For example, maybe he expects the instance to keep state. So maybe we should make this more flexible: allow the user to decide: pass a class to the add_resource method to have it instantiated every time, pass a instance to the add_resource to have it reused every time.
+- [x] **Resource instantiation flexibility** (2026-05-01)
+  - Allow passing class (instantiated per request) or instance (reused)
+  - Support dependency injection via instance pattern
+  - Add 7 new tests for instantiation patterns
+  - Acceptance: All 144 tests pass
+
 - create a migrate skill and expose it as a baseweb plugin
 - upgrade frontend to modern Vue+Vuetify
 

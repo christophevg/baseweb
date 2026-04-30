@@ -1,3 +1,4 @@
+.venv
 venv
 dist
 *.egg-info
@@ -8,6 +9,5 @@ coverage.lcov
 .tox
 docs/_build
 *.backup
-.python-version
 baseweb-demo
 .DS_Store

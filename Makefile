@@ -1,8 +1,6 @@
 #MODEL=qwen3.5:397b-cloud
 #ARGS += --plugin-dir ./
 ARGS += --plugin-dir ../c3
-ARGS += --agent c3:project-manager
-ARGS += "manage the project!"
 
 -include ~/.claude/Makefile
 
@@ -13,124 +11,65 @@ RED=\033[0;31m
 BLUE=\033[0;34m
 NC=\033[0m
 
-# test envs
-
-PYTHON_VERSIONS ?= 3.9.18 3.10.13 3.11.12 3.12.10
-RUFF_PYTHON_VERSION ?= py311
-
-PROJECT=$(shell basename $(CURDIR))
-PACKAGE_NAME=baseweb
-
-LOG_LEVEL?=ERROR
-SILENT?=yes
-
-RUN_CMD?=LOG_LEVEL=$(LOG_LEVEL) python -m $(PACKAGE_NAME)
-RUN_ARGS?=
-
-TEST_ENVS=$(addprefix $(PROJECT)-test-,$(PYTHON_VERSIONS))
-
-# Virtual environment name
-VENV_NAME=baseweb
+.PHONY: install sync test lint format typecheck check build publish clean run docs coverage dist dist-clean
 
 install:
-	@echo "👷‍♂️ $(BLUE)installing package in development mode$(NC)"
-	pip install -e ".[dev]"
+	uv sync
 
-install-env-run:
-	@echo "👷‍♂️ $(BLUE)creating virtual environment $(PROJECT)-run$(NC)"
-	pyenv local --unset
-	-pyenv virtualenv $(PROJECT)-run > /dev/null
-	pyenv local $(PROJECT)-run
-	pip install -U pip > /dev/null
-	pip install -e ".[dev]" > /dev/null
+sync:
+	uv sync --frozen
 
-install-env-docs:
-	@echo "👷‍♂️ $(BLUE)creating virtual environment $(PROJECT)-docs$(NC)"
-	pyenv local --unset
-	-pyenv virtualenv $(PROJECT)-docs > /dev/null
-	pyenv local $(PROJECT)-docs
-	pip install -U pip > /dev/null
-	pip install -e ".[dev]" > /dev/null
+test:
+	uv run pytest
 
-install-env-test: $(TEST_ENVS)
+lint:
+	uv run ruff check src tests
 
-$(PROJECT)-test-%:
-	@echo "👷‍♂️ $(BLUE)creating virtual test environment $@$(NC)"
-	pyenv local --unset
-	-pyenv virtualenv $* $@ > /dev/null
-	pyenv local $@
-	pip install -U pip > /dev/null
-	pip install -e ".[dev]" > /dev/null
+format:
+	uv run ruff format src tests
 
-uninstall: uninstall-envs
+typecheck:
+	uv run mypy src
 
-uninstall-envs: uninstall-env-test uninstall-env-docs uninstall-env-run env clean-env
+check: lint typecheck test
 
-uninstall-env-test: $(addprefix uninstall-env-test-,$(PYTHON_VERSIONS))
+tox:
+	uv run tox
 
-$(addprefix uninstall-env-test-,$(PYTHON_VERSIONS)) uninstall-env-docs uninstall-env-run: uninstall-env-%:
-	@echo "👷‍♂️ $(RED)deleting virtual environment $(PROJECT)-$*$(NC)"
-	-pyenv virtualenv-delete $(PROJECT)-$*
+build:
+	uv build
 
-clean-env:
-	@echo "👷‍♂️ $(RED)deleting all packages from current environment$(NC)"
-	pip freeze | cut -d"@" -f1 | cut -d'=' -f1 | xargs pip uninstall -y > /dev/null
+publish: build
+	uv publish
 
-upgrade:
-	@pip list --outdated | tail +3 | cut -d " " -f 1 | xargs -n1 pip install -U
-
-# env switching
-
-env-%:
-	@echo "👷‍♂️ $(BLUE)activating $* environment$(NC)"
-	@pyenv local $(PROJECT)-$*
-
-env:
-	@echo "👷‍♂️ $(BLUE)activating project environment$(NC)"
-	@pyenv local $(PROJECT)
-
-env-test:
-	@echo "👷‍♂️ $(BLUE)activating test environments$(NC)"
-	@pyenv local $(TEST_ENVS)
+coverage:
+	uv run pytest --cov=src --cov-report=term-missing --cov-report=lcov
 
 # functional targets
 
-run: env-run
-	@echo "👷‍♂️ $(BLUE)running$(GREEN) $(RUN_CMD) $(RUN_ARGS)$(NC)"
-	@$(RUN_CMD) $(RUN_ARGS)
+run:
+	@echo "$(BLUE)running$(GREEN) python -m baseweb$(NC)"
+	uv run python -m baseweb
 
-test: lint
-	pytest --cov=baseweb --cov-report=term-missing
-
-coverage: test
-	coverage report
-	coverage lcov
-
-lint:
-	ruff check src tests
-
-docs: env-docs
-	cd docs; make html
+docs:
+	cd docs; uv run make html
 	open docs/_build/html/index.html
 
 # packaging targets
 
 publish-test: dist
-	twine upload --repository testpypi dist/*
-
-publish: dist
-	twine upload dist/*
+	uv publish --index-url https://test.pypi.org/simple/
 
 dist: dist-clean
-	python -m build
+	uv build
 
 dist-clean: clean
 	rm -rf dist build *.egg-info
 
 clean:
-	find . -type f -name "*.backup" | xargs rm
-
-.PHONY: dist docs test
+	rm -rf build/ dist/ *.egg-info .tox .pytest_cache .ruff_cache .mypy_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.backup" | xargs rm 2>/dev/null || true
 
 # include optional a personal/local touch
 

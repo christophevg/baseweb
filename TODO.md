@@ -63,6 +63,23 @@
 
 ## Done
 
+- [x] **task-0.2: Complete uv migration and fix CI** (2026-04-30)
+  - Removed old pyenv management targets from Makefile
+  - Updated GitHub Actions workflow to use uv
+  - Applied python-project skill best practices
+  - Updated Python version support to 3.10, 3.11, 3.12
+  - Installed uv system-wide via Homebrew
+  - Created .python-version (pinned to 3.12)
+  - Generated uv.lock for reproducible builds
+  - Added .venv to .gitignore, removed .python-version from gitignore
+  - All acceptance criteria met:
+    - `uv sync` works
+    - `uv run pytest` passes
+    - `uv run ruff check src tests` passes
+    - Makefile is clean
+
+- [x] **task-0.0: Migrate to standard Python project setup** (2026-04-29)
+
 - [x] **task-0.0: Migrate to standard Python project setup** (2026-04-29)
   - Migrated from setup.py to pyproject.toml with hatchling
   - Moved to src-layout (src/baseweb/)

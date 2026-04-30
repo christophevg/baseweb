@@ -16,6 +16,7 @@ from slugify import slugify
 from tabulate import tabulate
 
 from baseweb import util
+from baseweb.resource import Resource
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +262,78 @@ class Baseweb(Quart):
       # but we catch any exception to ensure proper 404 handling
       logger.warning(f"static file not found: {filename}")
       abort(404)
+
+  def add_resource(self, resource_class, route, endpoint=None, security_scope=None):
+    """
+    Register a Resource class at a route.
+
+    Args:
+        resource_class: A Resource subclass with async HTTP methods
+        route: URL pattern (e.g., '/users/<int:user_id>')
+        endpoint: Optional endpoint name (default: auto-generated)
+        security_scope: Optional security scope for authentication
+
+    Returns:
+        The handler function
+
+    Example:
+        class UserResource(Resource):
+            async def get(self, user_id):
+                return {"user": user_id}
+
+        server.add_resource(UserResource, '/users/<int:user_id>')
+    """
+    async def handler(*args, **kwargs):
+      # Check authentication if security_scope is set
+      if security_scope is not None:
+        if not await self._valid_credentials(security_scope, *args, **kwargs):
+          return await self._return_401()
+
+      resource = resource_class()
+      method = request.method.lower()
+      method_func = getattr(resource, method, None)
+      if method_func is None or not callable(method_func):
+        abort(405)
+      result = await method_func(*args, **kwargs)
+
+      # Handle tuple responses (body, status, headers) or (body, status)
+      if isinstance(result, tuple):
+        if len(result) == 2:
+          body, status = result
+          # For 204 No Content, return empty response without content-type
+          if status == 204:
+            return Response('', status=status)
+          # For other responses, handle body appropriately
+          if body is None:
+            return Response('', status=status)
+          # Convert dict to JSON string if needed
+          if isinstance(body, dict):
+            import json
+            body = json.dumps(body)
+          return Response(body, status=status, mimetype='application/json')
+        elif len(result) == 3:
+          body, status, headers = result
+          if body is None:
+            return Response('', status=status, headers=headers)
+          # Convert dict to JSON string if needed
+          if isinstance(body, dict):
+            import json
+            body = json.dumps(body)
+          return Response(body, status=status, headers=headers, mimetype='application/json')
+
+      # Handle single dict response - convert to JSON
+      if isinstance(result, dict):
+        import json
+        return Response(json.dumps(result), mimetype='application/json')
+
+      return result
+
+    if endpoint is None:
+      # Generate endpoint name from route, removing parameter markers
+      endpoint = slugify(route.replace('<', '').replace('>', '').replace('int:', '').replace('path:', '').replace('string:', ''))
+
+    self.route(route, methods=resource_class.methods, endpoint=endpoint)(handler)
+    return handler
 
 # expose the classic global, one-for-all baseweb server instance
 server = Baseweb()

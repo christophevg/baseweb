@@ -124,7 +124,9 @@ async def ws():
 
 **Breaking Change:** Flask-RESTful has been removed from Baseweb 1.0.0. It is not compatible with Quart's async architecture.
 
-If you were using `server.api.add_resource()`, migrate to native Quart routes:
+**Option 1: Use the new Resource class (Recommended for RESTful APIs)**
+
+Baseweb 1.0.0 includes a native Resource class that provides the familiar Flask-RESTful pattern:
 
 **Before (Flask-RESTful):**
 ```python
@@ -132,24 +134,57 @@ from baseweb import server
 from flask_restful import Resource
 
 class MyResource(Resource):
-    def get(self):
+    def get(self, item_id):
+        return {"item": item_id}
+    
+    def post(self):
         data = request.get_json()
-        return {"data": data}
+        return {"created": data}, 201
 
+server.api.add_resource(MyResource, '/api/items/<int:item_id>')
+```
+
+**After (Baseweb Resource):**
+```python
+from baseweb import server, Resource
+
+class MyResource(Resource):
+    async def get(self, item_id):
+        return {"item": item_id}
+    
+    async def post(self):
+        data = await request.get_json()
+        return {"created": data}, 201
+
+server.add_resource(MyResource, '/api/items/<int:item_id>')
+```
+
+**Resource class features:**
+- Familiar Flask-RESTful pattern with async support
+- Automatic 405 Method Not Allowed for unimplemented methods
+- Support for authentication: `server.add_resource(MyResource, '/api/items', security_scope='api.items')`
+- Works alongside regular routes
+
+**Option 2: Use native Quart routes (Simple APIs)**
+
+For simple APIs without resource classes:
+
+**Before:**
+```python
 server.api.add_resource(MyResource, '/api/my')
 ```
 
-**After (Native Quart):**
+**After:**
 ```python
-from baseweb import server
-
 @server.route('/api/my')
 async def get_my():
     data = await request.get_json()
     return {"data": data}
 ```
 
-For API validation, consider using `quart-schema`:
+**Option 3: Use quart-schema (For validation)**
+
+For API validation with schemas:
 
 ```bash
 pip install quart-schema

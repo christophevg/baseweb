@@ -24,6 +24,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ## Backlog
 
+### Unsorted
+
+- currently Resource classes are instantiated on every API call. This might not be what the user wants. For example, maybe he expects the instance to keep state. So maybe we should make this more flexible: allow the user to decide: pass a class to the add_resource method to have it instantiated every time, pass a instance to the add_resource to have it reused every time.
+- create a migrate skill and expose it as a baseweb plugin
+- upgrade frontend to modern Vue+Vuetify
+
 ### Phase 2: Architecture Decision
 
 
@@ -65,7 +71,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ## In Progress
 
-(none)
+- [ ] **task-3.3: Migrate WebSocket support**
+  - Evaluate WebSocket usage patterns
+  - Choose: Flask-SocketIO (threaded) vs Quart native vs python-socketio
+  - Implement chosen solution
+  - Create WebSocket integration tests
+  - Acceptance: WebSocket functionality works, tests pass
 
 ## Done
 

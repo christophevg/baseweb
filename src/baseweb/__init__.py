@@ -7,7 +7,7 @@ import re
 from functools import wraps
 from pathlib import Path
 
-import flask_socketio
+import socketio
 from dotmap import DotMap
 from jinja2 import TemplateNotFound
 from pyfiglet import Figlet
@@ -43,10 +43,18 @@ class Baseweb(Quart):
 
     self.authenticator = None
 
-    # TODO: task-3.3 - Migrate to Quart native WebSocket
-    # Flask-SocketIO is not compatible with Quart (ASGI)
-    # WebSocket support will be re-enabled in task-3.3
-    self.socketio = None
+    # Initialize Socket.IO in ASGI mode for Quart compatibility
+    if self.settings.socketio:
+      self._sio = socketio.AsyncServer(
+        async_mode='asgi',
+        cors_allowed_origins='*'
+      )
+      self._asgi_app = socketio.ASGIApp(self._sio, self)
+      self.socketio = self._sio
+    else:
+      self._sio = None
+      self._asgi_app = None
+      self.socketio = None
 
     self._files = { "components" : {}, "stylesheets" : {}, "scripts" : [] }
     self._app_routes = {}
@@ -113,16 +121,31 @@ class Baseweb(Quart):
   # SECURITY
 
   def authenticated(self, scope):
+    """Decorator for authentication. Works with both HTTP and SocketIO handlers."""
     def decorator(f):
       @wraps(f)
       async def wrapper(*args, **kwargs):
-        if not await self._valid_credentials(scope, *args, **kwargs):
-          return await self._return_401()
+        # Check if this is a SocketIO handler (first arg is sid string)
+        # vs HTTP handler (request context is available)
+        is_socketio = len(args) > 0 and isinstance(args[0], str) and self._sio is not None
+
+        if is_socketio:
+          # SocketIO context: use sid for authentication
+          sid = args[0]
+          if not await self._valid_socket_credentials(scope, sid, *args[1:], **kwargs):
+            from socketio.exceptions import ConnectionRefusedError
+            raise ConnectionRefusedError("Unauthorized")
+        else:
+          # HTTP context: use request
+          if not await self._valid_credentials(scope, *args, **kwargs):
+            return await self._return_401()
+
         return await f(*args, **kwargs)
       return wrapper
     return decorator
 
   async def _valid_credentials(self, scope, *args, **kwargs):
+    """Validate credentials for HTTP requests."""
     if scope is None or self.authenticator is None:
       return True
 
@@ -133,6 +156,29 @@ class Baseweb(Quart):
 
     if not result:
       logger.warning("incorrect credentials")
+      return False
+    return True
+
+  async def _valid_socket_credentials(self, scope, sid, *args, **kwargs):
+    """Validate credentials for Socket.IO connections."""
+    if scope is None or self.authenticator is None:
+      return True
+
+    # For SocketIO, pass sid instead of request
+    # Create a minimal request-like object for compatibility
+    class SocketRequest:
+      def __init__(self, sid):
+        self.sid = sid
+
+    socket_request = SocketRequest(sid)
+    result = self.authenticator(scope, socket_request, *args, **kwargs)
+
+    # Support both sync and async authenticators
+    if asyncio.iscoroutine(result):
+      result = await result
+
+    if not result:
+      logger.warning(f"incorrect credentials for socket {sid}")
       return False
     return True
 

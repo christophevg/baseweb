@@ -27,11 +27,10 @@ classifiers = [
 keywords = ["Quart", "Vue", "REST", "WebSocket"]
 dependencies = [
   "Quart",
-  "Flask-SocketIO",
+  "python-socketio",
   "python-dotenv",
   "websocket-client",
   "python-engineio",
-  "python-socketio",
   "dotmap",
   "pyfiglet",
   "python-slugify",
@@ -141,3 +140,8 @@ commands_pre = [
   ["uv", "pip", "install", "pytest", "pytest-cov", "pytest-asyncio"],
 ]
 commands = [["pytest", "tests", "-v", "--cov=baseweb", "--cov-report=term-missing"]]
+
+[dependency-groups]
+dev = [
+    "aiohttp>=3.13.5",
+]

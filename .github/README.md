@@ -19,6 +19,45 @@
 >
 > See [Functional Analysis](analysis/functional.md) for migration details and timeline.
 
+## Development
+
+Interested in contributing? Here's how to set up your development environment.
+
+### Prerequisites
+
+- Python 3.10+ (3.10, 3.11, or 3.12)
+- [uv](https://docs.astral.sh/uv/) for dependency management
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/christophevg/baseweb.git
+cd baseweb
+
+# Install dependencies (including dev dependencies)
+uv sync
+
+# Run tests
+uv run pytest
+
+# Run linting
+uv run ruff check src tests
+
+# Or use Makefile targets
+make test      # run tests
+make lint      # run linting
+make check     # run all checks
+```
+
+### Project Structure
+
+- `src/baseweb/` - Main package source
+- `tests/` - Test suite
+- `docs/` - Documentation (Sphinx)
+
+See [Contributing](https://baseweb.readthedocs.io/en/latest/contributing.html) for more details.
+
 ## Documentation
 
 Visit [Read the Docs](https://baseweb.readthedocs.org) for the full documentation, including overviews and several examples.

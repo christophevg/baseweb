@@ -28,24 +28,26 @@ pip install baseweb
 ## Quick Start
 
 ```bash
-# Install baseweb and a WSGI server
-pip install baseweb gunicorn eventlet
+# Install baseweb and an ASGI server
+pip install baseweb gunicorn uvicorn
 
-# Run the stock baseweb application
-gunicorn -k eventlet -w 1 baseweb:server
+# Run the stock baseweb application (with WebSocket support)
+gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
 ```
 
 Visit [http://localhost:8000](http://localhost:8000) to see baseweb in action.
+
+> **Note:** For legacy Flask/synchronous support, use baseweb `< 0.4.0` or see the [legacy support](#legacy-flask-support) section below.
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| Flask Integration | Pre-configured Flask application with sensible defaults |
+| Quart Integration | Pre-configured Quart application with async support |
 | Vue.js + Vuetify | Modern frontend stack ready to use |
-| REST API | Flask-RESTful for building REST APIs |
-| WebSocket Support | Flask-SocketIO for real-time communication |
-| Authentication | Built-in authentication/authorization hooks |
+| REST API | Built-in Resource class for REST APIs |
+| WebSocket Support | python-socketio with ASGI for real-time communication |
+| Authentication | Built-in authentication/authorization hooks (HTTP + WebSocket) |
 | PWA Support | Progressive Web App capabilities |
 
 ## Usage
@@ -57,36 +59,83 @@ from baseweb import Baseweb
 
 app = Baseweb(__name__)
 
-if __name__ == "__main__":
-  app.run()
+# ASGI entry point for running with uvicorn/gunicorn
+asgi_app = app._asgi_app
 ```
+
+Run with: `gunicorn -k uvicorn.workers.UvicornWorker "myapp:asgi_app"`
 
 ### With REST API
 
 ```python
-from baseweb import Baseweb
-from flask_restful import Api
+from baseweb import Baseweb, Resource
 
 app = Baseweb(__name__)
-api = Api(app)
 
-api.add_resource(MyResource, "/api/my-resource")
+class MyResource(Resource):
+    async def get(self):
+        return {"message": "Hello, async world!"}
+
+    async def post(self):
+        data = await request.get_json()
+        return {"received": data}
+
+app.add_resource(MyResource, "/api/my-resource")
 ```
 
 ### With WebSockets
 
 ```python
 from baseweb import Baseweb
-from flask_socketio import emit
 
 app = Baseweb(__name__)
 
 @app.socketio.on("connect")
-def handle_connect():
-  emit("connected", {"data": "Connected"})
+async def handle_connect(sid, environ):
+    await app.socketio.emit("connected", {"data": "Connected"})
+
+@app.socketio.on("message")
+async def handle_message(sid, data):
+    # Echo back to the sender
+    return {"echo": data}
+```
+
+### With Authentication
+
+```python
+from baseweb import Baseweb
+
+app = Baseweb(__name__)
+
+def authenticator(scope, request, *args, **kwargs):
+    # Validate request/auth and return True/False
+    return True
+
+app.authenticator = authenticator
+
+# Use @app.authenticated(scope) decorator for protected handlers
+@app.socketio.on("private_event")
+@app.authenticated("app.events.private")
+async def handle_private(sid, data):
+    return {"status": "authorized"}
 ```
 
 For more examples, see the [documentation](https://baseweb.readthedocs.io/).
+
+## Legacy Flask Support
+
+If you have an existing Flask-based application, you can:
+
+1. **Pin to legacy version**: Use `baseweb<0.4.0` which supports Flask/Flask-SocketIO
+2. **Migrate to Quart**: Follow the [Migration Guide](https://baseweb.readthedocs.io/en/latest/migration-guide.html)
+
+The [baseweb-demo](https://github.com/christophevg/baseweb-demo) repository has a `legacy` tag pointing to the last Flask-compatible commit:
+
+```bash
+git clone https://github.com/christophevg/baseweb-demo
+cd baseweb-demo
+git checkout legacy  # Flask/sync version
+```
 
 ## Documentation
 

@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = u'baseweb'
-copyright = u'2020-2023, Christophe VG'
+copyright = u'2020-2026, Christophe VG'
 author = u'Christophe VG'
 
 # -- General configuration ---------------------------------------------------
@@ -22,7 +22,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 #
 # autodoc2_packages = [
 #   {
-#     "path": "../baseweb",
+#     "path": "../src/baseweb",
 #     "exclude_dirs" : [ "templates" ],
 #     "auto_mode": False
 #   }

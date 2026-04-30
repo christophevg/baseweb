@@ -326,6 +326,8 @@ class Baseweb(Quart):
         import json
         return Response(json.dumps(result), mimetype='application/json')
 
+      # For other types (str, Response, etc.), return as-is
+      # Let the application code decide the content-type
       return result
 
     if endpoint is None:

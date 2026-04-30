@@ -24,9 +24,9 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
-keywords = ["Flask", "Vue", "REST", "SocketIO"]
+keywords = ["Quart", "Vue", "REST", "WebSocket"]
 dependencies = [
-  "Flask",
+  "Quart",
   "Flask-RESTful",
   "Flask-SocketIO",
   "python-dotenv",

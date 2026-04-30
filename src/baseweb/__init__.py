@@ -1,5 +1,6 @@
 __version__ = "0.4.3"
 
+import asyncio
 import logging
 import os
 import re
@@ -9,9 +10,9 @@ from pathlib import Path
 import flask_restful
 import flask_socketio
 from dotmap import DotMap
-from flask import Flask, Response, abort, render_template, request, send_from_directory
 from jinja2 import TemplateNotFound
 from pyfiglet import Figlet
+from quart import Quart, Response, abort, render_template, request, send_from_directory
 from slugify import slugify
 from tabulate import tabulate
 
@@ -23,7 +24,7 @@ OK             = [ "yes", "true", "ok" ]
 HERE           = Path(__file__).resolve().parent
 OPTIONAL_PARAM = re.compile(r"/<[^\d\W]\w*\?.*", re.UNICODE)
 
-class Baseweb(Flask):
+class Baseweb(Quart):
   _banner_shown = False
 
   def __init__(self, name=None, *args, **kwargs):
@@ -33,18 +34,20 @@ class Baseweb(Flask):
     if name is None:
       name = self.settings.name
 
-    # create the Fask object part
+    # create the Quart object part
     super().__init__(name, *args, **kwargs)
 
-    self.template_folder   = HERE / "templates"  # flask property
-    self.static_folder     = HERE / "static"     # flask property
+    self.template_folder   = HERE / "templates"  # quart property
+    self.static_folder     = HERE / "static"     # quart property
     self.app_static_folder = None
 
-    self.request       = request
     self.authenticator = None
 
     self.api      = flask_restful.Api(self)
-    self.socketio = flask_socketio.SocketIO(self)
+    # TODO: task-3.3 - Migrate to Quart native WebSocket
+    # Flask-SocketIO is not compatible with Quart (ASGI)
+    # WebSocket support will be re-enabled in task-3.3
+    self.socketio = None
 
     self._files = { "components" : {}, "stylesheets" : {}, "scripts" : [] }
     self._app_routes = {}
@@ -113,23 +116,29 @@ class Baseweb(Flask):
   def authenticated(self, scope):
     def decorator(f):
       @wraps(f)
-      def wrapper(*args, **kwargs):
-        if not self._valid_credentials(scope, *args, **kwargs):
-          return self._return_401()
-        return f(*args, **kwargs)
+      async def wrapper(*args, **kwargs):
+        if not await self._valid_credentials(scope, *args, **kwargs):
+          return await self._return_401()
+        return await f(*args, **kwargs)
       return wrapper
     return decorator
 
-  def _valid_credentials(self, scope, *args, **kwargs):
+  async def _valid_credentials(self, scope, *args, **kwargs):
     if scope is None or self.authenticator is None:
       return True
-    if not self.authenticator(scope, request, *args, **kwargs):
+
+    result = self.authenticator(scope, request, *args, **kwargs)
+    # Support both sync and async authenticators
+    if asyncio.iscoroutine(result):
+      result = await result
+
+    if not result:
       logger.warning("incorrect credentials")
       return False
     return True
 
-  def _return_401(self):
-    return Response( "", 401,
+  async def _return_401(self):
+    return Response("", 401,
       { "WWW-Authenticate": f"Basic realm=\"{self.settings.name}\"" }
     )
 
@@ -207,28 +216,35 @@ class Baseweb(Flask):
     )
 
   def _render(self, template="main.html", security_scope=None):
-    def handler(*args, **kwargs):
-      if not self._valid_credentials(security_scope):
-        return self._return_401()
+    async def handler(*args, **kwargs):
+      if security_scope is not None:
+        if not await self._valid_credentials(security_scope):
+          return await self._return_401()
       try:
-        return render_template(template, app=self.settings, **self._files)
+        content = await render_template(template, app=self.settings, **self._files)
+        # Set correct content type based on template extension
+        if template.endswith('.js'):
+          return Response(content, mimetype='application/javascript')
+        elif template.endswith('.json'):
+          return Response(content, mimetype='application/json')
+        return content
       except TemplateNotFound:
         logger.fatal(f"template not found: {template}")
         abort(404)
     return handler
 
   def _send(self, kind, security_scope="ui.app.filename"):
-    def handler(filename=None, *args, **kwargs):
-      if not self._valid_credentials(security_scope):
-        return self._return_401()
-      return send_from_directory(kind[filename], filename)
+    async def handler(filename=None, *args, **kwargs):
+      if not await self._valid_credentials(security_scope):
+        return await self._return_401()
+      return await send_from_directory(kind[filename], filename)
     return handler
 
-  def _send_app_static(self, filename):
+  async def _send_app_static(self, filename):
     if not self.app_static_folder:
       logger.warning("no app static folder configured")
       abort(404)
-    return send_from_directory(self.app_static_folder, filename)
+    return await send_from_directory(self.app_static_folder, filename)
 
 # expose the classic global, one-for-all baseweb server instance
 server = Baseweb()

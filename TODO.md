@@ -1,5 +1,27 @@
 # TODO
 
+## Coordination with baseweb-demo
+
+The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case and must be validated after each migration task.
+
+### Workflow
+
+1. **Before starting a task**: Check if baseweb-demo depends on the feature being migrated
+2. **During development**: Test against baseweb-demo if applicable
+3. **After completing a task**: Run baseweb-demo tests and verify the app runs
+4. **Commit together**: Related changes should be committed in both projects
+
+### Task Dependencies
+
+| baseweb Task | baseweb-demo Task | Status |
+|--------------|-------------------|--------|
+| task-3.1: Core migration | task-1.x, task-2.x | ✅ Complete |
+| task-3.2: Remove Flask-RESTful | task-2.x Resource migration | ✅ Complete |
+| task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | 🔴 Blocked |
+| task-3.4: Frontend verification | Manual testing | ⏳ Pending |
+
+---
+
 ## Backlog
 
 ### Phase 2: Architecture Decision

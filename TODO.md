@@ -33,10 +33,18 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Acceptance: All 144 tests pass
 
 - [x] **Migrate skill as baseweb plugin** (2026-05-01)
-  - Created baseweb/plugins/migrate/ package
-  - Comprehensive migration guide for Flask→Quart
-  - Covers imports, async patterns, Socket.IO, tests
-  - Exposed as baseweb plugin
+  - Created .claude_plugin/plugin.json for Claude Code integration
+  - Created skills/migrate/skill.md with comprehensive migration guide
+  - Covers Flask→Quart migration for baseweb apps
+
+- [ ] **Update end-user documentation (docs/)**
+  - Update all code examples to use Quart/async patterns
+  - Update import statements (flask → quart, flask_restful → baseweb)
+  - Update Resource examples to use async methods
+  - Update Socket.IO examples with python-socketio ASGI patterns
+  - Update running instructions (gunicorn + uvicorn)
+  - Update API documentation for add_resource changes
+  - Ensure migration guide is comprehensive
 
 - upgrade frontend to modern Vue+Vuetify
 

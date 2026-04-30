@@ -18,7 +18,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 | task-3.1: Core migration | task-1.x, task-2.x | ✅ Complete |
 | task-3.2: Remove Flask-RESTful | task-2.x Resource migration | ✅ Complete |
 | task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | ✅ Complete |
-| task-3.4: Frontend verification | Manual testing | ⏳ Pending |
+| task-3.4: Frontend verification | Frontend tests | ✅ Complete |
 
 ---
 
@@ -53,12 +53,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Acceptance: WebSocket functionality works with authentication
   - Summary: committed in research/2026-04-30-quart-websocket-options/
 
-- [ ] **task-3.4: Frontend integration verification**
-  - Verify frontend works without changes
-  - Test Socket.IO client compatibility
-  - Test Vue components with async API responses
-  - Document any required frontend changes
-  - Acceptance: Frontend works correctly
+- [x] **task-3.4: Frontend integration verification** (2026-05-01)
+  - Verified frontend static files served correctly
+  - Verified REST API endpoints work with async handlers
+  - Verified Socket.IO client initialization and connection
+  - Added comprehensive frontend integration tests (13 new tests)
+  - Acceptance: All 26 tests pass, frontend works correctly
 
 ### Phase 5: Component Consolidation
 
@@ -75,6 +75,13 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 (none)
 
 ## Done
+
+- [x] **task-3.4: Frontend integration verification** (2026-05-01)
+  - Verified frontend static files served correctly
+  - Verified REST API endpoints work with async handlers
+  - Verified Socket.IO client initialization and connection
+  - Added comprehensive frontend integration tests (13 new tests)
+  - Acceptance: All 26 tests pass, frontend works correctly
 
 - [x] **task-3.3: Migrate WebSocket support** (2026-05-01)
   - Migrated from Flask-SocketIO to python-socketio with ASGI mode

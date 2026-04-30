@@ -1,5 +1,8 @@
 # Getting Started
 
+> **Warning:** Baseweb is being migrated from Flask (synchronous) to Quart (asynchronous).
+> Version 1.0.0 will be a breaking change. See the [migration notice](index.md#important-asyncquart-migration-in-progress) for details.
+
 Baseweb is hosted on PyPi, so...
 
 ```bash

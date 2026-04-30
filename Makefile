@@ -11,13 +11,16 @@ RED=\033[0;31m
 BLUE=\033[0;34m
 NC=\033[0m
 
-.PHONY: install sync test lint format typecheck check build publish clean run docs coverage dist dist-clean
+.PHONY: install install-pythons sync test lint format typecheck check tox build publish clean run docs coverage dist dist-clean
 
 install:
-	uv sync
+	uv sync --all-extras
+
+install-pythons:
+	uv python install 3.10 3.11 3.12
 
 sync:
-	uv sync --frozen
+	uv sync --frozen --all-extras
 
 test:
 	uv run pytest
@@ -52,7 +55,7 @@ run:
 	uv run python -m baseweb
 
 docs:
-	cd docs; uv run make html
+	cd docs; uv run sphinx-build -M html . _build
 	open docs/_build/html/index.html
 
 # packaging targets

@@ -19,9 +19,9 @@ Contributions are welcome! This guide will help you get started.
 
 2. Install dependencies:
    ```bash
-   uv sync
+   uv sync --all-extras
    ```
-   This creates a `.venv` and installs all dependencies including dev tools.
+   This creates a `.venv` and installs all dependencies including dev and docs tools.
 
 3. Run tests to verify setup:
    ```bash
@@ -41,6 +41,23 @@ uv run pytest --cov=src          # With coverage
 Or use Makefile:
 ```bash
 make test
+```
+
+### Multi-Version Testing
+
+Test across all supported Python versions (3.10, 3.11, 3.12):
+
+```bash
+# Install all Python versions first (one-time setup)
+make install-pythons
+
+# Run tests on all versions
+uv run tox
+
+# Or run specific version
+uv run tox -e py310
+uv run tox -e py311
+uv run tox -e py312
 ```
 
 ### Code Quality
@@ -63,10 +80,10 @@ make check        # All checks
 
 ```bash
 cd docs
-uv run make html
+uv run sphinx-build -M html . _build
 ```
 
-Or:
+Or from the project root:
 ```bash
 make docs
 ```

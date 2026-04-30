@@ -50,6 +50,18 @@ make lint      # run linting
 make check     # run all checks
 ```
 
+### Multi-Version Testing
+
+Test across all supported Python versions (3.10, 3.11, 3.12):
+
+```bash
+# Install all Python versions (one-time setup)
+make install-pythons
+
+# Run tests on all versions
+uv run tox
+```
+
 ### Project Structure
 
 - `src/baseweb/` - Main package source

@@ -49,6 +49,12 @@ dev = [
   "build>=1.0.0",
   "twine>=5.0.0",
   "tox>=4.0.0",
+  "tox-uv>=1.0.0",
+]
+docs = [
+  "sphinx>=7.0.0",
+  "sphinx-rtd-theme>=2.0.0",
+  "myst-parser>=2.0.0",
 ]
 
 [project.urls]
@@ -129,9 +135,10 @@ exclude_lines = [
 env_list = ["py310", "py311", "py312"]
 
 [tool.tox.env_run_base]
-description = "Run tests with pytest"
+description = "run tests with pytest"
 skip_install = false
-extras = ["dev"]
-commands = [
-  ["pytest", "-v", "--cov=baseweb", "--cov-report=term-missing"],
+commands_pre = [
+  ["uv", "pip", "install", "-e", "."],
+  ["uv", "pip", "install", "pytest", "pytest-cov", "pytest-asyncio"],
 ]
+commands = [["pytest", "tests", "-v", "--cov=baseweb", "--cov-report=term-missing"]]

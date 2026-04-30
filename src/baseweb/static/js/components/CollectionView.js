@@ -75,7 +75,7 @@ Vue.component("CollectionView", {
     </v-card>
 
   </v-card>
-      
+
   <v-dialog v-model="model.dialog" persistent max-width="600px">
     <v-card>
       <v-card-title>
@@ -253,7 +253,8 @@ Vue.component("CollectionView", {
         url: self.resource,
         data: params,
         type: "get",
-        success: function(response) {
+        dataType: "json",
+        success: function (response) {
           self.loading = false;
           self.select({});
           var content = self.enrich ? self.enrich(response.content) : response.content;

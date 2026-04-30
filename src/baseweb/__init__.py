@@ -7,7 +7,6 @@ import re
 from functools import wraps
 from pathlib import Path
 
-import flask_restful
 import flask_socketio
 from dotmap import DotMap
 from jinja2 import TemplateNotFound
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 OK             = [ "yes", "true", "ok" ]
 HERE           = Path(__file__).resolve().parent
-OPTIONAL_PARAM = re.compile(r"/<[^\d\W]\w*\?.*", re.UNICODE)
+OPTIONAL_PARAM = re.compile(r"<[^\d\W]\w*\?>", re.UNICODE)
 
 class Baseweb(Quart):
   _banner_shown = False
@@ -43,7 +42,6 @@ class Baseweb(Quart):
 
     self.authenticator = None
 
-    self.api      = flask_restful.Api(self)
     # TODO: task-3.3 - Migrate to Quart native WebSocket
     # Flask-SocketIO is not compatible with Quart (ASGI)
     # WebSocket support will be re-enabled in task-3.3
@@ -163,11 +161,18 @@ class Baseweb(Quart):
     register a valid app route, which returns the app, just like /
     NOTE: this explicit registration replaces the previous catch-all approach
     """
-    optionless_route = re.sub(OPTIONAL_PARAM, "", route) # cut optional params
-    route = re.sub(r"\?>", ">", route) # remove optional param modifier
+    # Handle optional parameters: /page/<id?> becomes /page/<id> and /page
+    # The regex matches <param?> and we create both variants
+    optionless_route = re.sub(OPTIONAL_PARAM, "", route)  # Remove optional param entirely
+    optionless_route = optionless_route.rstrip('/')  # Remove trailing slash
+    route = re.sub(r"\?>", ">", route)  # Convert <id?> to <id>
 
-    if optionless_route != route:
-      self.register_app_route(optionless_route)
+    # If there was an optional param, register the optionless variant with unique endpoint
+    if optionless_route != route.rstrip('/'):
+      # Register the optionless variant (without parameter) with a unique endpoint
+      # to avoid endpoint conflicts
+      optionless_endpoint = f"{slugify(optionless_route)}_base"
+      self.register_app_route(optionless_route, endpoint=optionless_endpoint, security_scope=security_scope)
 
     route_slug = slugify(route)
 
@@ -182,7 +187,7 @@ class Baseweb(Quart):
       "security_scope" : security_scope
     }
 
-    self.route(route, endpoint=endpoint)(
+    self.route(route, endpoint=endpoint, strict_slashes=False)(
       self._render(security_scope=security_scope)
     )
     logger.debug(f"registered app '{route}' on '{endpoint}' as '{security_scope}'")
@@ -237,14 +242,25 @@ class Baseweb(Quart):
     async def handler(filename=None, *args, **kwargs):
       if not await self._valid_credentials(security_scope):
         return await self._return_401()
-      return await send_from_directory(kind[filename], filename)
+      try:
+        directory = kind[filename]
+      except KeyError:
+        logger.warning(f"file not found in registry: {filename}")
+        abort(404)
+      return await send_from_directory(directory, filename)
     return handler
 
   async def _send_app_static(self, filename):
     if not self.app_static_folder:
       logger.warning("no app static folder configured")
       abort(404)
-    return await send_from_directory(self.app_static_folder, filename)
+    try:
+      return await send_from_directory(self.app_static_folder, filename)
+    except Exception as e:
+      # send_from_directory will raise NotFound if file doesn't exist
+      # but we catch any exception to ensure proper 404 handling
+      logger.warning(f"static file not found: {filename}")
+      abort(404)
 
 # expose the classic global, one-for-all baseweb server instance
 server = Baseweb()

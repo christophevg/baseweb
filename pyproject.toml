@@ -27,7 +27,6 @@ classifiers = [
 keywords = ["Quart", "Vue", "REST", "WebSocket"]
 dependencies = [
   "Quart",
-  "Flask-RESTful",
   "Flask-SocketIO",
   "python-dotenv",
   "websocket-client",

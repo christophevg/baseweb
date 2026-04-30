@@ -120,34 +120,60 @@ async def ws():
         await websocket.send_json({"received": data})
 ```
 
-### API Endpoints (Flask-RESTful)
+### API Endpoints (Flask-RESTful Removed)
 
-If using Flask-RESTful, install `quart-flask-patch` for compatibility:
+**Breaking Change:** Flask-RESTful has been removed from Baseweb 1.0.0. It is not compatible with Quart's async architecture.
 
-```bash
-pip install quart-flask-patch
-```
+If you were using `server.api.add_resource()`, migrate to native Quart routes:
 
-Resource classes remain largely unchanged, but request parsing must be async:
-
-**Before:**
+**Before (Flask-RESTful):**
 ```python
+from baseweb import server
 from flask_restful import Resource
 
 class MyResource(Resource):
     def get(self):
         data = request.get_json()
         return {"data": data}
+
+server.api.add_resource(MyResource, '/api/my')
 ```
 
-**After:**
+**After (Native Quart):**
 ```python
-from flask_restful import Resource
+from baseweb import server
 
-class MyResource(Resource):
-    async def get(self):
-        data = await request.get_json()
-        return {"data": data}
+@server.route('/api/my')
+async def get_my():
+    data = await request.get_json()
+    return {"data": data}
+```
+
+For API validation, consider using `quart-schema`:
+
+```bash
+pip install quart-schema
+```
+
+```python
+from baseweb import server
+from quart_schema import validate_request, validate_response
+from dataclasses import dataclass
+
+@dataclass
+class MyInput:
+    name: str
+
+@dataclass
+class MyOutput:
+    id: int
+    name: str
+
+@server.post('/api/items')
+@validate_request(MyInput)
+@validate_response(MyOutput, 201)
+async def create_item(data: MyInput) -> MyOutput:
+    return MyOutput(id=1, name=data.name)
 ```
 
 ### Authentication Decorators

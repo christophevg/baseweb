@@ -303,7 +303,6 @@ class TestAuthenticationAsync:
             "Authenticated decorator must return async wrapper"
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_authentication_failure_returns_401(self):
         """
         Given: A protected route with an authenticator that returns False
@@ -354,7 +353,6 @@ class TestAuthenticationAsync:
             assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_async_authenticator_failure_returns_401(self):
         """
         Given: An async authenticator that returns False
@@ -457,7 +455,6 @@ class TestLandingRoute:
             assert b"<html" in content.lower()
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_landing_route_with_authentication(self):
         """
         Given: A Baseweb instance with authenticator and protected landing
@@ -533,7 +530,6 @@ class TestManifestRoute:
                 os.environ["APP_STYLE"] = original_style
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_manifest_route_returns_404_when_not_pwa(self):
         """
         Given: A Baseweb instance configured as web (style='web')
@@ -600,7 +596,6 @@ class TestComponentRoute:
                 assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_component_route_returns_404_for_unregistered_component(self):
         """
         Given: A Baseweb instance with no registered component for filename
@@ -615,7 +610,6 @@ class TestComponentRoute:
             assert response.status_code == 404
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_component_route_with_authentication(self):
         """
         Given: A Baseweb instance with authenticator and registered component
@@ -662,7 +656,6 @@ class TestStylesheetRoute:
                 assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_stylesheet_route_returns_404_for_unregistered_stylesheet(self):
         """
         Given: A Baseweb instance with no registered stylesheet for filename
@@ -701,7 +694,6 @@ class TestStaticRoute:
                 assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_static_route_returns_404_for_missing_file(self):
         """
         Given: A Baseweb instance with app_static_folder configured
@@ -717,7 +709,6 @@ class TestStaticRoute:
                 assert response.status_code == 404
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_static_route_returns_404_without_app_static_folder(self):
         """
         Given: A Baseweb instance without app_static_folder configured
@@ -752,7 +743,6 @@ class TestAppRoute:
             assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_app_route_with_authentication(self):
         """
         Given: A Baseweb instance with protected app route
@@ -771,7 +761,6 @@ class TestAppRoute:
             assert response.status_code == 401
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_app_route_with_optional_params(self):
         """
         Given: A Baseweb instance with route containing optional params
@@ -1096,7 +1085,6 @@ class TestErrorHandling:
                     assert e.status_code == 404
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_file_not_found_returns_404(self):
         """
         Given: A request for a non-existent component file
@@ -1172,7 +1160,6 @@ class TestResponses:
                 assert isinstance(content, bytes)
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Flask-RESTful compatibility - see task-3.2")
     async def test_401_response_format(self):
         """
         Given: An authentication failure

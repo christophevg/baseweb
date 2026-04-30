@@ -8,11 +8,14 @@
 
 ### Phase 3: Flask to Quart Migration
 
-- [ ] **task-3.2: Migrate Flask-RESTful**
-  - Add `quart-flask-patch` or equivalent
-  - Test API endpoints with Quart
-  - Document any required API changes
-  - Acceptance: All API endpoints work, tests pass
+- [x] **task-3.2: Remove Flask-RESTful** (2026-04-30)
+  - Removed Flask-RESTful dependency from pyproject.toml
+  - Removed `import flask_restful` from __init__.py
+  - Removed `self.api = flask_restful.Api(self)` attribute
+  - Enabled 13 previously skipped tests
+  - Updated migration guide for native Quart routes
+  - Acceptance: All tests pass (65 tests, 0 skipped)
+  - Summary: reporting/task-3.2/summary.md
 
 - [ ] **task-3.3: Migrate WebSocket support**
   - Evaluate WebSocket usage patterns

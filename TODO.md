@@ -17,7 +17,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 |--------------|-------------------|--------|
 | task-3.1: Core migration | task-1.x, task-2.x | ✅ Complete |
 | task-3.2: Remove Flask-RESTful | task-2.x Resource migration | ✅ Complete |
-| task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | 🔴 Blocked |
+| task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | ✅ Complete |
 | task-3.4: Frontend verification | Manual testing | ⏳ Pending |
 
 ---
@@ -45,12 +45,13 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Acceptance: All tests pass (65 tests, 0 skipped)
   - Summary: reporting/task-3.2/summary.md
 
-- [ ] **task-3.3: Migrate WebSocket support**
-  - Evaluate WebSocket usage patterns
-  - Choose: Flask-SocketIO (threaded) vs Quart native vs python-socketio
-  - Implement chosen solution
-  - Create WebSocket integration tests
-  - Acceptance: WebSocket functionality works, tests pass
+- [x] **task-3.3: Migrate WebSocket support** (2026-05-01)
+  - Migrated from Flask-SocketIO to python-socketio with ASGI mode
+  - Implemented `socketio.AsyncServer(async_mode='asgi')`
+  - Created `socketio.ASGIApp(sio, quart_app)` wrapper
+  - Updated `authenticated` decorator for SocketIO context
+  - Acceptance: WebSocket functionality works with authentication
+  - Summary: committed in research/2026-04-30-quart-websocket-options/
 
 - [ ] **task-3.4: Frontend integration verification**
   - Verify frontend works without changes
@@ -71,14 +72,16 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ## In Progress
 
-- [ ] **task-3.3: Migrate WebSocket support**
-  - Evaluate WebSocket usage patterns
-  - Choose: Flask-SocketIO (threaded) vs Quart native vs python-socketio
-  - Implement chosen solution
-  - Create WebSocket integration tests
-  - Acceptance: WebSocket functionality works, tests pass
+(none)
 
 ## Done
+
+- [x] **task-3.3: Migrate WebSocket support** (2026-05-01)
+  - Migrated from Flask-SocketIO to python-socketio with ASGI mode
+  - Implemented `socketio.AsyncServer(async_mode='asgi')`
+  - Created `socketio.ASGIApp(sio, quart_app)` wrapper
+  - Updated `authenticated` decorator for SocketIO context
+  - Acceptance: WebSocket functionality works with authentication
 
 - [x] **task-3.1: Migrate core Baseweb class** (2026-04-30)
   - Changed `from flask import Flask` to `from quart import Quart`

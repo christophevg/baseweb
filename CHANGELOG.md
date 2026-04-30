@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `request.get_json()` must be awaited
   - `send_from_directory()` must be awaited
 - **Python 3.11+ Required**: Minimum Python version is now 3.11
-- **WebSocket**: Flask-SocketIO replaced with Quart native WebSocket
+- **WebSocket**: Flask-SocketIO replaced with python-socketio (ASGI mode)
 - **Flask-RESTful Removed**: The `server.api` attribute is no longer available
   - Migrate to native Quart routes with `@server.route()` decorator
   - Consider `quart-schema` for API validation

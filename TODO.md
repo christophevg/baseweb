@@ -5,11 +5,6 @@
 ### Phase 2: Architecture Decision
 
 
-- [ ] **task-2.2: Coordinate with hosted-quarts**
-  - Document dependency matrix between baseweb and hosted-quarts
-  - Align migration timeline
-  - Identify shared code/dependencies
-  - Acceptance: Coordination plan documented
 
 ### Phase 3: Flask to Quart Migration
 
@@ -57,6 +52,16 @@
 (none)
 
 ## Done
+
+- [x] **task-2.2: Coordinate with hosted-quarts** (2026-04-30)
+  - Documented relationship: hosted-quarts serves baseweb as Quart app
+  - Confirmed no code dependencies between projects
+  - Aligned timeline: parallel development, coordinated production upgrade
+  - Created coordination plan: reporting/task-2.2/coordination-plan.md
+  - All acceptance criteria met:
+    - Dependency matrix documented
+    - Migration timeline aligned
+    - Shared code/dependencies identified (none)
 
 - [x] **task-2.1: Decide on version strategy** (2026-04-30)
   - Documented decision: single version with major bump to 1.0.0

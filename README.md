@@ -17,7 +17,7 @@
 > - If you're starting a new project, consider waiting for 1.0.0.
 > - Existing applications will need to update their code to use async patterns.
 >
-> See [Functional Analysis](analysis/functional.md) for migration details and timeline.
+> See [Migration Guide](https://baseweb.readthedocs.io/en/latest/migration-guide.html) for migration details.
 
 ## Installation
 
@@ -150,7 +150,7 @@ See [Contributing](https://baseweb.readthedocs.io/en/latest/contributing.html) f
 
 ## Changelog
 
-See [GitHub Releases](https://github.com/christophevg/baseweb/releases) for version history.
+See [CHANGELOG.md](CHANGELOG.md) for version history. For released versions, see [GitHub Releases](https://github.com/christophevg/baseweb/releases).
 
 ## License
 

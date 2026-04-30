@@ -4,11 +4,6 @@
 
 ### Phase 2: Architecture Decision
 
-- [ ] **task-2.1: Decide on version strategy**
-  - Document decision: single version (major bump) vs dual packages
-  - Create migration guide for existing users
-  - Prepare changelog entry
-  - Acceptance: Decision documented in analysis/functional.md
 
 - [ ] **task-2.2: Coordinate with hosted-quarts**
   - Document dependency matrix between baseweb and hosted-quarts
@@ -62,6 +57,17 @@
 (none)
 
 ## Done
+
+- [x] **task-2.1: Decide on version strategy** (2026-04-30)
+  - Documented decision: single version with major bump to 1.0.0
+  - Created migration guide (docs/migration-guide.md)
+  - Created CHANGELOG.md with v1.0.0 entry
+  - Updated README.md with references to migration guide
+  - All acceptance criteria met:
+    - Decision documented with rationale
+    - Migration guide created for existing users
+    - Changelog entry prepared
+  - Summary: reporting/task-2.1/summary.md
 
 - [x] **task-0.2: Complete uv migration and fix CI** (2026-04-30)
   - Removed old pyenv management targets from Makefile

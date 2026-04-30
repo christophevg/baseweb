@@ -1,0 +1,7 @@
+{
+  "name": "baseweb",
+  "version": "1.0.0",
+  "description": "Baseweb framework plugin - async web applications with Vue.js",
+  "skills": ["migrate"],
+  "repository": "https://github.com/christophevg/baseweb"
+}

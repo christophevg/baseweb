@@ -32,7 +32,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Add 7 new tests for instantiation patterns
   - Acceptance: All 144 tests pass
 
-- create a migrate skill and expose it as a baseweb plugin
+- [x] **Migrate skill as baseweb plugin** (2026-05-01)
+  - Created baseweb/plugins/migrate/ package
+  - Comprehensive migration guide for Flask→Quart
+  - Covers imports, async patterns, Socket.IO, tests
+  - Exposed as baseweb plugin
+
 - upgrade frontend to modern Vue+Vuetify
 
 ### Phase 2: Architecture Decision
@@ -65,7 +70,9 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Added comprehensive frontend integration tests (13 new tests)
   - Acceptance: All 26 tests pass, frontend works correctly
 
-### Phase 5: Component Consolidation
+### Phase 5: Component Consolidation (Deferred)
+
+> **Note:** This phase is deferred as it's not part of the Flask→Quart modernization.
 
 - [ ] **task-5.1: Unify special page components**
   - Create unified `Page` component with configurable props/slots

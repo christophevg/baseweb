@@ -46,7 +46,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Update API documentation for add_resource changes
   - Ensure migration guide is comprehensive
 
-- upgrade frontend to modern Vue+Vuetify
+- [ ] **Upgrade frontend to modern Vue 3 + Vuetify 3**
+  - Migrate from Vue 2 to Vue 3 (Composition API)
+  - Migrate from Vuetify 2 to Vuetify 3
+  - Update all Vue components
+  - Update build system (Vite instead of webpack?)
+  - Test all existing functionality
 
 ### Phase 2: Architecture Decision
 

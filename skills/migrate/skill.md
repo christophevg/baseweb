@@ -1,39 +1,44 @@
 ---
 name: baseweb-migrate
-description: Migrate Flask-based baseweb apps to async Quart
+description: Migrate Flask/Vue 2 baseweb apps to async Quart and Vue 3
 triggers:
   - when asked to migrate a Flask/baseweb app
   - when modernizing legacy baseweb code
   - when converting sync Flask patterns to async Quart
+  - when migrating Vue 2 to Vue 3
 ---
 
 # Baseweb Migrate Skill
 
-Migrate existing Flask-based baseweb applications to the modern async Quart architecture.
+Migrate existing baseweb applications from Flask/Vue 2 to Quart/Vue 3 with Vuetify 3.
 
 ## Overview
 
-This skill guides the migration from Flask (sync) to Quart (async) for baseweb applications:
+This skill guides the complete migration from legacy baseweb to modern baseweb:
 
-| From | To |
-|------|-----|
-| Flask | Quart |
-| flask_restful.Resource | baseweb.Resource |
-| Sync handlers | Async handlers |
-| Flask-SocketIO | python-socketio (ASGI) |
-| eventlet | uvicorn |
+| Component | From | To |
+|-----------|------|-----|
+| **Backend** | Flask (sync) | Quart (async) |
+| **Resources** | flask_restful.Resource | baseweb.Resource |
+| **WebSocket** | Flask-SocketIO | python-socketio (ASGI) |
+| **Server** | eventlet | uvicorn |
+| **Frontend** | Vue 2 | Vue 3 |
+| **UI Framework** | Vuetify 2 | Vuetify 3 |
+| **Icons** | Material Icons | Material Design Icons (MDI) |
+| **State** | Vuex 3 | Vuex 4 |
 
 ## When to Use
 
 - Migrating existing baseweb `< 0.4.0` apps to `>= 1.0.0`
 - Converting sync Flask patterns to async Quart patterns
+- Migrating Vue 2 frontend to Vue 3
 - Modernizing legacy baseweb codebases
 
-## Migration Steps
+---
 
-### Step 1: Analyze Current Project
+# Part 1: Backend Migration (Flask → Quart)
 
-First, analyze the existing project structure:
+## Step 1: Analyze Current Project
 
 ```bash
 # Find all Python files
@@ -45,16 +50,14 @@ grep -r "import flask" --include="*.py"
 
 # Check for Flask-RESTful usage
 grep -r "from flask_restful import" --include="*.py"
-grep -r "flask_restful" --include="*.py"
 
 # Check for Flask-SocketIO usage
 grep -r "from flask_socketio import" --include="*.py"
-grep -r "Flask-SocketIO" --include="*.py"
 ```
 
-### Step 2: Update Dependencies
+## Step 2: Update Dependencies
 
-Update `requirements.txt` or `pyproject.toml`:
+Update `pyproject.toml`:
 
 ```diff
 - Flask>=2.0.0
@@ -68,21 +71,15 @@ Update `requirements.txt` or `pyproject.toml`:
 + uvicorn[standard]>=0.24.0
 ```
 
-### Step 3: Update Imports
-
-Replace Flask imports with Quart imports:
+## Step 3: Update Imports
 
 | Before | After |
 |--------|-------|
 | `from flask import Flask` | `from quart import Quart` |
 | `from flask import request, abort, Response` | `from quart import request, abort, Response` |
-| `from flask import render_template` | `from quart import render_template` |
-| `from flask import send_from_directory` | `from quart import send_from_directory` |
 | `from flask_restful import Resource` | `from baseweb import Resource` |
 
-### Step 4: Convert to Async
-
-Convert sync methods to async:
+## Step 4: Convert to Async
 
 ```python
 # Before (sync)
@@ -107,12 +104,9 @@ class Hello(Resource):
 **Key changes:**
 - Add `async` keyword to method definitions
 - Add `await` to `request.get_json()` calls
-- Add `await` to `render_template()` calls (in route handlers)
-- Add `await` to `send_from_directory()` calls (in static handlers)
+- Add `await` to `render_template()` calls
 
-### Step 5: Update Resource Registration
-
-Replace Flask-RESTful pattern with native baseweb pattern:
+## Step 5: Update Resource Registration
 
 ```python
 # Before
@@ -124,14 +118,10 @@ api.add_resource(HelloResource, '/api/hello')
 server.add_resource(HelloResource, '/api/hello')
 ```
 
-### Step 6: Migrate Socket.IO Handlers
-
-Convert Flask-SocketIO to python-socketio:
+## Step 6: Migrate Socket.IO Handlers
 
 ```python
 # Before (Flask-SocketIO)
-from flask_socketio import emit
-
 @server.socketio.on("connect")
 def handle_connect():
     emit("connected", {"status": "ok"})
@@ -156,36 +146,7 @@ async def handle_message(sid, data):
 - Add `environ` as second parameter for connect handlers
 - Add `await` to `emit()` calls
 
-### Step 7: Update Authentication Decorator
-
-The `@server.authenticated()` decorator works for both HTTP and Socket.IO:
-
-```python
-# HTTP handlers (works the same)
-@server.authenticated("app.resource.get")
-async def get(self):
-    return {"data": "protected"}
-
-# Socket.IO handlers (now supported)
-@server.socketio.on("private_event")
-@server.authenticated("app.events.private")
-async def handle_private(sid, data):
-    return {"echo": data}
-```
-
-### Step 8: Update Running Configuration
-
-Update how the application is run:
-
-```bash
-# Before (WSGI with eventlet)
-gunicorn -k eventlet -w 1 module:server
-
-# After (ASGI with uvicorn)
-gunicorn -w 1 -k uvicorn.workers.UvicornWorker "module:asgi_app"
-```
-
-Create the ASGI entry point:
+## Step 7: Create ASGI Entry Point
 
 ```python
 # module/__init__.py
@@ -199,142 +160,511 @@ server = Baseweb("myapp")
 asgi_app = server._asgi_app
 ```
 
-### Step 9: Update Tests
+## Step 8: Update Run Command
 
-Update tests for async:
+```bash
+# Before (WSGI with eventlet)
+gunicorn -k eventlet -w 1 module:server
 
-```python
-# Before
-def test_endpoint():
-    response = client.get('/api/test')
-    assert response.status_code == 200
-
-# After
-@pytest.mark.asyncio
-async def test_endpoint():
-    async with app.test_app() as test_app:
-        client = test_app.test_client()
-        response = await client.get('/api/test')
-        assert response.status_code == 200
+# After (ASGI with uvicorn)
+uvicorn app:asgi_app --host 0.0.0.0 --port 8000
+# or with gunicorn
+gunicorn -w 1 -k uvicorn.workers.UvicornWorker "module:asgi_app"
 ```
 
-Add `pytest-asyncio` to test dependencies:
+---
 
-```toml
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-]
+# Part 2: Frontend Migration (Vue 2 → Vue 3)
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
+## Critical: App Loading Order
+
+Vue 3 requires `app` to be available before components can register. The main.html template must load `app.js` **immediately after `vue.js`**:
+
+```html
+<!-- Vue 3 -->
+<script src="/static/vendor/js/vue.js"></script>
+<script src="/static/js/app.js"></script>  <!-- Load early! -->
+
+<!-- Vuetify 3 -->
+<script src="/static/vendor/js/vuetify.js"></script>
 ```
 
-## Migration Checklist
+## Vue 2 → Vue 3 Patterns
 
-Use this checklist to track migration progress:
+### Component Registration
+
+```javascript
+// Before (Vue 2)
+Vue.component("MyComponent", {
+  template: `<div>Hello</div>`
+});
+
+// After (Vue 3)
+app.component("MyComponent", {
+  template: `<div>Hello</div>`
+});
+```
+
+### Filters Removed
+
+Vue 3 removed filters. Use global properties instead:
+
+```javascript
+// Before (Vue 2 template)
+{{ message.when | formatDate }}
+
+// After (Vue 3 template)
+{{ $filters.formatDate(message.when) }}
+```
+
+Register filters in main.html:
+
+```html
+<script>
+  app.config.globalProperties.$filters = {
+    syntaxHighlight: syntaxHighlight,
+    formatDate: formatDate,
+    formatEpoch: formatEpoch
+  };
+</script>
+```
+
+Update common.js to export functions instead of registering filters:
+
+```javascript
+// Before (Vue 2)
+Vue.filter('formatDate', function(value) {
+  return moment(value).format('DD/MM/YYYY HH:mm:ss');
+});
+
+// After (Vue 3 - just export the function)
+function formatDate(value) {
+  if (value) {
+    return moment(value).format('DD/MM/YYYY HH:mm:ss');
+  }
+  return '';
+}
+```
+
+### Notification System
+
+```javascript
+// Before (Vue 2)
+app.$notify({
+  group: "notifications",
+  title: "Success",
+  text: "Saved!",
+  type: "success"
+});
+
+// After (Vue 3)
+notify({
+  title: "Success",
+  text: "Saved!",
+  type: "success"
+});
+
+// Or via store
+store.commit('notify', { title: "Success", text: "Saved!", type: "success" });
+```
+
+### Socket.io Connection State
+
+Use a Vue ref for connection state that can be updated from outside:
+
+```javascript
+// app.js
+var connectedRef = Vue.ref(false);
+
+var app = Vue.createApp({
+  computed: {
+    connected: function() {
+      return connectedRef.value;
+    }
+  }
+});
+
+window._socketConnected = connectedRef;
+```
+
+```javascript
+// socketio.js
+socket.on("connect", function() {
+  window._socketConnected.value = true;
+});
+```
+
+---
+
+# Part 3: Vuetify 2 → Vuetify 3 Migration
+
+## Icon Migration (Critical)
+
+**This is the most common breaking change.**
+
+### Install MDI Font
+
+```bash
+npm pack @mdi/font
+tar -xzf mdi-font-*.tgz
+cp package/css/materialdesignicons.min.css /path/to/static/vendor/css/mdi.min.css
+cp package/fonts/materialdesignicons-webfont.* /path/to/static/vendor/fonts/
+```
+
+### Icon Name Mapping
+
+| Material Icons | MDI Equivalent |
+|---------------|---------------|
+| `menu` | `mdi-menu` |
+| `home` | `mdi-home` |
+| `close` | `mdi-close` |
+| `edit` | `mdi-pencil` |
+| `delete` | `mdi-delete` |
+| `search` | `mdi-magnify` |
+| `add_circle` | `mdi-plus-circle` |
+| `description` | `mdi-text-box` |
+| `extension` | `mdi-puzzle` |
+| `cloud_done` | `mdi-cloud-check` |
+| `cloud_off` | `mdi-cloud-off` |
+| `layers` | `mdi-layers` |
+| `web` | `mdi-web` |
+
+### Icon Usage in Components
+
+```html
+<!-- Before -->
+<v-icon>menu</v-icon>
+
+<!-- After -->
+<v-icon>mdi-menu</v-icon>
+```
+
+For navigation items using slots:
+
+```html
+<!-- Before -->
+<v-list-item :prepend-icon="page.icon">
+
+<!-- After (use slot for Material Icons) -->
+<v-list-item>
+  <template v-slot:prepend>
+    <v-icon>{{ page.icon }}</v-icon>
+  </template>
+</v-list-item>
+```
+
+## Grid System
+
+```html
+<!-- Before (Vuetify 2) -->
+<v-layout>
+  <v-flex xs12 sm6 offset-sm3>
+    <v-card>...</v-card>
+  </v-flex>
+</v-layout>
+
+<!-- After (Vuetify 3) -->
+<v-container>
+  <v-row justify="center">
+    <v-col cols="12" sm="6">
+      <v-card>...</v-card>
+    </v-col>
+  </v-row>
+</v-container>
+```
+
+## App Bar
+
+```html
+<!-- Before -->
+<v-toolbar color="primary" dark>
+  <v-toolbar-title>Title</v-toolbar-title>
+</v-toolbar>
+
+<!-- After -->
+<v-app-bar color="primary" theme="dark">
+  <v-app-bar-title>Title</v-app-bar-title>
+</v-app-bar>
+```
+
+## Main Content
+
+```html
+<!-- Before -->
+<v-content>
+  <router-view></router-view>
+</v-content>
+
+<!-- After -->
+<v-main>
+  <router-view></router-view>
+</v-main>
+```
+
+## Tabs
+
+```html
+<!-- Before -->
+<v-tabs>
+  <v-tab>Tab 1</v-tab>
+  <v-tab-item>Content 1</v-tab-item>
+</v-tabs>
+
+<!-- After -->
+<v-tabs>
+  <v-tab>Tab 1</v-tab>
+  <v-tabs-window>
+    <v-tab-item>Content 1</v-tab-item>
+  </v-tabs-window>
+</v-tabs>
+```
+
+## Expansion Panels
+
+```html
+<!-- Before -->
+<v-expansion-panel>
+  <v-expansion-panel-content>
+    <div slot="header">Header</div>
+    <div>Content</div>
+  </v-expansion-panel-content>
+</v-expansion-panel>
+
+<!-- After -->
+<v-expansion-panels>
+  <v-expansion-panel>
+    <v-expansion-panel-title>Header</v-expansion-panel-title>
+    <v-expansion-panel-text>Content</v-expansion-panel-text>
+  </v-expansion-panel>
+</v-expansion-panels>
+```
+
+## Cards
+
+```html
+<!-- Before -->
+<v-card-title primary-title>
+  <h3 class="headline mb-0">Title</h3>
+</v-card-title>
+
+<!-- After -->
+<v-card-title>
+  <h3 class="text-h5">Title</h3>
+</v-card-title>
+```
+
+## Buttons
+
+```html
+<!-- Before -->
+<v-btn flat color="secondary">Cancel</v-btn>
+
+<!-- After -->
+<v-btn variant="text" color="secondary">Cancel</v-btn>
+```
+
+## Chart.js Options
+
+```javascript
+// Before
+options: {
+  legend: { display: true }
+}
+
+// After
+options: {
+  plugins: {
+    legend: { display: true }
+  }
+}
+```
+
+---
+
+# Part 4: Common Issues and Solutions
+
+## Issue: Components Not Registering
+
+**Symptom:** "Component x is not found" or component doesn't render.
+
+**Cause:** `app.js` loaded too late, `app` undefined when components register.
+
+**Solution:** Load `app.js` immediately after `vue.js`:
+
+```html
+<script src="/static/vendor/js/vue.js"></script>
+<script src="/static/js/app.js"></script>  <!-- Must be early! -->
+```
+
+## Issue: Icons Not Showing
+
+**Symptom:** Icon buttons are blank or show as text.
+
+**Cause:** Using Material Icons names without MDI prefix.
+
+**Solution:** 
+1. Ensure MDI font is loaded
+2. Use `mdi-*` prefix on all icons
+
+```html
+<v-icon>mdi-menu</v-icon>  <!-- Correct -->
+<v-icon>menu</v-icon>      <!-- Wrong -->
+```
+
+## Issue: Filters Not Working
+
+**Symptom:** `{{ value | filter }}` shows as literal text.
+
+**Cause:** Vue 3 removed filters.
+
+**Solution:** Use `$filters` global property:
+
+```html
+<!-- Before -->
+{{ value | filterName }}
+
+<!-- After -->
+{{ $filters.filterName(value) }}
+```
+
+## Issue: v-layout/v-flex Not Working
+
+**Symptom:** Layout broken, items not positioned correctly.
+
+**Cause:** Vuetify 3 removed `v-layout`/`v-flex`.
+
+**Solution:** Use `v-container`/`v-row`/`v-col`:
+
+```html
+<v-container>
+  <v-row>
+    <v-col cols="12">...</v-col>
+  </v-row>
+</v-container>
+```
+
+## Issue: Socket.io Connected State Not Updating
+
+**Symptom:** Connection indicator stays red even when connected.
+
+**Cause:** Direct property assignment not reactive in Vue 3.
+
+**Solution:** Use `Vue.ref()`:
+
+```javascript
+// app.js
+var connectedRef = Vue.ref(false);
+window._socketConnected = connectedRef;
+
+// socketio.js
+window._socketConnected.value = true;
+```
+
+## Issue: Vue Form Generator Validators
+
+**Symptom:** `VueFormGenerator.validators is undefined`.
+
+**Cause:** Vue 3 migration removed vue-form-generator.
+
+**Solution:** Remove validator references or use VuetifyFormGenerator's built-in validation:
+
+```javascript
+// Before
+validator: VueFormGenerator.validators.string
+
+// After - use required and min attributes
+required: true,
+min: 3
+```
+
+---
+
+# Part 5: Migration Checklist
+
+## Backend (Flask → Quart)
 
 - [ ] Update dependencies (Flask → Quart)
 - [ ] Update imports (flask → quart, flask_restful → baseweb)
 - [ ] Convert sync methods to async
 - [ ] Add `await` to `request.get_json()` calls
-- [ ] Add `await` to `render_template()` calls
 - [ ] Replace `server.api.add_resource()` with `server.add_resource()`
 - [ ] Migrate Socket.IO handlers (add `sid`, `async`, `await`)
 - [ ] Create `asgi_app` entry point
 - [ ] Update run command (gunicorn + uvicorn)
-- [ ] Update tests for async
+
+## Frontend (Vue 2 → Vue 3)
+
+- [ ] Move `app.js` to load immediately after `vue.js`
+- [ ] Replace `Vue.component()` with `app.component()`
+- [ ] Convert filters to global properties
+- [ ] Replace `app.$notify()` with `notify()`
+- [ ] Update socketio.js to use `Vue.ref()` for connection state
+
+## UI (Vuetify 2 → Vuetify 3)
+
+- [ ] Install and load MDI font
+- [ ] Update all icon names to `mdi-*` prefix
+- [ ] Replace `v-layout`/`v-flex` with `v-container`/`v-row`/`v-col`
+- [ ] Replace `v-toolbar` with `v-app-bar`
+- [ ] Replace `v-content` with `v-main`
+- [ ] Wrap `v-tab-item` in `v-tabs-window`
+- [ ] Update expansion panels (title/text structure)
+- [ ] Update card titles (remove `primary-title`, use `text-h*` classes)
+- [ ] Update button variants (`flat` → `variant="text"`)
+
+## Testing
+
 - [ ] Run tests and verify all pass
-- [ ] Manual testing of affected features
+- [ ] Manual testing of all pages
+- [ ] Verify icons display correctly
+- [ ] Verify socket.io connection indicator
+- [ ] Verify forms work
+- [ ] Verify routing works
 
-## Common Issues
+---
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `RuntimeError: Not within a request context` | Using `request` in Socket.IO handler | Socket.IO handlers don't have request context. Use `sid` for authentication. |
-| `SyntaxError: 'await' outside async function` | Missing `async` keyword | Add `async` to function definition |
-| `TypeError: object is not awaitable` | Missing `await` keyword | Add `await` before async call |
-| 405 Method Not Allowed | Missing async on method | Add `async` to HTTP method |
-| Tests fail with "async not supported" | Missing pytest-asyncio | Add pytest-asyncio dependency |
+# Part 6: Quick Reference Card
 
-## Examples
+## Icon Quick Reference
 
-### Full Migration Example
-
-**Before (Flask/sync):**
-
-```python
-# app/__init__.py
-from flask import Flask, request
-from flask_restful import Resource, Api
-from flask_socketio import SocketIO, emit
-
-app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
-api = Api(app)
-
-class Hello(Resource):
-    def get(self):
-        return {"message": "Hello"}
-
-    def post(self):
-        data = request.get_json()
-        return {"received": data}, 201
-
-api.add_resource(Hello, '/api/hello')
-
-@socketio.on("connect")
-def handle_connect():
-    emit("connected", {})
-
-@socketio.on("echo")
-def handle_echo(data):
-    return data
-
-if __name__ == "__main__":
-    socketio.run(app, port=8000)
+```
+menu        → mdi-menu
+home        → mdi-home
+close       → mdi-close
+edit        → mdi-pencil
+delete      → mdi-delete
+search      → mdi-magnify
+add_circle  → mdi-plus-circle
+refresh     → mdi-refresh
+layers      → mdi-layers
+web         → mdi-web
+extension   → mdi-puzzle
+description → mdi-text-box
+cloud_done  → mdi-cloud-check
+cloud_off   → mdi-cloud-off
+information → mdi-information
 ```
 
-**After (Quart/async):**
+## Component Quick Reference
 
-```python
-# app/__init__.py
-from quart import Quart, request
-from baseweb import Baseweb, Resource
-
-server = Baseweb("myapp")
-
-class Hello(Resource):
-    async def get(self):
-        return {"message": "Hello"}
-
-    async def post(self):
-        data = await request.get_json()
-        return {"received": data}, 201
-
-server.add_resource(Hello, '/api/hello')
-
-@server.socketio.on("connect")
-async def handle_connect(sid, environ):
-    await server.socketio.emit("connected", {})
-
-@server.socketio.on("echo")
-async def handle_echo(sid, data):
-    return data
-
-# ASGI entry point
-asgi_app = server._asgi_app
 ```
-
-## Version Compatibility
-
-| baseweb Version | Backend | WebSocket | Running |
-|-----------------|---------|-----------|---------|
-| `< 0.4.0` | Flask | Flask-SocketIO | eventlet |
-| `>= 1.0.0` | Quart | python-socketio | uvicorn |
+Vue.component()     → app.component()
+{{ value | filter }} → {{ $filters.filter(value) }}
+app.$notify()       → notify()
+v-layout/v-flex     → v-container/v-row/v-col
+v-toolbar           → v-app-bar
+v-content           → v-main
+v-tab-item          → v-tabs-window > v-tab-item
+v-expansion-panel-content → v-expansion-panel-text
+slot="header"       → #header or <template #header>
+primary-title       → (removed)
+headline            → text-h5
+flat                → variant="flat"
+dark                → theme="dark"
+```
 
 ## See Also
 
-- [Migration Guide](https://github.com/christophevg/baseweb/blob/master/docs/migration-guide.md)
-- [baseweb-demo legacy tag](https://github.com/christophevg/baseweb-demo/tree/legacy) - Last Flask-compatible version
+- [Vuetify 3 Migration Guide](https://vuetifyjs.com/en/getting-started/upgrade-guide/)
+- [Vue 3 Migration Guide](https://v3-migration.vuejs.org/)
+- [baseweb-demo](https://github.com/christophevg/baseweb-demo) - Reference implementation

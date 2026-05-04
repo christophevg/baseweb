@@ -15,10 +15,18 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 | baseweb Task | baseweb-demo Task | Status |
 |--------------|-------------------|--------|
-| task-3.1: Core migration | task-1.x, task-2.x | ✅ Complete |
-| task-3.2: Remove Flask-RESTful | task-2.x Resource migration | ✅ Complete |
-| task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | ✅ Complete |
-| task-3.4: Frontend verification | Frontend tests | ✅ Complete |
+| task-3.1: Core migration | task-1.x, task-2.x | Complete |
+| task-3.2: Remove Flask-RESTful | task-2.x Resource migration | Complete |
+| task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | Complete |
+| task-3.4: Frontend verification | Frontend tests | Complete |
+| task-3.5: Vue 3 vendor files | Validate: app loads | Complete |
+| task-3.6: Vue 3 app init | Validate: navigation works | Pending |
+| task-3.7: Vue 3 simple components | Validate: pages load | Pending |
+| task-3.8: Vue 3 navigation | Validate: drawer works | Pending |
+| task-3.9: Vue 3 form generator | Validate: forms submit | Pending |
+| task-3.10: Vue 3 CollectionView | Validate: CRUD works | Pending |
+| task-3.11: Vue 3 charts/notifications | Validate: charts/notifications | Pending |
+| task-3.12: Vue 3 integration | Full test suite | Pending |
 
 ---
 
@@ -54,6 +62,11 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 - add support for alternative top-level frameworks
 - introduce restful-mongo (../incubator/ideas/pageable-restful-mongo-review)
 - decide if baseweb should get a plugin system, making baseweb simply the pure core package, adding more functionality (e.g. OAuth, restful-mongo,...) as package plugins
+- **optimize vendor bundle** (after Vue 3 migration complete and all apps migrated)
+  - Create bundled/minified vendor.js from individual files
+  - Enable tree-shaking for Vuetify components
+  - Measure and document size reduction
+  - Keep non-bundled approach as fallback option
 
 ## Backlog
 
@@ -67,12 +80,103 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Updated adding-security.md: async handlers, Socket.IO authentication
   - All code examples now use Quart/async patterns
 
-- [ ] **Upgrade frontend to modern Vue 3 + Vuetify 3**
-  - Migrate from Vue 2 to Vue 3 (Composition API)
-  - Migrate from Vuetify 1.5 to Vuetify 3
-  - Update all Vue components
-  - Update build system (Vite instead of webpack?)
-  - Test all existing functionality
+- [x] **task-3.5: Vue 3 + Vuetify 3 Migration - Vendor Files** (2026-05-04)
+  - Downloaded Vue 3.5.33 global build (160KB, was 424KB)
+  - Downloaded Vue Router 4.6.4 global build (27KB, was 64KB)
+  - Downloaded Vuex 4.1.0 global build (15KB, was 25KB)
+  - Downloaded Vuetify 3.12.5 JS (557KB, was 1.0MB)
+  - Downloaded Vuetify 3.12.5 CSS (494KB, was 210KB)
+  - Downloaded Socket.IO Client 4.8.3 (46KB)
+  - Downloaded vue-multiselect 3.5.0 (21KB, was 42KB)
+  - Created backups in vendor/js.backup/ and vendor/css.backup/
+  - Kept vue-chartjs (no v4 UMD build), vue-form-generator, vue-notification (replaced later)
+  - Acceptance: All vendor files downloaded and verified
+  - Summary: analysis/ux-vue3-migration.md, analysis/vuetify-4-evaluation.md
+
+- [x] **task-3.6: Vue 3 + Vuetify 3 Migration - App Initialization** (2026-05-04)
+  - Updated main.html with Vue 3 + Vuetify 3 initialization pattern
+  - Added compatibility shims for Vue 2-style global registration (Vue.component, Vue.filter, Vue.use)
+  - Updated app.js: `new Vue()` -> `Vue.createApp()`
+  - Updated router.js: `new VueRouter()` -> `VueRouter.createRouter()`
+  - Updated store.js: `new Vuex.Store()` -> `Vuex.createStore()`
+  - Updated NavigationDrawer.js: `router.addRoutes()` -> `router.addRoute()`
+  - Acceptance: App initializes, routes work, store works
+  - Requires: task-3.5 (vendor files updated)
+  - Validate: baseweb-demo navigation works
+  - Notes:
+    - Vue 3 filters removed - compatibility shim stores filters in $filters global property
+    - Templates using filter syntax need updating in task-3.7+
+    - Vuetify 2 component names (v-list-tile) need updating to Vuetify 3 names (v-list-item) in task-3.7+
+
+- [ ] **task-3.7: Vue 3 + Vuetify 3 Migration - Simple Components**
+  - Update Page.js (minimal changes, no Vuetify)
+  - Update PageWithBanner.js (v-alert props check, store)
+  - Update PageWithStatus.js (v-snackbar props check, store)
+  - Update ProcessDiagram.js (no Vuetify, minimal)
+  - Test all simple components render
+  - Acceptance: All simple components render correctly
+  - Requires: task-3.6 (app initialization)
+  - Validate: baseweb-demo pages load
+
+- [ ] **task-3.8: Vue 3 + Vuetify 3 Migration - Navigation Component**
+  - Update NavigationDrawer.js
+  - Replace all `v-list-tile` -> `v-list-item`
+  - Replace all `v-list-tile-content` -> `v-list-item-content`
+  - Replace all `v-list-tile-title` -> `v-list-item-title`
+  - Replace all `v-list-tile-action` -> `v-list-item-action`
+  - Update `v-list-group` slot syntax (v-slot:activator)
+  - Update `v-navigation-drawer` props
+  - Test navigation drawer expands/collapses
+  - Acceptance: Navigation drawer works correctly
+  - Requires: task-3.7 (simple components)
+  - Validate: baseweb-demo navigation drawer works
+
+- [ ] **task-3.9: Vue 3 + Vuetify 3 Migration - Form Generator Replacement**
+  - Create VuetifyFormGenerator component
+  - Parse existing vue-form-generator schema format
+  - Render Vuetify 3 form components dynamically
+  - Support: input, select, checkbox, radio, textarea
+  - Support validation and hints
+  - Test with existing schemas in baseweb-demo
+  - Acceptance: Forms work with existing schemas
+  - Requires: task-3.8 (navigation)
+  - Validate: baseweb-demo forms submit correctly
+
+- [ ] **task-3.10: Vue 3 + Vuetify 3 Migration - CollectionView Component**
+  - Update CollectionView.js
+  - Replace jQuery AJAX with fetch API
+  - Update v-data-table: `:pagination.sync` -> `v-model:options`
+  - Update v-data-table: `:total-items` -> `:items-length`
+  - Update v-data-table: slot syntax (v-slot:item)
+  - Update pagination structure (rowsPerPage -> itemsPerPage)
+  - Replace vue-form-generator with VuetifyFormGenerator
+  - Replace vue-notification with Vuetify snackbar
+  - Test CRUD operations work
+  - Acceptance: Data tables work, CRUD operations work
+  - Requires: task-3.9 (form generator)
+  - Validate: baseweb-demo CollectionView works
+
+- [ ] **task-3.11: Vue 3 + Vuetify 3 Migration - Charts and Notifications**
+  - Update LineChart.js for vue-chartjs v4
+  - Replace vue-notification with Vuetify snackbar
+  - Update notification calls throughout components
+  - Test charts render correctly
+  - Test notifications appear correctly
+  - Acceptance: Charts render, notifications work
+  - Requires: task-3.10 (CollectionView)
+  - Validate: baseweb-demo charts and notifications work
+
+- [ ] **task-3.12: Vue 3 + Vuetify 3 Migration - Integration Testing**
+  - Run full integration test suite
+  - Test all existing functionality against backend
+  - Test WebSocket connections
+  - Test authentication flows
+  - Visual comparison with Vue 2 version
+  - Benchmark performance vs Vue 2
+  - Document any remaining issues
+  - Acceptance: All features work, no regressions
+  - Requires: task-3.11 (all components)
+  - Validate: baseweb-demo full test suite passes
 
 ### Phase 5: Post-modernization further feature development
 

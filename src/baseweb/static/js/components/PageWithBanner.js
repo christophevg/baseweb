@@ -3,7 +3,7 @@
 Vue.component("PageWithBanner", {
   template : `
 <Page>
-  <v-alert v-model="banner.alert" :dismissible="banner.dismissible" :type="banner.type">{{ banner.message }}</v-alert>
+  <v-alert v-model="banner.alert" :closable="banner.dismissible" :type="banner.type">{{ banner.message }}</v-alert>
   <div style="padding-top:15px" v-if="banner.alert">&nbsp;</div>
   <slot></slot>
 </Page>

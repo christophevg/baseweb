@@ -21,7 +21,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 | task-3.4: Frontend verification | Frontend tests | Complete |
 | task-3.5: Vue 3 vendor files | Validate: app loads | Complete |
 | task-3.6: Vue 3 app init | Validate: navigation works | Pending |
-| task-3.7: Vue 3 simple components | Validate: pages load | Pending |
+| task-3.7: Vue 3 simple components | Validate: pages load | Complete |
 | task-3.8: Vue 3 navigation | Validate: drawer works | Pending |
 | task-3.9: Vue 3 form generator | Validate: forms submit | Pending |
 | task-3.10: Vue 3 CollectionView | Validate: CRUD works | Pending |
@@ -108,13 +108,13 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
     - Templates using filter syntax need updating in task-3.7+
     - Vuetify 2 component names (v-list-tile) need updating to Vuetify 3 names (v-list-item) in task-3.7+
 
-- [ ] **task-3.7: Vue 3 + Vuetify 3 Migration - Simple Components**
-  - Update Page.js (minimal changes, no Vuetify)
-  - Update PageWithBanner.js (v-alert props check, store)
-  - Update PageWithStatus.js (v-snackbar props check, store)
-  - Update ProcessDiagram.js (no Vuetify, minimal)
-  - Test all simple components render
-  - Acceptance: All simple components render correctly
+- [x] **task-3.7: Vue 3 + Vuetify 3 Migration - Simple Components** (2026-05-04)
+  - Page.js: No changes needed (no Vuetify dependencies)
+  - PageWithBanner.js: `dismissible` → `closable` (v-alert Vuetify 3)
+  - PageWithStatus.js: `top` → `location="top"`, `flat` → `variant="flat"`
+  - ProcessDiagram.js: No changes needed (v-card compatible)
+  - common.js: Filter registration works via compatibility shim
+  - Acceptance: All simple components render correctly, 144 tests pass
   - Requires: task-3.6 (app initialization)
   - Validate: baseweb-demo pages load
 

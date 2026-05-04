@@ -20,3 +20,18 @@ fieldset {
 .vue-form-generator DIV.form-group.error {
   background-color: white !important;
 }
+
+/* VuetifyFormGenerator styling */
+.vuetify-form-generator {
+  width: 100%;
+}
+
+.vuetify-form-generator .vfg-group {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.vuetify-form-generator .vfg-group legend {
+  padding: 0 8px;
+}

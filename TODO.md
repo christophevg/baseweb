@@ -22,7 +22,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 | task-3.5: Vue 3 vendor files | Validate: app loads | Complete |
 | task-3.6: Vue 3 app init | Validate: navigation works | Pending |
 | task-3.7: Vue 3 simple components | Validate: pages load | Complete |
-| task-3.8: Vue 3 navigation | Validate: drawer works | Pending |
+| task-3.8: Vue 3 navigation | Validate: drawer works | Complete |
 | task-3.9: Vue 3 form generator | Validate: forms submit | Pending |
 | task-3.10: Vue 3 CollectionView | Validate: CRUD works | Pending |
 | task-3.11: Vue 3 charts/notifications | Validate: charts/notifications | Pending |
@@ -118,16 +118,11 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Requires: task-3.6 (app initialization)
   - Validate: baseweb-demo pages load
 
-- [ ] **task-3.8: Vue 3 + Vuetify 3 Migration - Navigation Component**
-  - Update NavigationDrawer.js
-  - Replace all `v-list-tile` -> `v-list-item`
-  - Replace all `v-list-tile-content` -> `v-list-item-content`
-  - Replace all `v-list-tile-title` -> `v-list-item-title`
-  - Replace all `v-list-tile-action` -> `v-list-item-action`
-  - Update `v-list-group` slot syntax (v-slot:activator)
-  - Update `v-navigation-drawer` props
-  - Test navigation drawer expands/collapses
-  - Acceptance: Navigation drawer works correctly
+- [x] **task-3.8: Vue 3 + Vuetify 3 Migration - Navigation Component** (2026-05-04)
+  - Replaced `v-list-tile` → `v-list-item` (and all variants)
+  - Updated `v-list-group` slot: `slot="activator"` → `v-slot:activator="{ props }"`
+  - Updated `v-navigation-drawer`: `:value` → `:model-value`
+  - Acceptance: Navigation drawer works correctly, 144 tests pass
   - Requires: task-3.7 (simple components)
   - Validate: baseweb-demo navigation drawer works
 

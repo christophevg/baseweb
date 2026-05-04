@@ -3,39 +3,39 @@ Vue.component("NavigationDrawerPage", {
     "page"
   ],
   template: `
-<v-list-tile :to="page.path">
-  <v-list-tile-content>
+<v-list-item :to="page.path">
+  <v-list-item-content>
 
     <v-badge v-if="page.badge" :color="page.badge.color" :value="page.badge.visible">
       <template v-slot:badge>
         <v-icon :v-if="page.badge.icon" dark small>{{ page.badge.icon }}</v-icon>
         <span   :v-if="page.badge.text">{{ page.badge.text }}</span>
       </template>
-      <v-list-tile-title>{{ page.text }}</v-list-tile-title>
+      <v-list-item-title>{{ page.text }}</v-list-item-title>
     </v-badge>
 
-    <v-list-tile-title v-else>{{ page.text }}</v-list-tile-title>
+    <v-list-item-title v-else>{{ page.text }}</v-list-item-title>
 
-  </v-list-tile-content>
-  <v-list-tile-action>
+  </v-list-item-content>
+  <v-list-item-action>
     <v-icon>{{ page.icon }}</v-icon>
-  </v-list-tile-action>
-</v-list-tile>
+  </v-list-item-action>
+</v-list-item>
 `
 })
 
 var NavigationDrawer = {
   template : `
-<v-navigation-drawer fixed clipped app :value="showing">
+<v-navigation-drawer fixed clipped app :model-value="showing">
   <v-list>
     <template v-for="section in sections">
 
       <v-list-group v-if="section.group" :prepend-icon="section.icon" no-action value="true">
-        <v-list-tile slot="activator">
-          <v-list-tile-content>
-            <v-list-tile-title>{{ section.text }}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
+        <template v-slot:activator="{ props }">
+          <v-list-item v-bind="props">
+            <v-list-item-title>{{ section.text }}</v-list-item-title>
+          </v-list-item>
+        </template>
 
         <NavigationDrawerPage v-for="(subsection, i) in section.pages" :key="subsection.path"
                               :page="subsection"/>

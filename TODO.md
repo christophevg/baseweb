@@ -25,7 +25,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 | task-3.8: Vue 3 navigation | Validate: drawer works | Complete |
 | task-3.9: Vue 3 form generator | Validate: forms submit | Complete |
 | task-3.10: Vue 3 CollectionView | Validate: CRUD works | Complete |
-| task-3.11: Vue 3 charts/notifications | Validate: charts/notifications | Pending |
+| task-3.11: Vue 3 charts/notifications | Validate: charts/notifications | Complete |
 | task-3.12: Vue 3 integration | Full test suite | Pending |
 
 ---
@@ -178,15 +178,17 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Requires: task-3.9 (form generator)
   - Validate: baseweb-demo CollectionView works
 
-- [ ] **task-3.11: Vue 3 + Vuetify 3 Migration - Charts and Notifications**
-  - Update LineChart.js for vue-chartjs v4
-  - Replace vue-notification with Vuetify snackbar (DONE in task-3.10)
-  - Update notification calls throughout components (DONE in task-3.10)
-  - Test charts render correctly
-  - Test notifications appear correctly
+- [x] **task-3.11: Vue 3 + Vuetify 3 Migration - Charts and Notifications** (2026-05-04)
+  - Rewrote LineChart.js to use Chart.js directly (vue-chartjs v4 has no UMD build)
+  - Replaced `extends: VueChartJs.Line` with native Chart.js instantiation
+  - Added reactive data updates via watch
+  - Added proper cleanup in beforeUnmount hook
+  - Implemented custom deepMerge() to replace $.extend()
+  - Updated Chart.js options to v4 API (plugins.legend, scales.y)
+  - Replaced old vue-notification element with NotificationSnackbar in main.html
+  - Removed vue-chartjs.min.js from vendor scripts (no longer needed)
   - Acceptance: Charts render, notifications work
   - Requires: task-3.10 (CollectionView)
-  - Validate: baseweb-demo charts and notifications work
   - Validate: baseweb-demo charts and notifications work
 
 - [ ] **task-3.12: Vue 3 + Vuetify 3 Migration - Integration Testing**

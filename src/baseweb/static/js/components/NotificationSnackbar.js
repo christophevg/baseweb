@@ -22,7 +22,7 @@
  * window.notifyInfo('Info')
  */
 
-Vue.component("NotificationSnackbar", {
+app.component("NotificationSnackbar", {
   template: `
 <v-snackbar
   v-model="showing"
@@ -44,9 +44,21 @@ Vue.component("NotificationSnackbar", {
   </template>
 </v-snackbar>
 `,
+  data: function() {
+    return {
+      internalShowing: false
+    };
+  },
   computed: {
     notification: function() {
-      return store.state.notification;
+      return store.state.notification || {
+        showing: false,
+        text: '',
+        title: '',
+        color: 'info',
+        timeout: 4000,
+        location: 'bottom right'
+      };
     },
     showing: {
       get: function() {
@@ -82,6 +94,6 @@ Vue.component("NotificationSnackbar", {
 });
 
 // Also register as "notifications" for backward compatibility with templates
-Vue.component("notifications", {
+app.component("notifications", {
   template: `<notification-snackbar></notification-snackbar>`
 });

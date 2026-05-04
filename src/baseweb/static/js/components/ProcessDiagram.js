@@ -1,4 +1,4 @@
-Vue.component("ProcessStep", {
+app.component("ProcessStep", {
   template: `
     <li v-if="'title' in step">
       <div class="step">
@@ -28,7 +28,7 @@ Vue.component("ProcessStep", {
   props: [ "step", "child" ]
 });
 
-Vue.component("ProcessDiagram", {
+app.component("ProcessDiagram", {
   template: `
   <v-card>
     <v-card-actions v-if="title">

@@ -1,6 +1,6 @@
 // basic page with a persistent banner
 
-Vue.component("PageWithBanner", {
+app.component("PageWithBanner", {
   template : `
 <Page>
   <v-alert v-model="banner.alert" :closable="banner.dismissible" :type="banner.type">{{ banner.message }}</v-alert>

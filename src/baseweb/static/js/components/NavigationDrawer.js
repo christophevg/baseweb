@@ -1,179 +1,109 @@
-Vue.component("NavigationDrawerPage", {
-  props: [
-    "page"
-  ],
+// NavigationDrawer.js - Navigation components for baseweb
+
+// Individual navigation item component
+app.component("navigation-drawer-page", {
+  props: ["page"],
   template: `
 <v-list-item :to="page.path">
-  <v-list-item-content>
-
-    <v-badge v-if="page.badge" :color="page.badge.color" :value="page.badge.visible">
-      <template v-slot:badge>
-        <v-icon :v-if="page.badge.icon" dark small>{{ page.badge.icon }}</v-icon>
-        <span   :v-if="page.badge.text">{{ page.badge.text }}</span>
-      </template>
-      <v-list-item-title>{{ page.text }}</v-list-item-title>
-    </v-badge>
-
-    <v-list-item-title v-else>{{ page.text }}</v-list-item-title>
-
-  </v-list-item-content>
-  <v-list-item-action>
+  <template v-slot:prepend>
     <v-icon>{{ page.icon }}</v-icon>
-  </v-list-item-action>
+  </template>
+  <v-list-item-title>{{ page.text }}</v-list-item-title>
+  <template v-if="page.badge" v-slot:append>
+    <v-badge :color="page.badge.color" :model-value="page.badge.visible" inline>
+      <template v-slot:badge>
+        <v-icon v-if="page.badge.icon" size="small">{{ page.badge.icon }}</v-icon>
+        <span v-if="page.badge.text">{{ page.badge.text }}</span>
+      </template>
+    </v-badge>
+  </template>
 </v-list-item>
 `
-})
+});
 
-var NavigationDrawer = {
-  template : `
-<v-navigation-drawer fixed clipped app :model-value="showing">
-  <v-list>
-    <template v-for="section in sections">
+// Navigation drawer component
+app.component("navigation-drawer", {
+  template: `
+<v-navigation-drawer v-model="drawerShowing" location="start">
+  <v-list density="compact" nav>
+    <template v-for="section in sections" :key="section.path || section.name">
+      <v-list-subheader v-if="section.group">{{ section.text }}</v-list-subheader>
 
-      <v-list-group v-if="section.group" :prepend-icon="section.icon" no-action value="true">
+      <v-list-group v-if="section.group && section.pages && section.pages.length > 0" value="true">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props">
+            <template v-slot:prepend>
+              <v-icon>{{ section.icon }}</v-icon>
+            </template>
             <v-list-item-title>{{ section.text }}</v-list-item-title>
           </v-list-item>
         </template>
-
-        <NavigationDrawerPage v-for="(subsection, i) in section.pages" :key="subsection.path"
-                              :page="subsection"/>
+        <navigation-drawer-page v-for="subsection in section.pages" :key="subsection.path" :page="subsection"/>
       </v-list-group>
 
-      <NavigationDrawerPage v-if="! section.group" :key="section.path"
-                            :page="section"/>
+      <navigation-drawer-page v-if="!section.group" :key="section.path" :page="section"/>
     </template>
   </v-list>
 </v-navigation-drawer>
 `,
   computed: {
-    showing: function() {
-      return store.state.drawer.showing;
+    drawerShowing: {
+      get: function() {
+        return store.state.drawer.showing;
+      },
+      set: function(value) {
+        store.commit('set_drawer', value);
+      }
     },
     sections: function() {
       return store.state.drawer.sections;
     }
   }
-};
+});
 
-Vue.component("NavigationDrawer", NavigationDrawer);
-
+// Register drawer module with Vuex
 store.registerModule("drawer", {
   state: {
-    showing  : true,
-    sections : []
+    showing: true,
+    sections: []
   },
   mutations: {
     toggle_drawer: function(state) {
-      state.showing = ! state.showing;
+      state.showing = !state.showing;
+    },
+    set_drawer: function(state, value) {
+      state.showing = value;
     },
     navigation: function(state, navigation) {
-      if(! navigation.section ) {
-        // top level navigation: section or page
-        state.sections.push(navigation);
-        state.sections.sort(order);        
-      } else {
-        // page in an existing section
-        var section = state.sections.find(function(section){
-          return section.name == navigation.section;
-        });
-        section.pages.push(navigation);
-        section.pages.sort(order);
-      }
+      state.sections.push(navigation);
+      state.sections.sort(function(a, b) {
+        if (!a.index || !b.index) return 0;
+        if (a.index < b.index) return -1;
+        if (a.index > b.index) return 1;
+        return 0;
+      });
     },
     section: function(state, section) {
-      if(!("pages" in section)) {
-        section["pages"] = [];
-      }
-      section["group"] = true;
+      if (!section.pages) section.pages = [];
+      section.group = true;
       state.sections.push(section);
-      state.sections.sort(order);      
-    },
-
-    // deprecated...
-
-    navigation_group : function(state, group) {
-      state.sections.push(group);
-      state.sections.sort(order);
-    },
-    navigation_page : function(state, page) {
-      if(page.section) {
-        // section page
-        state.sections[page.section].push(page);
-        state.sections[page.section].sort(order);        
-      } else {
-        // top-level page
-        state.sections.push(page);
-        state.sections.sort(order);
-      }
+      state.sections.sort(function(a, b) {
+        if (!a.index || !b.index) return 0;
+        if (a.index < b.index) return -1;
+        if (a.index > b.index) return 1;
+        return 0;
+      });
     }
   }
 });
 
-function order(a, b) {
-  if( !a.index || !b.index ) { return 0;  }
-  if(  a.index  <  b.index ) { return -1; }
-  if(  a.index  >  b.index ) { return 1;  }
-  return 0;
-}
-
-// global functions, wrapping state mutations
-
-(function (globals) {
-  var sections = {};
-  
-  function add_group(section, icon, text, index, group, path) {
-    console.warn("Navigation.add_group(...) is deprecated, use Navigation.add_section({})");
-    sections[section] = {
-      name  : section,
-      index : index || Object.keys(sections).length+1,
-      group : group !== false,
-      icon  : icon,
-      text  : text,
-      pages :     [],
-      path  : path
-    }
-    store.commit("navigation_group", sections[section]);
-  }
-  
-  function add_page(section, icon, text, path, component, index) {
-    console.warn("Navigation.add_page(...) is deprecated, use Navigation.add({}) in stead");
-    if(! section) {
-      // top-level page
-      add_group(text, icon, text, index, false, path)
-    } else {
-      // page in section
-      sections[section].pages.push({
-        icon  : icon,
-        text  : text,
-        path  : path,
-        index : index
-      });
-    }
-    // Vue Router 4: use addRoute instead of addRoutes
-    router.addRoute({ path: path, component: component });
-  }
-  
-  // new interface
-  
-  function add_section(section) {
+// Global Navigation helper
+window.Navigation = {
+  add: function(component) {
+    store.commit("navigation", component.navigation);
+    router.addRoute({ path: component.navigation.path, component: component });
+  },
+  add_section: function(section) {
     store.commit("section", section);
   }
-  
-  function add_component(component) {
-    store.commit("navigation", component.navigation);
-    // Vue Router 4: use addRoute instead of addRoutes
-    router.addRoute({ path: component.navigation.path, component: component });
-  }
-
-  globals.Navigation = {
-    // deprecated ... to be removed in due time ;-)
-    "add_group"   : add_group,
-    "add_page"    : add_page,
-
-    "add_section" : add_section,
-    "add"         : add_component
-  };
-
-})(window);
+};

@@ -1,3 +1,5 @@
+// Common utilities for baseweb
+
 function syntaxHighlight(src, height, lang) {
   if(typeof src !== "string" && !(src instanceof String)) {
     src = JSON.stringify(src, null, 2);
@@ -5,24 +7,24 @@ function syntaxHighlight(src, height, lang) {
   if(lang) {
     var html = hljs.highlight(src, {language: lang}).value;
   } else {
-    var html = hljs.highlightAuto(src).value;    
+    var html = hljs.highlightAuto(src).value;
   }
   return "<pre style='background-color: #fafafa; padding:10px; max-height:"+height+"px; overflow:auto;'>" + html + "</pre>";
 }
 
-Vue.filter( "syntaxHighlight", syntaxHighlight);
-
-Vue.filter('formatDate', function(value) {
+function formatDate(value) {
   if (value) {
-    return moment(value).format('DD/MM/YYYY HH:mm:ss')
+    return moment(value).format('DD/MM/YYYY HH:mm:ss');
   }
-});
+  return '';
+}
 
-Vue.filter('formatEpoch', function(value) {
+function formatEpoch(value) {
   if (value) {
-    return moment(String(new Date(value).toISOString())).format('DD/MM/YYYY HH:mm:ss')
+    return moment(String(new Date(value).toISOString())).format('DD/MM/YYYY HH:mm:ss');
   }
-});
+  return '';
+}
 
 // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function uuid() {

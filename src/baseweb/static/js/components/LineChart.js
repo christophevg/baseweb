@@ -12,7 +12,7 @@
  * <line-chart :chart-data="data" :options="opts"></line-chart>
  */
 
-Vue.component('LineChart', {
+app.component('LineChart', {
   template: '<canvas ref="canvas"></canvas>',
   props: {
     chartData: {

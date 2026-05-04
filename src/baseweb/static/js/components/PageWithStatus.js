@@ -1,12 +1,12 @@
 // basic page, with status-reporting snackbar support
 
-Vue.component("PageWithStatus", {
+app.component("PageWithStatus", {
   template : `
 <Page>
   <slot/>
   <v-snackbar v-model="showing" :color="level" :timeout="timeout" location="top">
     {{ msg }}
-    <v-btn variant="flat" @click="showing=false"><v-icon>close</v-icon></v-btn>
+    <v-btn variant="flat" @click="showing=false"><v-icon>mdi-close</v-icon></v-btn>
   </v-snackbar>
 </Page>
 `,

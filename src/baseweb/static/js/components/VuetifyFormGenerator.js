@@ -58,7 +58,7 @@
  * }
  */
 
-Vue.component("vue-form-generator", {
+app.component("vue-form-generator", {
   name: "VuetifyFormGenerator",
   props: {
     schema: {

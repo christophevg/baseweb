@@ -1,0 +1,14 @@
+[project]
+name = "hello-world"
+version = "0.1.0"
+description = "Minimal Hello World example for baseweb with Vue 3 + Vuetify 3"
+requires-python = ">=3.10"
+dependencies = [
+  "baseweb",
+  "gunicorn>=21.0.0",
+  "uvicorn[standard]>=0.24.0",
+]
+
+[tool.uv.sources]
+# Use local baseweb from parent directory
+baseweb = { path = "../..", editable = true }

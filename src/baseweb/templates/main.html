@@ -13,7 +13,8 @@
       <script src="/static/vendor/js/respond.min.js"></script>
     <![endif]-->
 
-    <link href="/static/vendor/css/roboto-material-icons.css"    rel="stylesheet">
+    <link href="/static/vendor/css/roboto.css"                   rel="stylesheet">
+    <link href="/static/vendor/css/mdi.min.css"                  rel="stylesheet">
     <link href="/static/vendor/css/vuetify.min.css"              rel="stylesheet">
     <link href="/static/vendor/css/vue-multiselect.min.css"      rel="stylesheet">
     <link href="/static/vendor/css/bootstrap-datetimepicker.css" rel="stylesheet">
@@ -43,76 +44,51 @@
 
   <body>
     <v-app id="app">
-      <v-toolbar color="{{ app.color_name }}" {{ app.color_scheme }} app clipped-left fixed>
-        <v-toolbar-title :style="$vuetify.breakpoint.smAndUp ? 'width: 300px; min-width: 250px' : 'min-width: 72px'" class="ml-0 pl-3">
-          <v-toolbar-side-icon @click.stop="toggle_drawer">
-          {% if app.icon %}<{{ app.icon }}/>{% endif %}
-          </v-toolbar-side-icon>
-          <span>{{ app.name }}</span>
-        </v-toolbar-title>
-        {% if app.socketio %}
-        <v-spacer></v-spacer>
-        <v-icon large color="green" v-if="connected">cloud_done</v-icon>
-        <v-icon large color="red"   v-else>cloud_off</v-icon>
-        {% endif %}
-      </v-toolbar>
+      <v-layout>
+        <v-app-bar color="{{ app.color_name }}" {% if app.color_scheme == "dark" %}theme="dark"{% endif %}>
+          <v-btn icon variant="text" @click.stop="toggle_drawer">
+            <v-icon>mdi-menu</v-icon>
+          </v-btn>
 
-      <NavigationDrawer></NavigationDrawer>
+          <v-app-bar-title>
+            {% if app.icon %}<v-icon>{{ app.icon }}</v-icon>{% endif %}
+            {{ app.name }}
+          </v-app-bar-title>
 
-      <v-content>
-        <div class="content-wrapper">
-          {% if app.keep_alive %}<keep-alive>{% endif %}
-            <router-view></router-view>
-          {% if app.keep_alive %}</keep-alive>{% endif %}
-          <notification-snackbar></notification-snackbar>
-        </div>
-      </v-content>
+          {% if app.socketio %}
+          <v-spacer></v-spacer>
+          <v-icon color="green" v-if="connected" class="mr-2">mdi-cloud-check</v-icon>
+          <v-icon color="red"   v-else class="mr-2">mdi-cloud-off</v-icon>
+          {% endif %}
+        </v-app-bar>
+
+        <navigation-drawer></navigation-drawer>
+
+        <v-main>
+          <div class="content-wrapper">
+            {% if app.keep_alive %}<keep-alive>{% endif %}
+              <router-view></router-view>
+            {% if app.keep_alive %}</keep-alive>{% endif %}
+            <notification-snackbar></notification-snackbar>
+          </div>
+        </v-main>
+      </v-layout>
     </v-app>
 
-    <!-- Vue 3 and Vuetify 3 vendor scripts -->
+    <!-- Vue 3 -->
     <script src="/static/vendor/js/vue.js"></script>
+    <script src="/static/js/app.js"></script>
+
+    <!-- Vuetify 3 -->
     <script src="/static/vendor/js/vuetify.js"></script>
-
-    <!-- Vue 3 compatibility layer for Vue 2-style global registration -->
-    <script>
-      // Queue for component registrations before app is created
-      window._vueComponents = [];
-      window._vueFilters = {};
-      window._vueMixins = [];
-      window._vueUses = [];
-
-      // Compatibility shim: intercept Vue.component() calls
-      Vue.component = function(name, component) {
-        window._vueComponents.push({name: name, component: component});
-        return component;
-      };
-
-      // Compatibility shim: intercept Vue.filter() calls
-      Vue.filter = function(name, fn) {
-        window._vueFilters[name] = fn;
-        return fn;
-      };
-
-      // Compatibility shim: intercept Vue.mixin() calls
-      Vue.mixin = function(mixin) {
-        window._vueMixins.push(mixin);
-      };
-
-      // Compatibility shim: intercept Vue.use() calls (will be applied to app later)
-      Vue.use = function(plugin, options) {
-        window._vueUses.push({plugin: plugin, options: options});
-      };
-
-      // Temp QnD fix for warning ;-)
-      Vue.component("Logo", { template : "<div></div>" });
-    </script>
 
     <!-- Vuex 4 and Vue Router 4 -->
     <script src="/static/vendor/js/vuex.js"></script>
     <script src="/static/vendor/js/vue-router.js"></script>
 
-    <!-- Store (needed by NotificationSnackbar and NavigationDrawer) -->
+    <!-- Store and Router -->
     <script src="/static/js/store.js"></script>
+    <script src="/static/js/router.js"></script>
 
     <!-- Notification system (Vuetify 3 snackbar-based, replaces vue-notification) -->
     <script src="/static/js/components/NotificationSnackbar.js"></script>
@@ -123,14 +99,14 @@
     <!-- vue-multiselect -->
     <script src="/static/vendor/js/vue-multiselect.min.js"></script>
     <script>
-      Vue.component('Multiselect', VueMultiselect.Multiselect);
+      app.component('Multiselect', VueMultiselect.Multiselect);
     </script>
 
     <!-- Navigation Drawer -->
     <script src="/static/js/components/NavigationDrawer.js"></script>
 
+    <!-- Vendor utilities -->
     <script src="/static/vendor/js/socket.io.slim.js"></script>
-
     <script src="/static/vendor/js/Chart.min.js"></script>
     <script src="/static/vendor/js/jquery.min.js"></script>
     <script src="/static/vendor/js/bootstrap.min.js"></script>
@@ -138,18 +114,13 @@
     <script src="/static/vendor/js/bootstrap-datetimepicker.min.js"></script>
     <script src="/static/vendor/js/highlight.min.js"></script>
 
-    <!-- Router -->
-    <script src="/static/js/router.js"></script>
-
-    <!-- App initialization -->
-    <script src="/static/js/app.js"></script>
     {% if app.socketio %}
     <script>
-      app.socketio = true;
+      app.config.globalProperties.$socketio = true;
     </script>
     {% endif %}
 
-    <!-- Common utilities (filters, etc.) -->
+    <!-- Common utilities -->
     <script src="/static/js/common.js"></script>
     <script src="/static/js/socketio.js"></script>
 
@@ -169,37 +140,22 @@
     <script src="{{ url }}"></script>
     {% endfor %}
 
-    <!-- Final initialization: apply queued registrations and mount -->
+    <!-- Final initialization: install plugins and mount -->
     <script>
-      // Install core plugins (store and router)
+      // Install core plugins
       app.use(store);
       app.use(router);
 
-      // Create Vuetify instance
+      // Create and install Vuetify
       var vuetify = Vuetify.createVuetify();
       app.use(vuetify);
 
-      // Apply queued plugin installations
-      window._vueUses.forEach(function(item) {
-        try {
-          app.use(item.plugin, item.options);
-        } catch(e) {
-          console.warn('Failed to install plugin:', e);
-        }
-      });
-
-      // Apply queued component registrations
-      window._vueComponents.forEach(function(item) {
-        app.component(item.name, item.component);
-      });
-
-      // Apply queued filters as global properties (Vue 3 removed filters)
-      app.config.globalProperties.$filters = window._vueFilters;
-
-      // Apply queued mixins
-      window._vueMixins.forEach(function(mixin) {
-        app.mixin(mixin);
-      });
+      // Register global filters as Vue 3 methods
+      app.config.globalProperties.$filters = {
+        syntaxHighlight: syntaxHighlight,
+        formatDate: formatDate,
+        formatEpoch: formatEpoch
+      };
 
       // Mount the app
       app.mount('#app');

@@ -22,7 +22,7 @@
  * - create: Emitted when create form is submitted
  * - Custom events from actions string
  */
-Vue.component("CollectionView", {
+app.component("CollectionView", {
   props: [
     "topic",
     "headers",
@@ -43,16 +43,16 @@ Vue.component("CollectionView", {
     <v-card-title>
       <h2>${'{{'} topic ${'}}'}
         <v-btn variant="text" icon color="primary" @click="search">
-          <v-icon>refresh</v-icon>
+          <v-icon>mdi-refresh</v-icon>
         </v-btn>
         <v-btn variant="text" icon color="primary" @click="create" v-if="has_action('create')">
-          <v-icon>add_circle</v-icon>
+          <v-icon>mdi-plus-circle</v-icon>
         </v-btn>
       </h2>
       <v-spacer></v-spacer>
       <v-text-field
         v-model="model.query"
-        append-inner-icon="search"
+        append-inner-icon="mdi-magnify"
         single-line
         hide-details
         @click:append-inner="search"
@@ -205,7 +205,7 @@ Vue.component("CollectionView", {
         if (action == "delete") {
           return {
             "color": "red",
-            "icon": "delete",
+            "icon": "mdi-delete",
             "func": self.confirm_delete
           };
         }

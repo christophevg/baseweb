@@ -1,27 +1,25 @@
+// Create a reactive ref for connection state (can be updated from outside)
+var connectedRef = Vue.ref(false);
+
+// Create Vue app early so components can register with app.component()
 var app = Vue.createApp({
-  delimiters: ['${', '}'],
-  router:     router,
-  components: {
-    multiselect:      VueMultiselect.Multiselect,
-    navigationdrawer: NavigationDrawer
+  delimiters: ['{{', '}}'],
+  data() {
+    return {
+      initialized: false
+    };
   },
-  data: {
-    connected:   false,
-    initialized: false,
-    socketio:    false
+  computed: {
+    connected: function() {
+      return connectedRef.value;
+    }
   },
   methods: {
-    // used from main to access drawer store in NavigationDrawer
     toggle_drawer: function() {
       store.commit('toggle_drawer');
     }
   }
 });
 
-function before_app_mount(f) {
-  if( app.$options.beforeMount ) {
-    app.$options.beforeMount.push(f);
-  } else {
-    app.$options.beforeMount = [ f ];
-  }
-}
+// Expose the ref globally for socketio.js to update
+window._socketConnected = connectedRef;

@@ -154,11 +154,11 @@ app.component("vue-form-generator", {
       var obj = this.model;
       for (var i = 0; i < parts.length - 1; i++) {
         if (!obj[parts[i]]) {
-          this.$set(obj, parts[i], {});
+          obj[parts[i]] = {};
         }
         obj = obj[parts[i]];
       }
-      this.$set(obj, parts[parts.length - 1], value);
+      obj[parts[parts.length - 1]] = value;
       this.$emit('model-updated', this.model, path);
     },
 
@@ -217,10 +217,10 @@ app.component("vue-form-generator", {
       self.allFields.forEach(function(field) {
         var error = self.validateField(field, self.getModelValue(field.model));
         if (error) {
-          self.$set(self.errors, field.model, error);
+          self.errors[field.model] = error;
           valid = false;
         } else {
-          self.$set(self.errors, field.model, null);
+          self.errors[field.model] = null;
         }
       });
       return valid;
@@ -230,12 +230,12 @@ app.component("vue-form-generator", {
     onFieldChange: function(field, value) {
       var self = this;
       self.setModelValue(field.model, value);
-      self.$set(self.touched, field.model, true);
+      self.touched[field.model] = true;
 
       // Validate on change if field has been touched
       if (self.touched[field.model]) {
         var error = self.validateField(field, value);
-        self.$set(self.errors, field.model, error);
+        self.errors[field.model] = error;
       }
 
       // Emit field-changed event
@@ -249,10 +249,10 @@ app.component("vue-form-generator", {
     // Handle field blur for validation
     onFieldBlur: function(field) {
       var self = this;
-      self.$set(self.touched, field.model, true);
+      self.touched[field.model] = true;
       var value = self.getModelValue(field.model);
       var error = self.validateField(field, value);
-      self.$set(self.errors, field.model, error);
+      self.errors[field.model] = error;
 
       // Emit validated event
       self.$emit('validated', {

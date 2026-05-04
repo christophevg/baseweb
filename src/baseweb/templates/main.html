@@ -46,12 +46,19 @@
     <v-app id="app">
       <v-layout>
         <v-app-bar color="{{ app.color_name }}" {% if app.color_scheme == "dark" %}theme="dark"{% endif %}>
-          <v-btn icon variant="text" @click.stop="toggle_drawer">
+          <v-btn icon variant="text" @click.stop="toggle_drawer" class="mr-2">
+            {% if app.icon %}
+              {% if app.icon.startswith('mdi-') %}
+            <v-icon>{{ app.icon }}</v-icon>
+              {% else %}
+            <component :is="'{{ app.icon }}'" style="width:40px;height:40px"></component>
+              {% endif %}
+            {% else %}
             <v-icon>mdi-menu</v-icon>
+            {% endif %}
           </v-btn>
 
           <v-app-bar-title>
-            {% if app.icon %}<v-icon>{{ app.icon }}</v-icon>{% endif %}
             {{ app.name }}
           </v-app-bar-title>
 
@@ -147,6 +154,7 @@
       app.use(router);
 
       // Create and install Vuetify
+      // Labs components are automatically merged from vuetify-labs.js
       var vuetify = Vuetify.createVuetify();
       app.use(vuetify);
 

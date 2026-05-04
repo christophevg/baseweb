@@ -38,7 +38,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Supports flavors: minimal, standard, full, pwa, api-only
   - Includes file templates for all project types
 
-- add baseweb:review skill: reviews a baseweb application and proposed improvements.
+- [x] **add baseweb:review skill** (2026-05-04)
+  - Created skills/review/skill.md
+  - Reviews architecture, security, performance, code quality, frontend
+  - Provides checklist for common issues
+  - Includes severity levels and report template
+
 - document all skills
 
 ### new features after modernization

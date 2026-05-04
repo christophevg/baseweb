@@ -44,7 +44,10 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Provides checklist for common issues
   - Includes severity levels and report template
 
-- document all skills
+- [x] **document all skills** (2026-05-04)
+  - Created docs/skills.md with overview of all skills
+  - Documents create, develop, migrate, review skills
+  - Includes usage examples and version compatibility
 
 ### new features after modernization
 

@@ -32,7 +32,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Covers frontend development (Vue components, Vuex, forms)
   - Includes common patterns and debugging tips
 
-- add baseweb:create skill: support for setting up a new baseweb application, asks questions to help set up different flavours/structures.
+- [x] **add baseweb:create skill** (2026-05-04)
+  - Created skills/create/skill.md
+  - Guides project creation with questions
+  - Supports flavors: minimal, standard, full, pwa, api-only
+  - Includes file templates for all project types
+
 - add baseweb:review skill: reviews a baseweb application and proposed improvements.
 - document all skills
 

@@ -22,20 +22,31 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ---
 
+## Unsorted
+
+### part of modernization/migration to async
+
+- [x] **add baseweb:develop skill** (2026-05-04)
+  - Created skills/develop/skill.md
+  - Covers backend development (Resources, Socket.IO, authentication)
+  - Covers frontend development (Vue components, Vuex, forms)
+  - Includes common patterns and debugging tips
+
+- add baseweb:create skill: support for setting up a new baseweb application, asks questions to help set up different flavours/structures.
+- add baseweb:review skill: reviews a baseweb application and proposed improvements.
+- document all skills
+
+### new features after modernization
+
+- add support for alternative top-level frameworks
+- introduce restful-mongo (../incubator/ideas/pageable-restful-mongo-review)
+- decide if baseweb should get a plugin system, making baseweb simply the pure core package, adding more functionality (e.g. OAuth, restful-mongo,...) as package plugins
+
 ## Backlog
 
-### Unsorted
+### Phase 2: Architecture Decision
 
-- [x] **Resource instantiation flexibility** (2026-05-01)
-  - Allow passing class (instantiated per request) or instance (reused)
-  - Support dependency injection via instance pattern
-  - Add 7 new tests for instantiation patterns
-  - Acceptance: All 144 tests pass
-
-- [x] **Migrate skill as baseweb plugin** (2026-05-01)
-  - Created .claude_plugin/plugin.json for Claude Code integration
-  - Created skills/migrate/skill.md with comprehensive migration guide
-  - Covers Flask→Quart migration for baseweb apps
+### Phase 3: Flask to Quart Migration
 
 - [ ] **Update end-user documentation (docs/)**
   - Update all code examples to use Quart/async patterns
@@ -48,44 +59,12 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 - [ ] **Upgrade frontend to modern Vue 3 + Vuetify 3**
   - Migrate from Vue 2 to Vue 3 (Composition API)
-  - Migrate from Vuetify 2 to Vuetify 3
+  - Migrate from Vuetify 1.5 to Vuetify 3
   - Update all Vue components
   - Update build system (Vite instead of webpack?)
   - Test all existing functionality
 
-### Phase 2: Architecture Decision
-
-
-
-### Phase 3: Flask to Quart Migration
-
-- [x] **task-3.2: Remove Flask-RESTful** (2026-04-30)
-  - Removed Flask-RESTful dependency from pyproject.toml
-  - Removed `import flask_restful` from __init__.py
-  - Removed `self.api = flask_restful.Api(self)` attribute
-  - Enabled 13 previously skipped tests
-  - Updated migration guide for native Quart routes
-  - Acceptance: All tests pass (65 tests, 0 skipped)
-  - Summary: reporting/task-3.2/summary.md
-
-- [x] **task-3.3: Migrate WebSocket support** (2026-05-01)
-  - Migrated from Flask-SocketIO to python-socketio with ASGI mode
-  - Implemented `socketio.AsyncServer(async_mode='asgi')`
-  - Created `socketio.ASGIApp(sio, quart_app)` wrapper
-  - Updated `authenticated` decorator for SocketIO context
-  - Acceptance: WebSocket functionality works with authentication
-  - Summary: committed in research/2026-04-30-quart-websocket-options/
-
-- [x] **task-3.4: Frontend integration verification** (2026-05-01)
-  - Verified frontend static files served correctly
-  - Verified REST API endpoints work with async handlers
-  - Verified Socket.IO client initialization and connection
-  - Added comprehensive frontend integration tests (13 new tests)
-  - Acceptance: All 26 tests pass, frontend works correctly
-
-### Phase 5: Component Consolidation (Deferred)
-
-> **Note:** This phase is deferred as it's not part of the Flask→Quart modernization.
+### Phase 5: Post-modernization further feature development
 
 - [ ] **task-5.1: Unify special page components**
   - Create unified `Page` component with configurable props/slots
@@ -95,11 +74,18 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Add tests for new component
   - Acceptance: Unified component works, old components deprecated
 
-## In Progress
-
-(none)
-
 ## Done
+
+- [x] **Resource instantiation flexibility** (2026-05-01)
+  - Allow passing class (instantiated per request) or instance (reused)
+  - Support dependency injection via instance pattern
+  - Add 7 new tests for instantiation patterns
+  - Acceptance: All 144 tests pass
+
+- [x] **Migrate skill as baseweb plugin** (2026-05-01)
+  - Created .claude_plugin/plugin.json for Claude Code integration
+  - Created skills/migrate/skill.md with comprehensive migration guide
+  - Covers Flask→Quart migration for baseweb apps
 
 - [x] **task-3.4: Frontend integration verification** (2026-05-01)
   - Verified frontend static files served correctly
@@ -114,6 +100,15 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Created `socketio.ASGIApp(sio, quart_app)` wrapper
   - Updated `authenticated` decorator for SocketIO context
   - Acceptance: WebSocket functionality works with authentication
+
+- [x] **task-3.2: Remove Flask-RESTful** (2026-04-30)
+  - Removed Flask-RESTful dependency from pyproject.toml
+  - Removed `import flask_restful` from __init__.py
+  - Removed `self.api = flask_restful.Api(self)` attribute
+  - Enabled 13 previously skipped tests
+  - Updated migration guide for native Quart routes
+  - Acceptance: All tests pass (65 tests, 0 skipped)
+  - Summary: reporting/task-3.2/summary.md
 
 - [x] **task-3.1: Migrate core Baseweb class** (2026-04-30)
   - Changed `from flask import Flask` to `from quart import Quart`

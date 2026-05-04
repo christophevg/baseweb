@@ -577,6 +577,106 @@ required: true,
 min: 3
 ```
 
+## Issue: `this.$set is not a function`
+
+**Symptom:** Form fields throw error when typing: `TypeError: this.$set is not a function`.
+
+**Cause:** Vue 3 removed `this.$set` - Proxy-based reactivity doesn't need it.
+
+**Solution:** Replace `$set` with direct assignment:
+
+```javascript
+// Before (Vue 2)
+this.$set(obj, key, value);
+this.$set(this.errors, field, error);
+
+// After (Vue 3)
+obj[key] = value;
+this.errors[field] = error;
+```
+
+## Issue: `notify is not defined`
+
+**Symptom:** `ReferenceError: Can't find variable: notify`.
+
+**Cause:** `window.notify` was defined in static store.js which gets overridden by template store.js.
+
+**Solution:** Move notification system to template store.js:
+
+```javascript
+// templates/store.js - must include notification system
+var store = Vuex.createStore({
+  state: {
+    config: {{ app.toDict() | tojson }},
+    notifications: []  // Queue of notifications
+  },
+  mutations: {
+    notify: function(state, payload) {
+      state.notifications.push({ id: ++notificationId, ...payload });
+    },
+    remove_notification: function(state, id) {
+      // Remove by id
+    }
+  }
+});
+
+// Global helpers
+window.notify = function(options) {
+  store.commit('notify', options);
+};
+```
+
+## Issue: Navigation Drawer Sections Collapsing Together
+
+**Symptom:** Clicking one section collapses all sections.
+
+**Cause:** All `v-list-group` components had the same `value`, causing shared state.
+
+**Solution:** Use unique values per group and avoid `:to` on list items:
+
+```javascript
+// Use unique value per section
+<v-list-group :value="section.text">
+
+// Use click handler instead of :to for navigation
+<v-list-item @click="navigate" :active="isActive">
+```
+
+## Issue: Logo/Icon Not Showing in App Bar
+
+**Symptom:** Custom logo component doesn't appear in app bar, shows `<v-icon>Logo</v-icon>`.
+
+**Cause:** Template not distinguishing between MDI icons and custom components.
+
+**Solution:** Detect component vs MDI icon:
+
+```html
+<v-btn icon @click="toggle_drawer">
+  {% if app.icon and not app.icon.startswith('mdi-') %}
+    <!-- Custom component (e.g., "Logo") -->
+    <component :is="'{{ app.icon }}'" style="width:40px;height:40px"></component>
+  {% else %}
+    <!-- MDI icon or default menu icon -->
+    <v-icon>{{ app.icon or 'mdi-menu' }}</v-icon>
+  {% endif %}
+</v-btn>
+```
+
+## Issue: Vuetify Labs Components Not Working
+
+**Symptom:** Calendar and other Labs components fail to render.
+
+**Cause:** Vuetify Labs requires special bundling - the CDN files don't merge automatically.
+
+**Solution:** Use a bundler (Vite/Webpack) that imports from `vuetify/labs/components`:
+
+```javascript
+// Requires build step
+import { VCalendar } from 'vuetify/labs/components'
+
+// CDN approach doesn't work - Labs overwrites Vuetify global
+```
+
 ---
 
 # Part 5: Migration Checklist
@@ -599,6 +699,10 @@ min: 3
 - [ ] Convert filters to global properties
 - [ ] Replace `app.$notify()` with `notify()`
 - [ ] Update socketio.js to use `Vue.ref()` for connection state
+- [ ] Replace `this.$set()` with direct assignment
+- [ ] Move notification system to template store.js (not static)
+- [ ] Update navigation drawer to use unique section values
+- [ ] Detect logo component vs MDI icon in app bar
 
 ## UI (Vuetify 2 → Vuetify 3)
 

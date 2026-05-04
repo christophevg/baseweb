@@ -33,15 +33,15 @@ baseweb/
     └── vendor/          # Third-party libraries
 ```
 
-### Technology Stack
+### Technology Stack (Post-Migration)
 
-| Layer | Current | Target |
-|-------|---------|--------|
-| Backend Framework | Flask (sync) | Quart (async) |
-| REST API | Flask-RESTful | Quart + quart-flask-patch |
-| WebSocket | Flask-SocketIO | Quart native or python-socketio |
-| Frontend | Vue 2 + Vuetify 2 | Vue 2 + Vuetify 2 (unchanged for now) |
-| Python | 3.9-3.12 | 3.11+ (async support) |
+| Layer | Technology |
+|-------|------------|
+| Backend Framework | Quart (async) |
+| REST API | Native Quart routes with Resource class |
+| WebSocket | python-socketio with ASGI |
+| Frontend | Vue 3 + Vuetify 3 |
+| Python | 3.10+ |
 
 ---
 

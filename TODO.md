@@ -202,7 +202,17 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 5: Post-modernization further feature development
 
-- [ ] **task-5.1: Unify special page components**
+- [x] **task-5.1: Create minimal Hello World example** (2026-05-04)
+  - Created `examples/hello-world/` directory structure
+  - Implemented minimal Baseweb application with Vue 3 + Vuetify 3 frontend
+  - Uses `uv` for dependency management (automatic virtualenv)
+  - Scope: Single page, no authentication, no REST API, no WebSocket
+  - Files: app.py, pyproject.toml, README.md, static/js/HelloWorld.js
+  - Validation: App starts, HTML served, component registered, Vue 3 initializes
+  - Acceptance: ✓ All criteria met
+  - Requires: task-3.12 (Vue 3 migration complete)
+
+- [ ] **task-5.2: Unify special page components**
   - Create unified `Page` component with configurable props/slots
   - Support: with_banner, with_status, with_navigation
   - Deprecate existing Page, PageWithBanner, PageWithStatus

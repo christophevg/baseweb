@@ -20,11 +20,11 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 | task-3.3: WebSocket migration | task-3.1: Re-enable SocketIO | Complete |
 | task-3.4: Frontend verification | Frontend tests | Complete |
 | task-3.5: Vue 3 vendor files | Validate: app loads | Complete |
-| task-3.6: Vue 3 app init | Validate: navigation works | Pending |
+| task-3.6: Vue 3 app init | Validate: navigation works | Complete |
 | task-3.7: Vue 3 simple components | Validate: pages load | Complete |
 | task-3.8: Vue 3 navigation | Validate: drawer works | Complete |
-| task-3.9: Vue 3 form generator | Validate: forms submit | Pending |
-| task-3.10: Vue 3 CollectionView | Validate: CRUD works | Pending |
+| task-3.9: Vue 3 form generator | Validate: forms submit | Complete |
+| task-3.10: Vue 3 CollectionView | Validate: CRUD works | Complete |
 | task-3.11: Vue 3 charts/notifications | Validate: charts/notifications | Pending |
 | task-3.12: Vue 3 integration | Full test suite | Pending |
 
@@ -140,28 +140,53 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Requires: task-3.8 (navigation)
   - Validate: baseweb-demo forms submit correctly
 
-- [ ] **task-3.10: Vue 3 + Vuetify 3 Migration - CollectionView Component**
-  - Update CollectionView.js
-  - Replace jQuery AJAX with fetch API
-  - Update v-data-table: `:pagination.sync` -> `v-model:options`
-  - Update v-data-table: `:total-items` -> `:items-length`
-  - Update v-data-table: slot syntax (v-slot:item)
-  - Update pagination structure (rowsPerPage -> itemsPerPage)
-  - Replace vue-form-generator with VuetifyFormGenerator
-  - Replace vue-notification with Vuetify snackbar
-  - Test CRUD operations work
+- [x] **task-3.10: Vue 3 + Vuetify 3 Migration - CollectionView Component** (2026-05-04)
+  - Updated v-data-table API:
+    - `:pagination.sync` -> `v-model:options`
+    - `:total-items` -> `:items-length`
+    - Slot syntax: `slot="items" slot-scope="row"` -> `v-slot:item="{ item }"`
+    - Pagination: `rowsPerPage` -> `itemsPerPage`
+    - Sort: array of objects `{ key, order }` instead of string + boolean
+  - Replaced jQuery AJAX with fetch API:
+    - Removed jQuery dependency from search() and do_delete()
+    - Using native fetch() with async/await
+    - Proper error handling with try/catch
+  - Replaced vue-notification with Vuetify snackbar:
+    - Created store.js with notification module
+    - Created NotificationSnackbar component
+    - Updated CollectionView to use store.commit('notify_*')
+    - Template still uses <notifications> for backward compatibility
+  - Integrated VuetifyFormGenerator:
+    - Already registered as vue-form-generator component
+    - No changes needed, works with existing schema
+  - Updated Vuetify 3 button props:
+    - `flat` -> `variant="text"`
+    - `icon` stays the same
+  - Updated v-pagination:
+    - `circle` -> `rounded="circle"`
+    - `@input` -> `@update:modelValue`
+  - Updated v-text-field:
+    - `append-icon` -> `append-inner-icon`
+    - Added `@click:append-inner` and `@keyup.enter` for search
+  - Updated typography classes:
+    - `headline` -> `text-h5`
+    - `text-xs-center` -> `text-center`
+  - Created files:
+    - /src/baseweb/static/js/store.js (Vuex store with notification module)
+    - /src/baseweb/static/js/components/NotificationSnackbar.js
   - Acceptance: Data tables work, CRUD operations work
   - Requires: task-3.9 (form generator)
   - Validate: baseweb-demo CollectionView works
 
 - [ ] **task-3.11: Vue 3 + Vuetify 3 Migration - Charts and Notifications**
   - Update LineChart.js for vue-chartjs v4
-  - Replace vue-notification with Vuetify snackbar
-  - Update notification calls throughout components
+  - Replace vue-notification with Vuetify snackbar (DONE in task-3.10)
+  - Update notification calls throughout components (DONE in task-3.10)
   - Test charts render correctly
   - Test notifications appear correctly
   - Acceptance: Charts render, notifications work
   - Requires: task-3.10 (CollectionView)
+  - Validate: baseweb-demo charts and notifications work
   - Validate: baseweb-demo charts and notifications work
 
 - [ ] **task-3.12: Vue 3 + Vuetify 3 Migration - Integration Testing**

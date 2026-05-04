@@ -111,21 +111,11 @@
     <script src="/static/vendor/js/vuex.js"></script>
     <script src="/static/vendor/js/vue-router.js"></script>
 
-    <!-- Register Vue Router (needed for router to work) -->
-    <script>
-      // Vue Router 4 auto-installs when app.use(router) is called
-    </script>
+    <!-- Store (needed by NotificationSnackbar and NavigationDrawer) -->
+    <script src="/static/js/store.js"></script>
 
-    <!-- vue-notification (Vue 2 library, needs compatibility) -->
-    <script type="text/javascript">
-      window.vue = window.Vue; // quick fix for vue-notification
-    </script>
-    <script src="/static/vendor/js/vue-notification.js"></script>
-    <script>
-      window.vueNotification = window["vue-notification"].default;
-      // Queue for later installation on app
-      window._vueUses.push({plugin: vueNotification});
-    </script>
+    <!-- Notification system (Vuetify 3 snackbar-based, replaces vue-notification) -->
+    <script src="/static/js/components/NotificationSnackbar.js"></script>
 
     <!-- VuetifyFormGenerator (Vue 3 compatible replacement for vue-form-generator) -->
     <script src="/static/js/components/VuetifyFormGenerator.js"></script>
@@ -136,8 +126,7 @@
       Vue.component('Multiselect', VueMultiselect.Multiselect);
     </script>
 
-    <!-- Store and Navigation Drawer -->
-    <script src="/static/js/store.js"></script>
+    <!-- Navigation Drawer -->
     <script src="/static/js/components/NavigationDrawer.js"></script>
 
     <script src="/static/vendor/js/socket.io.slim.js"></script>

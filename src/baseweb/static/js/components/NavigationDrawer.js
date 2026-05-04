@@ -151,7 +151,8 @@ function order(a, b) {
         index : index
       });
     }
-    router.addRoutes([ { path: path, component: component } ]);
+    // Vue Router 4: use addRoute instead of addRoutes
+    router.addRoute({ path: path, component: component });
   }
   
   // new interface
@@ -162,9 +163,8 @@ function order(a, b) {
   
   function add_component(component) {
     store.commit("navigation", component.navigation);
-    router.addRoutes([
-      { path: component.navigation.path, component: component }
-    ]);
+    // Vue Router 4: use addRoute instead of addRoutes
+    router.addRoute({ path: component.navigation.path, component: component });
   }
 
   globals.Navigation = {

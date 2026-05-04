@@ -154,7 +154,7 @@ class TestRenderTemplateAsync:
             response = await client.get("/static/js/store.js")
             assert response.status_code == 200
             content = await response.get_data()
-            assert b"Vuex.Store" in content
+            assert b"Vuex.createStore" in content
 
     @pytest.mark.asyncio
     async def test_render_template_awaited_manifest(self):

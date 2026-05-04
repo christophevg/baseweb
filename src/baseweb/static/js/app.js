@@ -1,4 +1,4 @@
-var app = new Vue({
+var app = Vue.createApp({
   delimiters: ['${', '}'],
   router:     router,
   components: {

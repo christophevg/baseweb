@@ -9,8 +9,8 @@
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-      <script src="/static/vendor/html5shiv.min.js"></script>
-      <script src="/static/vendor/respond.min.js"></script>
+      <script src="/static/vendor/js/html5shiv.min.js"></script>
+      <script src="/static/vendor/js/respond.min.js"></script>
     <![endif]-->
 
     <link href="/static/vendor/css/roboto-material-icons.css"    rel="stylesheet">
@@ -70,37 +70,77 @@
       </v-content>
     </v-app>
 
+    <!-- Vue 3 and Vuetify 3 vendor scripts -->
     <script src="/static/vendor/js/vue.js"></script>
     <script src="/static/vendor/js/vuetify.js"></script>
+
+    <!-- Vue 3 compatibility layer for Vue 2-style global registration -->
     <script>
-      // temp QnD fix for warning ;-)
+      // Queue for component registrations before app is created
+      window._vueComponents = [];
+      window._vueFilters = {};
+      window._vueMixins = [];
+      window._vueUses = [];
+
+      // Compatibility shim: intercept Vue.component() calls
+      Vue.component = function(name, component) {
+        window._vueComponents.push({name: name, component: component});
+        return component;
+      };
+
+      // Compatibility shim: intercept Vue.filter() calls
+      Vue.filter = function(name, fn) {
+        window._vueFilters[name] = fn;
+        return fn;
+      };
+
+      // Compatibility shim: intercept Vue.mixin() calls
+      Vue.mixin = function(mixin) {
+        window._vueMixins.push(mixin);
+      };
+
+      // Compatibility shim: intercept Vue.use() calls (will be applied to app later)
+      Vue.use = function(plugin, options) {
+        window._vueUses.push({plugin: plugin, options: options});
+      };
+
+      // Temp QnD fix for warning ;-)
       Vue.component("Logo", { template : "<div></div>" });
     </script>
+
+    <!-- Vuex 4 and Vue Router 4 -->
     <script src="/static/vendor/js/vuex.js"></script>
     <script src="/static/vendor/js/vue-router.js"></script>
+
+    <!-- Register Vue Router (needed for router to work) -->
     <script>
-      Vue.use(VueRouter);
+      // Vue Router 4 auto-installs when app.use(router) is called
     </script>
 
+    <!-- vue-notification (Vue 2 library, needs compatibility) -->
     <script type="text/javascript">
       window.vue = window.Vue; // quick fix for vue-notification
     </script>
     <script src="/static/vendor/js/vue-notification.js"></script>
     <script>
       window.vueNotification = window["vue-notification"].default;
-      Vue.use(vueNotification);
+      // Queue for later installation on app
+      window._vueUses.push({plugin: vueNotification});
     </script>
 
+    <!-- vue-form-generator -->
     <script src="/static/vendor/js/vue-form-generator.min.js"></script>
     <script>
-      Vue.use(VueFormGenerator);
+      window._vueUses.push({plugin: VueFormGenerator});
     </script>
 
+    <!-- vue-multiselect -->
     <script src="/static/vendor/js/vue-multiselect.min.js"></script>
     <script>
       Vue.component('Multiselect', VueMultiselect.Multiselect);
     </script>
 
+    <!-- Store and Navigation Drawer -->
     <script src="/static/js/store.js"></script>
     <script src="/static/js/components/NavigationDrawer.js"></script>
 
@@ -114,7 +154,10 @@
     <script src="/static/vendor/js/bootstrap-datetimepicker.min.js"></script>
     <script src="/static/vendor/js/highlight.min.js"></script>
 
+    <!-- Router -->
     <script src="/static/js/router.js"></script>
+
+    <!-- App initialization -->
     <script src="/static/js/app.js"></script>
     {% if app.socketio %}
     <script>
@@ -122,9 +165,11 @@
     </script>
     {% endif %}
 
+    <!-- Common utilities (filters, etc.) -->
     <script src="/static/js/common.js"></script>
     <script src="/static/js/socketio.js"></script>
 
+    <!-- Base components -->
     <script src="/static/js/components/Page.js"></script>
     <script src="/static/js/components/PageWithBanner.js"></script>
     <script src="/static/js/components/PageWithStatus.js"></script>
@@ -139,8 +184,41 @@
     {% for url in scripts %}
     <script src="{{ url }}"></script>
     {% endfor %}
+
+    <!-- Final initialization: apply queued registrations and mount -->
     <script>
-      app.$mount('#app')
+      // Install core plugins (store and router)
+      app.use(store);
+      app.use(router);
+
+      // Create Vuetify instance
+      var vuetify = Vuetify.createVuetify();
+      app.use(vuetify);
+
+      // Apply queued plugin installations
+      window._vueUses.forEach(function(item) {
+        try {
+          app.use(item.plugin, item.options);
+        } catch(e) {
+          console.warn('Failed to install plugin:', e);
+        }
+      });
+
+      // Apply queued component registrations
+      window._vueComponents.forEach(function(item) {
+        app.component(item.name, item.component);
+      });
+
+      // Apply queued filters as global properties (Vue 3 removed filters)
+      app.config.globalProperties.$filters = window._vueFilters;
+
+      // Apply queued mixins
+      window._vueMixins.forEach(function(mixin) {
+        app.mixin(mixin);
+      });
+
+      // Mount the app
+      app.mount('#app');
     </script>
 
   </body>

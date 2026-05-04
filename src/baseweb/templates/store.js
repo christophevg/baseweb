@@ -1,4 +1,4 @@
-var store = new Vuex.Store({
+var store = Vuex.createStore({
   state: {
     config : {{ app.toDict() | tojson }}
   },

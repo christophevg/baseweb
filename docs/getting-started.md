@@ -1,8 +1,5 @@
 # Getting Started
 
-> **Warning:** Baseweb is being migrated from Flask (synchronous) to Quart (asynchronous).
-> Version 1.0.0 will be a breaking change. See the [migration notice](index.md#important-asyncquart-migration-in-progress) for details.
-
 Baseweb is hosted on PyPi, so...
 
 ```bash
@@ -11,16 +8,16 @@ $ pip install baseweb
 
 ## Minimal Survival Commands
 
-To actually run baseweb you need additionally a web server, like gunicorn, optionally with async support, e.g. using eventlet.
+To actually run baseweb you need additionally an ASGI web server like gunicorn with uvicorn:
 
 ```bash
-$ pip install gunicorn eventlet
+$ pip install gunicorn uvicorn
 ```
 
 Now you can start a stock baseweb using:
 
 ```bash
-$ gunicorn -k eventlet -w 1 baseweb:server
+$ gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
 ```
 
 And when you visit [http://localhost:8000](http://localhost:8000) you will get...
@@ -35,8 +32,10 @@ To quickly add a little more, clone the baseweb-demo repository and give that a 
 
 ```bash
 % git clone https://github.com/christophevg/baseweb-demo
-% pip install oatk
-% gunicorn -k eventlet -w 1 baseweb-demo:server
+% cd baseweb-demo
+% pip install -e .
+% pip install gunicorn uvicorn
+% gunicorn -w 1 -k uvicorn.workers.UvicornWorker "app:asgi_app"
 ```
 
 Now visit [http://localhost:8000](http://localhost:8000) again, enter your name and press a few buttons to see the demo app in action, presenting some of the standard features offered by baseweb.

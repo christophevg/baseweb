@@ -61,14 +61,11 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 3: Flask to Quart Migration
 
-- [ ] **Update end-user documentation (docs/)**
-  - Update all code examples to use Quart/async patterns
-  - Update import statements (flask → quart, flask_restful → baseweb)
-  - Update Resource examples to use async methods
-  - Update Socket.IO examples with python-socketio ASGI patterns
-  - Update running instructions (gunicorn + uvicorn)
-  - Update API documentation for add_resource changes
-  - Ensure migration guide is comprehensive
+- [x] **Update end-user documentation (docs/)** (2026-05-04)
+  - Updated getting-started.md: eventlet → uvicorn, Flask → Quart
+  - Updated building-your-first-baseweb-app.md: async patterns, Resource, Socket.IO
+  - Updated adding-security.md: async handlers, Socket.IO authentication
+  - All code examples now use Quart/async patterns
 
 - [ ] **Upgrade frontend to modern Vue 3 + Vuetify 3**
   - Migrate from Vue 2 to Vue 3 (Composition API)

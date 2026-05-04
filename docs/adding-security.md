@@ -6,7 +6,7 @@ To setup a layer of access security, baseweb allows to register an authenticator
 from baseweb import server
 
 def authenticator(scope, request, *args, **kwargs):
-  logger.debug("AUTH: scope:{scope} / request:{request} / args:{args} / kwargs:{kwargs}"))
+  logger.debug(f"AUTH: scope:{scope} / request:{request} / args:{args} / kwargs:{kwargs}")
   return True
 
 server.authenticator = authenticator
@@ -23,29 +23,31 @@ AUTH: scope:ui.app.filename / request:<Request 'http://localhost:8000/app/page1.
 AUTH: scope:ui.app.filename / request:<Request 'http://localhost:8000/app/index.js' [GET]> / args:() / kwargs:{'filename': 'index.js'}
 ```
 
-The `scope` argument indicates where the request was handled. In this case all requests were handles by the `ui` component. Possible sub-levels are `section`, `static` and `app`, indicating that the request was targetting a section, some static content or content provided by your own application, e.g. those registered using `register_component`.
+The `scope` argument indicates where the request was handled. In this case all requests were handled by the `ui` component. Possible sub-levels are `section`, `static` and `app`, indicating that the request was targeting a section, some static content or content provided by your own application, e.g. those registered using `register_component`.
 
-The `request` argument is the standard Flask `request` object, which, amongst others contains the `authorization` object, that provides a `username` and `password`. Through the `request` argument, all aspects of the request can be taken into account, even the arguments and or posted data, allowing event for even deeper content/data based access, e.g. in case of resources...
+The `request` argument is the standard Quart `request` object, which, amongst others contains the `authorization` object, that provides a `username` and `password`. Through the `request` argument, all aspects of the request can be taken into account, even the arguments and or posted data, allowing even for deeper content/data based access, e.g. in case of resources...
 
 ## Securing Resources and IO
 
 You can use the same mechanism to add security to your own resources and IO:
 
 ```python
-from baseweb import server
+from baseweb import server, Resource
+from quart import request
 
 class Hello(Resource):
   @server.authenticated("app.hello.get")
-  def get(self):
-    name = server.request.args["name"]
-    log(f"received hello from {name} via rest/get")
+  async def get(self):
+    name = request.args["name"]
+    await log(f"received hello from {name} via rest/get")
     return f"Hello {name} from REST/GET"
-    
+
   @server.authenticated("app.hello.post")
-  def post(self):
-    name = server.request.get_json()["name"]
-    log(f"received hello from {name} via rest/post")
-    return f"Hello {name} from REST/POST"
+  async def post(self):
+    data = await request.get_json()
+    name = data["name"]
+    await log(f"received hello from {name} via rest/post")
+    return {"message": f"Hello {name} from REST/POST"}
 ```
 
 By applying the `server.authenticated` decorator methods on resources can be secured in exactly the same way as their ui counterparts.
@@ -59,23 +61,19 @@ AUTH: scope:app.hello.post / request:<Request 'http://localhost:8000/api/hello' 
 
 The scope is provided by means of the single argument to the decorator. There is no mandatory/intended logic implemented, so you can apply any scheme you like.
 
-Finally, also all socket IO requests can be validated, as indicated by these log messages when connecting, handling an incoming event and disconnecting:
+## Securing Socket.IO
 
-```bash
-AUTH: scope:io.connect / request:<Request 'http://localhost:8000/socket.io/?EIO=3&transport=polling&t=NC4bkaz' [GET]> / args:() / kwargs:{}
-AUTH: scope:app.io.hello / request:<Request 'http://localhost:8000/socket.io/?EIO=3&transport=polling&t=NC4byT2' [GET]> / args:('Christophe',) / kwargs:{}
-AUTH: scope:io.disconnect / request:<Request 'http://localhost:8000/socket.io/?EIO=3&transport=polling&t=NC4bkaz' [GET]> / args:() / kwargs:{}
-```
-
-Instrumenting our own socket IO event handlers happens in exactly the same way as our resources:
+Socket.IO handlers can also be secured. Note that Socket.IO handlers receive `sid` (session ID) as the first parameter instead of having access to `request`:
 
 ```python
 from baseweb import server
 
 @server.socketio.on("hello")
 @server.authenticated("app.io.hello")
-def on_hello(name):
-  log(f"received hello from {name} ({server.request.sid}) via socketio")
+async def on_hello(sid, name):
+  await log(f"received hello from {name} ({sid}) via socketio")
   return f"Hello {name} from socketio!"
 ```
+
+The authenticator function is called with the same parameters for both HTTP and Socket.IO contexts. The `authenticated` decorator automatically detects which context it's running in and uses the appropriate authentication method.
 

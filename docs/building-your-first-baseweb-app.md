@@ -6,49 +6,42 @@ The following walkthrough starts from literally nothing and shows every step to 
 
 ## Setup an environment
 
-This is optional, still very much advised: prepare a suitable execution environment, with your favorite virtual environment runner - mine is PyEnv:
+This is optional, still very much advised: prepare a suitable execution environment, with your favorite virtual environment runner - [uv](https://docs.astral.sh/uv/) is recommended:
 
 ```console
 % mkdir my-app
 % cd my-app
-% pyenv virtualenv my-app
-% pyenv local my-app
+% uv init
 ```
 
 ## Getting baseweb
 
 ```console
-% pip install baseweb
+% uv add baseweb gunicorn uvicorn
 ```
 
-This is enough to install baseweb. Now to run your first baseweb app, you will need a webserver, like `gunicorn` with `eventlet` support:
-
-```bash
-% pip install gunicorn eventlet
-```
-
-All set. Let's meet baseweb...
+This is enough to install baseweb with its dependencies. Let's meet baseweb...
 
 ## Hello baseweb
 
 You can simply run baseweb from your app folder:
 
 ```console
-% gunicorn -k eventlet -w 1 baseweb:server
-[2020-06-27 12:40:24 +0200] [68179] [INFO] Starting gunicorn 20.1.0
-[2020-06-27 12:40:24 +0200] [68179] [INFO] Listening at: http://127.0.0.1:8000 (68179)
-[2020-06-27 12:40:24 +0200] [68179] [INFO] Using worker: eventlet
-[2020-06-27 12:40:24 +0200] [68182] [INFO] Booting worker with pid: 68182
+% uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
+[2026-05-04 12:40:24 +0200] [68179] [INFO] Starting gunicorn 21.0.0
+[2026-05-04 12:40:24 +0200] [68179] [INFO] Listening at: http://127.0.0.1:8000 (68179)
+[2026-05-04 12:40:24 +0200] [68179] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2026-05-04 12:40:24 +0200] [68182] [INFO] Booting worker with pid: 68182
 ```
 
 And visit [http://localhost:8000](http://localhost:8000)...
 
 ![Hello baseweb](hello-baseweb-1.png)
 
-Notice that baseweb has take the name of your app folder and uses that as the name for the application. That is in fact a fall-back in case the name isn't provided as an enrionment variable. Try starting baseweb using the following command:
+Notice that baseweb has take the name of your app folder and uses that as the name for the application. That is in fact a fall-back in case the name isn't provided as an environment variable. Try starting baseweb using the following command:
 
 ```bash
-% APP_NAME=hello gunicorn -k eventlet -w 1 baseweb:server
+% APP_NAME=hello uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
 ```
 
 ![Hello baseweb](hello-baseweb-2.png)
@@ -65,6 +58,9 @@ import os
 from baseweb import server
 
 server.register_component("hello.js", os.path.dirname(__file__))
+
+# ASGI entry point
+asgi_app = server._asgi_app
 ```
 
 And also create a Javascript file, `hello.js`:
@@ -75,18 +71,23 @@ var Hello = {
 <div>
   <h1>Hello baseweb</h1>
 </div>
-`
+  `,
+  navigation: {
+    section: null,
+    icon: "home",
+    text: "Hello",
+    path: "/",
+    index: 1
+  }
 };
 
-router.addRoutes([
-  { path: '/', component: Hello },
-])
+Navigation.add(Hello);
 ```
 
 Now run your own baseweb app:
 
 ```bash
-% gunicorn -k eventlet -w 1 hello:server
+% uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "hello:asgi_app"
 ```
 
 ![Hello myapp](hello-myapp-1.png)
@@ -102,16 +103,15 @@ Now, extend your `hello.py` with
 ```python
 # set up a REST resource to handle hello requests from the UI
 
-from flask_restful import Resource
-
-from baseweb import server
+from baseweb import server, Resource
+from quart import request
 
 class Hello(Resource):
-  def get(self):
-    name = server.request.args["name"]
-    return "Hello {0}".format(name)
+  async def get(self):
+    name = request.args["name"]
+    return f"Hello {name}"
 
-server.api.add_resource(Hello, "/api/hello")
+server.add_resource(Hello, "/api/hello")
 ```
 
 and update your `hello.js` to look like this:
@@ -124,7 +124,14 @@ var Hello = {
   <vue-form-generator ref="vfg" :schema="schema" :model="model"></vue-form-generator>
   <v-btn @click="send_get()" class="primary">say hello</v-btn>
 </div>
-`,
+  `,
+  navigation: {
+    section: null,
+    icon: "home",
+    text: "Hello",
+    path: "/",
+    index: 1
+  },
   methods: {
     send_get: function() {
       $.get( "/api/hello", { "name" : this.model.name }, function( response ) {
@@ -159,9 +166,7 @@ var Hello = {
   }
 };
 
-router.addRoutes([
-  { path: '/', component: Hello },
-])
+Navigation.add(Hello);
 ```
 
 Run it again and now enter your name and this the button...
@@ -174,7 +179,7 @@ And there you have it, your first baseweb app: 66 lines of code provide you with
 
 Replacing/adding post behaviour is rather straightforward given the get behaviour example.
 
-Besides the more classic IO, baseweb als includes ready-to-use socket IO. Add the following snippets to your code files to see it in action:
+Besides the more classic IO, baseweb also includes ready-to-use Socket.IO. Add the following snippets to your code files to see it in action:
 
 ```python
 # set up socketio event handlers to handle hello events from the UI
@@ -182,8 +187,8 @@ Besides the more classic IO, baseweb als includes ready-to-use socket IO. Add th
 from baseweb import server
 
 @server.socketio.on("hello")
-def on_hello(name):
-  return "Hello {0} from socketio!".format(name)
+async def on_hello(sid, name):
+  return f"Hello {name} from socketio!"
 ```
 
 ```javascript
@@ -202,7 +207,7 @@ def on_hello(name):
         text:  response,
         type:  "success",
         duration: 10000
-      });        
+      });
     });
 ```
 

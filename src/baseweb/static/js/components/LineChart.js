@@ -41,9 +41,17 @@ app.component('LineChart', {
           duration: 500
         },
         scales: {
-          y: {
-            beginAtZero: true
-          }
+          xAxes: [{
+            id: 'x-axis-0',
+            display: true
+          }],
+          yAxes: [{
+            id: 'y-axis-0',
+            display: true,
+            ticks: {
+              beginAtZero: true
+            }
+          }]
         }
       }
     };
@@ -68,13 +76,13 @@ app.component('LineChart', {
     chartData: {
       deep: true,
       handler: function(newData) {
-        this.updateChart();
+        this.updateChartData();
       }
     },
     options: {
       deep: true,
       handler: function(newOptions) {
-        this.updateChart();
+        this.recreateChart();
       }
     }
   },
@@ -87,12 +95,20 @@ app.component('LineChart', {
         options: this.merged_options
       });
     },
-    updateChart: function() {
+    updateChartData: function() {
+      // Only update data, not options (Chart.js 2.x limitation)
       if (this.chart) {
         this.chart.data = this.chartData;
-        this.chart.options = this.merged_options;
         this.chart.update();
       }
+    },
+    recreateChart: function() {
+      // Destroy and recreate for options changes (Chart.js 2.x limitation)
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = null;
+      }
+      this.createChart();
     },
     deepMerge: function(target, source) {
       // Simple deep merge utility (replaces $.extend(true, ...))

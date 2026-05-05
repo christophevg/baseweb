@@ -39,9 +39,9 @@ app.component("navigation-drawer-page", {
 app.component("navigation-drawer", {
   template: `
 <v-navigation-drawer v-model="drawerShowing" location="start">
-  <v-list density="compact" nav>
+  <v-list density="compact" nav v-model:opened="openGroups">
     <template v-for="(section, index) in sections" :key="index">
-      <v-list-group v-if="section.group && section.pages && section.pages.length > 0">
+      <v-list-group v-if="section.group && section.pages && section.pages.length > 0" :value="section.text">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props">
             <template v-slot:prepend>
@@ -69,6 +69,21 @@ app.component("navigation-drawer", {
     },
     sections: function() {
       return store.state.drawer.sections;
+    },
+    openGroups: {
+      get: function() {
+        // Return section names that should be expanded
+        // Sections default to collapsed (expanded=false) unless explicitly set to true
+        return this.sections
+          .filter(function(section) {
+            return section.group && section.expanded === true;
+          })
+          .map(function(section) { return section.text; });
+      },
+      set: function(value) {
+        // User toggled groups - update state
+        store.commit('set_open_sections', value);
+      }
     }
   }
 });

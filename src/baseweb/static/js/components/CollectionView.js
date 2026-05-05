@@ -60,36 +60,31 @@ app.component("CollectionView", {
       ></v-text-field>
     </v-card-title>
 
-    <v-data-table
-      :headers="all_headers"
-      :items="rows"
-      v-model:options="tableOptions"
-      :items-length="model.totalElements"
-      :loading="loading"
-      item-value="requestId"
-      class="elevation-1"
-    >
-      <template v-slot:item="{ item }">
-        <tr @click="select(item)" :class="item[id] === selected[id] ? 'selected-row' : ''">
-          <td v-for="(header, i) in headers" v-if="header.value != '' && header.value != undefined" :align="header.align">${'{{'} extract(header.value || header.key, item) ${'}}'}</td>
-          <td :style="{ width: actions_width }" v-if="has_actions" class="text-center">
-            <v-btn v-for="action in row_actions" :key="action.icon" variant="text" icon :color="action.color" @click.stop="action.func(item[id]);">
-              <v-icon>${'{{'} action.icon ${'}}'}</v-icon>
-            </v-btn>
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
+      <v-data-table-server
+        v-model:items-per-page="tableOptions.itemsPerPage"
+        :headers="all_headers"
+        :items="model.results"
+        :items-length="model.totalElements"
+        :loading="loading"
+        item-value="id"
+        @update:options="onOptionsUpdate"
 
-    <div class="text-center pt-2">
-      <v-pagination
-        v-model="tableOptions.page"
-        :length="pages"
-        :total-visible="7"
-        rounded="circle"
-        @update:modelValue="search"
-      ></v-pagination>
-    </div>
+        class="elevation-1"
+        v-model:page="tableOptions.page"
+        v-model:sort-by="tableOptions.sortBy"
+        @update:options="onOptionsUpdate"
+      >
+        <template v-slot:item="{ item }">
+          <tr :key="item[id]" @click="select(item)" :class="['v-data-table__tr', item[id] === selected[id] ? 'selected-row' : '']">
+            <td v-for="(header, i) in filtered_headers" :key="header.value || header.key" :align="header.align" class="v-data-table__td">${'{{'} extract(header.value || header.key, item) ${'}}'}</td>
+            <td :style="{ width: actions_width }" v-if="has_actions" class="v-data-table__td text-center">
+              <v-btn v-for="action in row_actions" :key="action.icon" variant="text" icon :color="action.color" @click.stop="action.func(item[id]);">
+                <v-icon>${'{{'} action.icon ${'}}'}</v-icon>
+              </v-btn>
+            </td>
+          </tr>
+        </template>
+      </v-data-table-server>
 
     <v-card v-if="selected[id]">
       <v-card-text>
@@ -146,6 +141,8 @@ app.component("CollectionView", {
     if (this.sortBy) {
       this.tableOptions.sortBy = [{ key: this.sortBy, order: 'desc' }];
     }
+    // Always perform initial search
+    this.search();
   },
   created: function() {
     // adopt queries from URL
@@ -153,9 +150,7 @@ app.component("CollectionView", {
       // TODO: improve unmarshalling
       this.model.query = window.location.search.slice(1).replace("&", " ");
     }
-    if (!this.sortBy) {
-      this.search();
-    }
+    // Initial search is now handled in mounted hook
   },
   computed: {
     label: function() {
@@ -167,6 +162,13 @@ app.component("CollectionView", {
     },
     has_actions: function() {
       return this.row_actions.length > 0;
+    },
+    filtered_headers: function() {
+      // Filter out headers with empty or undefined value
+      // This is necessary for Vue 3 because v-if has higher priority than v-for
+      return this.headers.filter(function(header) {
+        return header.value !== '' && header.value !== undefined;
+      });
     },
     all_headers: function() {
       var self = this;
@@ -229,9 +231,9 @@ app.component("CollectionView", {
       };
     },
     rows: function() {
-      return this.model.results.map(function(item) {
-        return item;
-      });
+      // Return the results array directly, not a mapped copy
+      // This prevents Vue from seeing "new" arrays and causing duplication
+      return this.model.results;
     },
     hasRows: function() {
       return this.model.results.length > 0;
@@ -244,6 +246,16 @@ app.component("CollectionView", {
     }
   },
   methods: {
+    onOptionsUpdate: function(options) {
+      // Update tableOptions from the event parameter
+      // This ensures we use the actual values, not stale v-model bindings
+      if (options) {
+        if (options.page !== undefined) this.tableOptions.page = options.page;
+        if (options.itemsPerPage !== undefined) this.tableOptions.itemsPerPage = options.itemsPerPage;
+        if (options.sortBy !== undefined) this.tableOptions.sortBy = options.sortBy;
+      }
+      this.search();
+    },
     select: function(selection) {
       this.$emit("select", selection);
     },
@@ -288,6 +300,12 @@ app.component("CollectionView", {
     },
     search: async function() {
       var self = this;
+
+      // Prevent concurrent searches - if one is in progress, abort it
+      if (self.searchInProgress) {
+        return;
+      }
+      self.searchInProgress = true;
       self.loading = true;
 
       var params = self.get_search_params();
@@ -309,6 +327,7 @@ app.component("CollectionView", {
 
         var data = await response.json();
         self.loading = false;
+        self.searchInProgress = false;
         self.select({});
         var content = self.enrich ? self.enrich(data.content) : data.content;
         self.model.results = content;
@@ -316,6 +335,7 @@ app.component("CollectionView", {
         self.initiated = true;
       } catch (error) {
         self.loading = false;
+        self.searchInProgress = false;
         store.commit('notify_error', {
           title: 'Could not load ' + self.resource,
           text: error.message,
@@ -374,36 +394,16 @@ app.component("CollectionView", {
       self.model.confirm_delete_dialog = false;
     }
   },
-  watch: {
-    tableOptions: {
-      handler: function(newVal, oldVal) {
-        // Check if relevant options changed
-        var newSort = newVal.sortBy && newVal.sortBy[0];
-        var oldSort = oldVal && oldVal.sortBy && oldVal.sortBy[0];
-
-        var sortChanged = !oldVal ||
-          (newSort && oldSort && (newSort.key !== oldSort.key || newSort.order !== oldSort.order)) ||
-          (newSort && !oldSort) || (!newSort && oldSort);
-
-        var pageChanged = !oldVal || newVal.page !== oldVal.page;
-        var itemsPerPageChanged = !oldVal || newVal.itemsPerPage !== oldVal.itemsPerPage;
-
-        if (sortChanged || pageChanged || itemsPerPageChanged) {
-          this.search();
-        }
-      },
-      deep: true
-    }
-  },
   data: function() {
     return {
       initiated: false,
       loading: true,
+      searchInProgress: false,
       // Vuetify 3 table options structure
       tableOptions: {
         page: 1,
         itemsPerPage: 5,
-        sortBy: [],
+        sortBy: [ { key: "id", order: "desc" } ],
         groupBy: [],
         search: ''
       },

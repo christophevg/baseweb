@@ -5,10 +5,12 @@ app.component("PageWithStatus", {
 <Page>
   <slot/>
   <v-snackbar v-model="showing" :color="level" :timeout="timeout" location="top">
-    {{ msg }}
-    <v-btn variant="flat" @click="showing=false"><v-icon>mdi-close</v-icon></v-btn>
-  </v-snackbar>
-</Page>
+        {{ msg }}
+        <template v-slot:actions>
+        <v-btn variant="plain" @click="showing=false"><v-icon>mdi-close</v-icon></v-btn>
+        </template>
+      </v-snackbar>
+  </Page>
 `,
   computed: {
     showing: {

@@ -7,9 +7,12 @@ RED=\033[0;31m
 BLUE=\033[0;34m
 NC=\033[0m
 
-.PHONY: install install-pythons sync test lint format typecheck check tox build publish clean run docs coverage dist dist-clean
+.PHONY: env-run env-dev install-pythons sync test lint format typecheck check tox build publish clean run docs coverage dist dist-clean
 
-install:
+env-run:
+	uv sync
+
+env-dev:
 	uv sync --all-extras
 
 install-pythons:
@@ -18,38 +21,38 @@ install-pythons:
 sync:
 	uv sync --frozen --all-extras
 
-test:
+test: env-dev
 	uv run pytest
 
-lint:
+lint: env-dev
 	uv run ruff check src tests
 
-format:
-	uv run ruff check --select I --fix src tests
+format: env-dev
+	uv run ruff check --fix src tests
 
-typecheck:
+typecheck: env-dev
 	uv run mypy src
 
 check: lint typecheck test
 
-tox:
+tox: env-dev
 	uv run tox
 
-build:
+build: env-dev
 	uv build
 
 publish: build
 	uv publish
 
-coverage:
+coverage: env-dev
 	uv run pytest --cov=src --cov-report=term-missing --cov-report=lcov
 
 # functional targets
 
-run:
+run: env-run
 	cd examples/hello-world; uv run gunicorn -k uvicorn.workers.UvicornH11Worker app:asgi_app --reload
 
-docs:
+docs: env-dev
 	cd docs; uv run sphinx-build -M html . _build
 	open docs/_build/html/index.html
 

@@ -6,6 +6,7 @@ This validates that the core baseweb setup works correctly after the migration.
 """
 
 from pathlib import Path
+
 from baseweb import Baseweb
 
 # Create baseweb app with custom name
@@ -33,3 +34,6 @@ app.register_app_route("/", endpoint="home")
 # Note: If socketio is disabled (APP_SOCKETIO=no), _asgi_app is None
 # In that case, use the Quart app directly as the ASGI app
 asgi_app = app._asgi_app if app._asgi_app is not None else app
+
+# all set up...
+app.log_config()

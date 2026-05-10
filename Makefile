@@ -25,7 +25,7 @@ lint:
 	uv run ruff check src tests
 
 format:
-	uv run ruff format src tests
+	uv run ruff check --select I --fix src tests
 
 typecheck:
 	uv run mypy src

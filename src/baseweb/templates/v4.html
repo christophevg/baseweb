@@ -15,7 +15,7 @@
 
     <link href="/static/vendor/css/roboto.css"                   rel="stylesheet">
     <link href="/static/vendor/css/mdi.min.css"                  rel="stylesheet">
-    <link href="/static/vendor/css/vuetify-labs.v3.css"              rel="stylesheet">
+    <link href="/static/vendor/css/vuetify-labs.v4.css"              rel="stylesheet">
     <link href="/static/vendor/css/vue-multiselect.min.css"      rel="stylesheet">
     <link href="/static/vendor/css/bootstrap-datetimepicker.css" rel="stylesheet">
     <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
@@ -44,32 +44,46 @@
 
   <body>
     <v-app id="app">
+
       <v-layout>
-        <v-app-bar color="{{ app.color_name }}" {% if app.color_scheme == "dark" %}theme="dark"{% endif %}>
-          <v-btn icon variant="text" @click.stop="toggle_drawer" class="mr-2">
-            {% if app.icon %}
-              {% if app.icon.startswith('mdi-') %}
-            <v-icon>{{ app.icon }}</v-icon>
-              {% else %}
-            <component :is="'{{ app.icon }}'" style="width:40px;height:40px"></component>
-              {% endif %}
-            {% else %}
-            <v-icon>mdi-menu</v-icon>
-            {% endif %}
-          </v-btn>
-
-          <v-app-bar-title>
-            {{ app.name }}
-          </v-app-bar-title>
-
-          {% if app.socketio %}
-          <v-spacer></v-spacer>
-          <v-icon color="green" v-if="connected" class="mr-2">mdi-cloud-check</v-icon>
-          <v-icon color="red"   v-else class="mr-2">mdi-cloud-off</v-icon>
-          {% endif %}
-        </v-app-bar>
 
         <navigation-drawer></navigation-drawer>
+
+        <v-app-bar border="b" class="ps-4" flat>
+          <template v-slot:prepend>
+            <v-app-bar-nav-icon @click.stop="toggle_drawer">
+              <v-btn icon variant="text" class="mr-2">
+                {% if app.icon %}
+                  {% if app.icon.startswith('mdi-') %}
+                <v-icon>{{ app.icon }}</v-icon>
+                  {% else %}
+                <component :is="'{{ app.icon }}'" style="width:40px;height:40px"></component>
+                  {% endif %}
+                {% else %}
+                <v-icon>mdi-menu</v-icon>
+                {% endif %}
+              </v-btn>
+            </v-app-bar-nav-icon>
+          </template>
+
+          <v-app-bar-title>{{ app.name }}</v-app-bar-title>
+
+          {% if app.socketio %}
+          <template v-slot:append>
+            <v-btn class="text-none me-2" height="48" icon slim>
+              <v-icon color="green" v-if="connected" class="mr-2">mdi-cloud-check</v-icon>
+              <v-icon color="red"   v-else class="mr-2">mdi-cloud-off</v-icon>
+              <v-menu activator="parent">
+                <v-list density="compact" nav>
+                  <v-list-item append-icon="mdi-cog-outline" link title="Settings"></v-list-item>
+
+                  <v-list-item append-icon="mdi-logout" link title="Logout"></v-list-item>
+                </v-list>
+              </v-menu>
+            </v-btn>
+          </template>
+          {% endif %}
+        </v-app-bar>
 
         <v-main>
           <div class="content-wrapper">
@@ -86,8 +100,8 @@
     <script src="/static/vendor/js/vue.js"></script>
     <script src="/static/js/app.js"></script>
 
-    <!-- Vuetify Labs 3 -->
-    <script src="/static/vendor/js/vuetify-labs.v3.js"></script>
+    <!-- Vuetify 4 -->
+    <script src="/static/vendor/js/vuetify-labs.v4.js"></script>
 
     <!-- Vuex 4 and Vue Router 4 -->
     <script src="/static/vendor/js/vuex.js"></script>
@@ -97,7 +111,7 @@
     <script src="/static/js/store.js"></script>
     <script src="/static/js/router.js"></script>
 
-    <!-- Notification system (Vuetify 3 snackbar-based, replaces vue-notification) -->
+    <!-- Notification system (Vuetify snackbar-based, replaces vue-notification) -->
     <script src="/static/js/components/NotificationSnackbar.js"></script>
 
     <!-- VuetifyFormGenerator (Vue 3 compatible replacement for vue-form-generator) -->

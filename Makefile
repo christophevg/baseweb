@@ -69,22 +69,6 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.backup" | xargs rm 2>/dev/null || true
 
-# vendor migration targets
-
-vendor-download:
-	@echo "$(BLUE)Downloading Vue 3 + Vuetify 3 vendor files...$(NC)"
-	./scripts/download-vue3-vendor.sh
-
-vendor-verify:
-	@echo "$(BLUE)Verifying vendor files...$(NC)"
-	./scripts/verify-vendor-files.sh
-
-vendor-backup-restore:
-	@echo "$(RED)Restoring vendor files from backup...$(NC)"
-	cp src/baseweb/static/vendor/js.backup/*.js src/baseweb/static/vendor/js/ 2>/dev/null || true
-	cp src/baseweb/static/vendor/css.backup/*.css src/baseweb/static/vendor/css/ 2>/dev/null || true
-	@echo "$(GREEN)Backup restored$(NC)"
-
 # include optional a personal/local touch
 
 -include Makefile.mak

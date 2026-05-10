@@ -47,8 +47,7 @@ coverage:
 # functional targets
 
 run:
-	@echo "$(BLUE)running$(GREEN) python -m baseweb$(NC)"
-	uv run python -m baseweb
+	cd examples/hello-world; uv run gunicorn -k uvicorn.workers.UvicornH11Worker app:asgi_app --reload
 
 docs:
 	cd docs; uv run sphinx-build -M html . _build

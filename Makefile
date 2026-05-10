@@ -1,7 +1,3 @@
-#MODEL=qwen3.5:397b-cloud
-#ARGS += --plugin-dir ./
-ARGS += --plugin-dir ../c3
-
 -include ~/.claude/Makefile
 
 # colors

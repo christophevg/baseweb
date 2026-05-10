@@ -145,3 +145,12 @@ commands = [["pytest", "tests", "-v", "--cov=baseweb", "--cov-report=term-missin
 dev = [
     "aiohttp>=3.13.5",
 ]
+
+[tool.basedpyright]
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportUnknownParameterType = false
+reportMissingParameterType = false
+reportMissingTypeStubs = false
+reportUnusedCallResult = false

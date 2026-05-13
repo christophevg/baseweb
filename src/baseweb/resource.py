@@ -30,7 +30,7 @@ class Resource:
       server.add_resource(UserResource, '/users/<int:user_id>')
   """
 
-  methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
 
   async def get(self, *args, **kwargs):
     """Handle GET requests. Override in subclass to implement."""

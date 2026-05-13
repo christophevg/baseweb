@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Python 3.10+ Required**: Minimum Python version is now 3.10
+
 - **Flask → Quart Migration**: Full async support
   - All route handlers must be async functions
   - `render_template()` must be awaited

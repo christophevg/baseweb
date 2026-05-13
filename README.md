@@ -9,16 +9,16 @@
 
 > A Pythonic base for building interactive web applications
 
-## Important: Async/Quart Migration in Progress
+## Async/Quart Support
 
-> **Warning:** Baseweb is being migrated from Flask (synchronous) to Quart (asynchronous).
->
-> - **Version 1.0.0** will be a **breaking change** - it will only support async/Quart.
-> - **Versions < 1.0.0** (current sync/Flask releases) will no longer be actively maintained.
-> - If you're starting a new project, consider waiting for 1.0.0.
-> - Existing applications will need to update their code to use async patterns.
->
-> See [Migration Guide](https://baseweb.readthedocs.io/en/latest/migration-guide.html) for migration details.
+**Version 0.5.0+** uses Quart (async) instead of Flask (sync).
+
+- All route handlers must be `async` functions
+- `request.get_json()` must be awaited
+- `render_template()` must be awaited
+- WebSocket uses python-socketio (ASGI mode)
+
+**For legacy Flask support:** Use `baseweb<0.5.0` or see the [Migration Guide](https://baseweb.readthedocs.io/en/latest/migration-guide.html).
 
 ## Installation
 
@@ -37,8 +37,6 @@ gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
 ```
 
 Visit [http://localhost:8000](http://localhost:8000) to see baseweb in action.
-
-> **Note:** For legacy Flask/synchronous support, use baseweb `< 0.4.0` or see the [legacy support](#legacy-flask-support) section below.
 
 ## Features
 
@@ -125,18 +123,12 @@ For more examples, see the [documentation](https://baseweb.readthedocs.io/).
 
 ## Legacy Flask Support
 
-If you have an existing Flask-based application, you can:
+For Flask-based applications (pre-0.5.0):
 
-1. **Pin to legacy version**: Use `baseweb<0.4.0` which supports Flask/Flask-SocketIO
+1. **Pin to legacy version**: Use `baseweb<0.5.0` for Flask/Flask-SocketIO support
 2. **Migrate to Quart**: Follow the [Migration Guide](https://baseweb.readthedocs.io/en/latest/migration-guide.html)
 
-The [baseweb-demo](https://github.com/christophevg/baseweb-demo) repository has a `legacy` tag pointing to the last Flask-compatible commit:
-
-```bash
-git clone https://github.com/christophevg/baseweb-demo
-cd baseweb-demo
-git checkout legacy  # Flask/sync version
-```
+The [baseweb-demo](https://github.com/christophevg/baseweb-demo) repository has a `legacy` tag pointing to the last Flask-compatible commit.
 
 ## Documentation
 

@@ -38,7 +38,7 @@ app.component("navigation-drawer-page", {
 // Navigation drawer component
 app.component("navigation-drawer", {
   template: `
-<v-navigation-drawer v-model="drawerShowing" location="start">
+<v-navigation-drawer v-model="drawerShowing">
   <v-list density="compact" nav v-model:opened="openGroups">
     <template v-for="(section, index) in sections" :key="index">
       <v-list-group v-if="section.group && section.pages && section.pages.length > 0" :value="section.text">
@@ -56,6 +56,16 @@ app.component("navigation-drawer", {
       <navigation-drawer-page v-if="!section.group" :key="section.path" :page="section"/>
     </template>
   </v-list>
+
+  <template v-slot:append>
+    <v-list-item
+      class="ma-2"
+      link
+      nav
+      prepend-icon="mdi-cog-outline"
+      title="Settings"
+    ></v-list-item>
+  </template>
 </v-navigation-drawer>
 `,
   computed: {

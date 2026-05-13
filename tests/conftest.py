@@ -7,6 +7,7 @@ import pytest
 def app():
   """Create a test Baseweb app instance."""
   from baseweb import Baseweb
+
   app = Baseweb(__name__)
   app.config["TESTING"] = True
   return app

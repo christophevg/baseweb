@@ -2,15 +2,16 @@
 
 import asyncio
 import inspect
+
 import pytest
 from quart import request
 
 from baseweb import Baseweb, Resource
 
-
 # ==============================================================================
 # Resource Base Class Tests
 # ==============================================================================
+
 
 class TestResourceBaseClass:
   """Tests for the Resource base class itself."""
@@ -30,6 +31,7 @@ class TestResourceBaseClass:
     When: Creating a subclass
     Then: Subclass should be created successfully
     """
+
     class MyResource(Resource):
       pass
 
@@ -98,6 +100,7 @@ class TestResourceBaseClass:
     When: Overriding get() method with custom implementation
     Then: Custom implementation should be used instead of default 405
     """
+
     class MyResource(Resource):
       async def get(self):
         return {"message": "success"}
@@ -112,6 +115,7 @@ class TestResourceBaseClass:
     When: Overriding post() method with custom implementation
     Then: Custom implementation should be used instead of default 405
     """
+
     class MyResource(Resource):
       async def post(self):
         return {"created": True}, 201
@@ -126,6 +130,7 @@ class TestResourceBaseClass:
     When: Overriding put() method with custom implementation
     Then: Custom implementation should be used instead of default 405
     """
+
     class MyResource(Resource):
       async def put(self):
         return {"updated": True}
@@ -140,6 +145,7 @@ class TestResourceBaseClass:
     When: Overriding delete() method with custom implementation
     Then: Custom implementation should be used instead of default 405
     """
+
     class MyResource(Resource):
       async def delete(self):
         return None, 204
@@ -154,6 +160,7 @@ class TestResourceBaseClass:
     When: Overriding patch() method with custom implementation
     Then: Custom implementation should be used instead of default 405
     """
+
     class MyResource(Resource):
       async def patch(self):
         return {"patched": True}
@@ -166,6 +173,7 @@ class TestResourceBaseClass:
 # ==============================================================================
 # Async Method Tests
 # ==============================================================================
+
 
 class TestResourceAsyncMethods:
   """Tests for async HTTP method implementations."""
@@ -216,6 +224,7 @@ class TestResourceAsyncMethods:
     When: Calling get() with positional and keyword arguments
     Then: Method should accept *args and **kwargs
     """
+
     class MyResource(Resource):
       async def get(self, *args, **kwargs):
         return {"args": args, "kwargs": kwargs}
@@ -230,6 +239,7 @@ class TestResourceAsyncMethods:
     When: Calling post() with positional and keyword arguments
     Then: Method should accept *args and **kwargs
     """
+
     class MyResource(Resource):
       async def post(self, *args, **kwargs):
         return {"args": args, "kwargs": kwargs}
@@ -244,6 +254,7 @@ class TestResourceAsyncMethods:
     When: Calling put() with positional and keyword arguments
     Then: Method should accept *args and **kwargs
     """
+
     class MyResource(Resource):
       async def put(self, *args, **kwargs):
         return {"args": args, "kwargs": kwargs}
@@ -258,6 +269,7 @@ class TestResourceAsyncMethods:
     When: Calling delete() with positional and keyword arguments
     Then: Method should accept *args and **kwargs
     """
+
     class MyResource(Resource):
       async def delete(self, *args, **kwargs):
         return {"args": args, "kwargs": kwargs}
@@ -272,6 +284,7 @@ class TestResourceAsyncMethods:
     When: Calling patch() with positional and keyword arguments
     Then: Method should accept *args and **kwargs
     """
+
     class MyResource(Resource):
       async def patch(self, *args, **kwargs):
         return {"args": args, "kwargs": kwargs}
@@ -285,6 +298,7 @@ class TestResourceAsyncMethods:
 # add_resource Tests
 # ==============================================================================
 
+
 class TestAddResource:
   """Tests for Baseweb.add_resource() method."""
 
@@ -295,7 +309,7 @@ class TestAddResource:
     Then: Method should exist and be callable
     """
     app = Baseweb()
-    assert hasattr(app, 'add_resource')
+    assert hasattr(app, "add_resource")
     assert callable(app.add_resource)
 
   def test_add_resource_registers_route(self):
@@ -304,16 +318,17 @@ class TestAddResource:
     When: Calling add_resource(ResourceClass, '/api/items')
     Then: Route should be registered and accessible
     """
+
     class ItemsResource(Resource):
       async def get(self):
         return {"items": []}
 
     app = Baseweb()
-    app.add_resource(ItemsResource, '/api/items')
+    app.add_resource(ItemsResource, "/api/items")
 
     # Check that the route was registered
     routes = [rule.rule for rule in app.url_map._rules]
-    assert '/api/items' in routes
+    assert "/api/items" in routes
 
   def test_add_resource_with_custom_methods_parameter(self):
     """
@@ -322,17 +337,19 @@ class TestAddResource:
     Then: Only specified methods should be allowed
     Note: The implementation uses resource_class.methods by default
     """
+
     class ItemsResource(Resource):
       async def get(self):
         return {"items": []}
+
       async def post(self):
         return {"created": True}, 201
 
     app = Baseweb()
-    app.add_resource(ItemsResource, '/api/items')
+    app.add_resource(ItemsResource, "/api/items")
 
     # The implementation uses Resource.methods for all supported methods
-    assert Resource.methods == ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
+    assert Resource.methods == ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
 
   def test_add_resource_defaults_to_all_methods(self):
     """
@@ -340,19 +357,20 @@ class TestAddResource:
     When: Calling add_resource(ResourceClass, '/api/items') without methods
     Then: All HTTP methods should be routed to the resource
     """
+
     class ItemsResource(Resource):
       async def get(self):
         return {"items": []}
 
     app = Baseweb()
-    handler = app.add_resource(ItemsResource, '/api/items')
+    _ = app.add_resource(ItemsResource, "/api/items")
 
     # Verify the resource has all methods defined
-    assert 'GET' in ItemsResource.methods
-    assert 'POST' in ItemsResource.methods
-    assert 'PUT' in ItemsResource.methods
-    assert 'DELETE' in ItemsResource.methods
-    assert 'PATCH' in ItemsResource.methods
+    assert "GET" in ItemsResource.methods
+    assert "POST" in ItemsResource.methods
+    assert "PUT" in ItemsResource.methods
+    assert "DELETE" in ItemsResource.methods
+    assert "PATCH" in ItemsResource.methods
 
   def test_add_resource_instantiates_resource_per_request(self):
     """
@@ -370,7 +388,7 @@ class TestAddResource:
         return {"count": len(instance_count)}
 
     app = Baseweb()
-    app.add_resource(CountingResource, '/api/count')
+    app.add_resource(CountingResource, "/api/count")
 
     # The handler creates a new instance per request
     # We verify by checking that each call creates a new instance
@@ -390,6 +408,7 @@ class TestAddResource:
 # Route Parameter Tests
 # ==============================================================================
 
+
 class TestRouteParameters:
   """Tests for route parameter handling in Resource methods."""
 
@@ -399,6 +418,7 @@ class TestRouteParameters:
     When: Making a request to '/api/items/123'
     Then: Resource method should receive id='123' as keyword argument
     """
+
     class ItemResource(Resource):
       async def get(self, id):
         return {"id": id}
@@ -413,6 +433,7 @@ class TestRouteParameters:
     When: Making a request to '/api/items/1/comments/2'
     Then: Resource method should receive id='1', comment_id='2'
     """
+
     class CommentResource(Resource):
       async def get(self, id, comment_id):
         return {"item_id": id, "comment_id": comment_id}
@@ -427,6 +448,7 @@ class TestRouteParameters:
     When: Making a request to '/api/items/123'
     Then: Resource method should receive id as integer 123
     """
+
     class IntItemResource(Resource):
       async def get(self, id):
         return {"id": id, "type": type(id).__name__}
@@ -442,6 +464,7 @@ class TestRouteParameters:
     When: Making a request to '/api/files/some/nested/path.txt'
     Then: Resource method should receive filepath='some/nested/path.txt'
     """
+
     class FileResource(Resource):
       async def get(self, filepath):
         return {"filepath": filepath}
@@ -455,6 +478,7 @@ class TestRouteParameters:
 # HTTP Method Response Tests
 # ==============================================================================
 
+
 class TestHTTPMethodResponses:
   """Tests for HTTP method responses and error handling."""
 
@@ -464,6 +488,7 @@ class TestHTTPMethodResponses:
     When: Making a GET request
     Then: Response should be JSON with correct content-type
     """
+
     class JsonResource(Resource):
       async def get(self):
         return {"status": "ok"}
@@ -478,6 +503,7 @@ class TestHTTPMethodResponses:
     When: Making a POST request
     Then: Response should have 201 Created status
     """
+
     class CreateResource(Resource):
       async def post(self):
         return {"created": True}, 201
@@ -492,6 +518,7 @@ class TestHTTPMethodResponses:
     When: Making a PUT request
     Then: Response should have 200 OK status
     """
+
     class UpdateResource(Resource):
       async def put(self):
         return {"updated": True}, 200
@@ -506,6 +533,7 @@ class TestHTTPMethodResponses:
     When: Making a DELETE request
     Then: Response should have 204 No Content status
     """
+
     class DeleteResource(Resource):
       async def delete(self):
         return None, 204
@@ -520,6 +548,7 @@ class TestHTTPMethodResponses:
     When: Making a PATCH request
     Then: Response should have 200 OK status
     """
+
     class PatchResource(Resource):
       async def patch(self):
         return {"patched": True}, 200
@@ -534,6 +563,7 @@ class TestHTTPMethodResponses:
     When: Making a request
     Then: Response should have the specified status code
     """
+
     class StatusResource(Resource):
       async def get(self):
         return {"error": "not found"}, 404
@@ -548,6 +578,7 @@ class TestHTTPMethodResponses:
     When: Making a request
     Then: Response should have the specified headers
     """
+
     class HeadersResource(Resource):
       async def get(self):
         return {"data": "value"}, 200, {"X-Custom": "header"}
@@ -562,6 +593,7 @@ class TestHTTPMethodResponses:
     When: Making a POST request
     Then: Response should have 405 Method Not Allowed
     """
+
     class GetOnlyResource(Resource):
       async def get(self):
         return {"data": "value"}
@@ -575,6 +607,7 @@ class TestHTTPMethodResponses:
 # ==============================================================================
 # Integration Tests
 # ==============================================================================
+
 
 class TestResourceIntegration:
   """Integration tests for Resource with Baseweb features."""
@@ -608,9 +641,9 @@ class TestResourceIntegration:
         return {"secret": "data"}
 
     # Register the resource with authentication via security_scope parameter
-    app.add_resource(ProtectedResource, '/api/protected', security_scope='test.scope')
+    app.add_resource(ProtectedResource, "/api/protected", security_scope="test.scope")
 
-    response = await client.get('/api/protected')
+    response = await client.get("/api/protected")
     assert response.status_code == 401
 
   async def test_resource_with_authenticated_request(self, app, client):
@@ -631,9 +664,9 @@ class TestResourceIntegration:
       async def get(self):
         return {"secret": "data"}
 
-    app.add_resource(AuthResource, '/api/auth')
+    app.add_resource(AuthResource, "/api/auth")
 
-    response = await client.get('/api/auth')
+    _ = await client.get("/api/auth")
     # Note: add_resource doesn't use authentication by default
     # This test verifies the resource works alongside auth
 
@@ -643,16 +676,18 @@ class TestResourceIntegration:
     When: Making a POST request with JSON body
     Then: Resource should be able to access request data
     """
+
     class JsonPostResource(Resource):
       async def post(self):
         data = await request.get_json()
         return {"received": data}, 201
 
-    app.add_resource(JsonPostResource, '/api/data')
+    app.add_resource(JsonPostResource, "/api/data")
 
-    response = await client.post('/api/data', json={"key": "value"})
+    response = await client.post("/api/data", json={"key": "value"})
     assert response.status_code == 201
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"received": {"key": "value"}}
 
@@ -662,16 +697,18 @@ class TestResourceIntegration:
     When: Making a POST request with form data
     Then: Resource should be able to access form data
     """
+
     class FormResource(Resource):
       async def post(self):
         form = await request.form
         return {"received": dict(form)}
 
-    app.add_resource(FormResource, '/api/form')
+    app.add_resource(FormResource, "/api/form")
 
-    response = await client.post('/api/form', form={"username": "test", "password": "secret"})
+    response = await client.post("/api/form", form={"username": "test", "password": "secret"})
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"received": {"username": "test", "password": "secret"}}
 
@@ -681,17 +718,19 @@ class TestResourceIntegration:
     When: Making a request with query parameters ?page=1&limit=10
     Then: Resource should be able to access query parameters via request.args
     """
+
     class QueryResource(Resource):
       async def get(self):
-        page = request.args.get('page', '1')
-        limit = request.args.get('limit', '10')
+        page = request.args.get("page", "1")
+        limit = request.args.get("limit", "10")
         return {"page": page, "limit": limit}
 
-    app.add_resource(QueryResource, '/api/items')
+    app.add_resource(QueryResource, "/api/items")
 
-    response = await client.get('/api/items?page=2&limit=20')
+    response = await client.get("/api/items?page=2&limit=20")
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"page": "2", "limit": "20"}
 
@@ -701,16 +740,18 @@ class TestResourceIntegration:
     When: Making a request with custom headers
     Then: Resource should be able to access headers via request.headers
     """
+
     class HeaderResource(Resource):
       async def get(self):
-        custom_header = request.headers.get('X-Custom-Header', 'default')
+        custom_header = request.headers.get("X-Custom-Header", "default")
         return {"custom_header": custom_header}
 
-    app.add_resource(HeaderResource, '/api/headers')
+    app.add_resource(HeaderResource, "/api/headers")
 
-    response = await client.get('/api/headers', headers={'X-Custom-Header': 'custom-value'})
+    response = await client.get("/api/headers", headers={"X-Custom-Header": "custom-value"})
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"custom_header": "custom-value"}
 
@@ -720,6 +761,7 @@ class TestResourceIntegration:
     When: Making requests to different resource routes
     Then: Each resource should handle its own routes correctly
     """
+
     class UsersResource(Resource):
       async def get(self):
         return {"resource": "users"}
@@ -728,13 +770,14 @@ class TestResourceIntegration:
       async def get(self):
         return {"resource": "posts"}
 
-    app.add_resource(UsersResource, '/api/users')
-    app.add_resource(PostsResource, '/api/posts')
+    app.add_resource(UsersResource, "/api/users")
+    app.add_resource(PostsResource, "/api/posts")
 
-    response1 = await client.get('/api/users')
-    response2 = await client.get('/api/posts')
+    response1 = await client.get("/api/users")
+    response2 = await client.get("/api/posts")
 
     import json
+
     data1 = json.loads(await response1.get_data())
     data2 = json.loads(await response2.get_data())
 
@@ -747,7 +790,8 @@ class TestResourceIntegration:
     When: Registering a Resource at a new route
     Then: Existing routes should still work
     """
-    @app.route('/existing')
+
+    @app.route("/existing")
     async def existing_route():
       return {"existing": True}
 
@@ -755,12 +799,13 @@ class TestResourceIntegration:
       async def get(self):
         return {"new": True}
 
-    app.add_resource(NewResource, '/api/new')
+    app.add_resource(NewResource, "/api/new")
 
-    response1 = await client.get('/existing')
-    response2 = await client.get('/api/new')
+    response1 = await client.get("/existing")
+    response2 = await client.get("/api/new")
 
     import json
+
     data1 = json.loads(await response1.get_data())
     data2 = json.loads(await response2.get_data())
 
@@ -771,6 +816,7 @@ class TestResourceIntegration:
 # ==============================================================================
 # Backward Compatibility Tests
 # ==============================================================================
+
 
 class TestBackwardCompatibility:
   """Tests ensuring Resource doesn't break existing Baseweb functionality."""
@@ -791,7 +837,8 @@ class TestBackwardCompatibility:
     When: Adding a Resource
     Then: Existing routes should continue to work
     """
-    @app.route('/legacy')
+
+    @app.route("/legacy")
     async def legacy_route():
       return {"legacy": True}
 
@@ -799,12 +846,13 @@ class TestBackwardCompatibility:
       async def get(self):
         return {"api": True}
 
-    app.add_resource(ApiResource, '/api/resource')
+    app.add_resource(ApiResource, "/api/resource")
 
-    response1 = await client.get('/legacy')
-    response2 = await client.get('/api/resource')
+    response1 = await client.get("/legacy")
+    response2 = await client.get("/api/resource")
 
     import json
+
     data1 = json.loads(await response1.get_data())
     data2 = json.loads(await response2.get_data())
 
@@ -819,7 +867,7 @@ class TestBackwardCompatibility:
     """
     # Note: register_app_route uses templates which we may not have
     # This test verifies the method still exists
-    assert hasattr(app, 'register_app_route')
+    assert hasattr(app, "register_app_route")
     assert callable(app.register_app_route)
 
   async def test_resource_alongside_decorator_routes(self, app, client):
@@ -828,7 +876,8 @@ class TestBackwardCompatibility:
     When: Adding a Resource at '/api/items'
     Then: Both decorator routes and Resource routes should work
     """
-    @app.route('/decorated')
+
+    @app.route("/decorated")
     async def decorated_route():
       return {"decorated": True}
 
@@ -836,12 +885,13 @@ class TestBackwardCompatibility:
       async def get(self):
         return {"items": []}
 
-    app.add_resource(ItemsResource, '/api/items')
+    app.add_resource(ItemsResource, "/api/items")
 
-    response1 = await client.get('/decorated')
-    response2 = await client.get('/api/items')
+    response1 = await client.get("/decorated")
+    response2 = await client.get("/api/items")
 
     import json
+
     data1 = json.loads(await response1.get_data())
     data2 = json.loads(await response2.get_data())
 
@@ -854,7 +904,7 @@ class TestBackwardCompatibility:
     When: Adding a Resource
     Then: Component registration should work unchanged
     """
-    assert hasattr(app, 'register_component')
+    assert hasattr(app, "register_component")
     assert callable(app.register_component)
 
   async def test_stylesheet_registration_unchanged(self, app):
@@ -863,7 +913,7 @@ class TestBackwardCompatibility:
     When: Adding a Resource
     Then: Stylesheet registration should work unchanged
     """
-    assert hasattr(app, 'register_stylesheet')
+    assert hasattr(app, "register_stylesheet")
     assert callable(app.register_stylesheet)
 
   async def test_script_registration_unchanged(self, app):
@@ -872,13 +922,14 @@ class TestBackwardCompatibility:
     When: Adding a Resource
     Then: Script registration should work unchanged
     """
-    assert hasattr(app, 'register_external_script')
+    assert hasattr(app, "register_external_script")
     assert callable(app.register_external_script)
 
 
 # ==============================================================================
 # Edge Cases and Error Handling
 # ==============================================================================
+
 
 class TestResourceEdgeCases:
   """Tests for edge cases and error handling."""
@@ -909,12 +960,13 @@ class TestResourceEdgeCases:
     When: Calling add_resource with invalid route
     Then: Should handle appropriately
     """
+
     class TestResource(Resource):
       async def get(self):
         return {}
 
     # Valid routes should work
-    app.add_resource(TestResource, '/valid/route')
+    app.add_resource(TestResource, "/valid/route")
     # Quart will handle invalid routes at routing time
     pass
 
@@ -924,6 +976,7 @@ class TestResourceEdgeCases:
     When: Registering another Resource at same route
     Then: Should overwrite the previous registration (Quart behavior)
     """
+
     class FirstResource(Resource):
       async def get(self):
         return {"version": 1}
@@ -932,10 +985,10 @@ class TestResourceEdgeCases:
       async def get(self):
         return {"version": 2}
 
-    app.add_resource(FirstResource, '/api/items')
+    app.add_resource(FirstResource, "/api/items")
     # Registering second resource at same route should work
     # (Quart will handle endpoint conflicts)
-    app.add_resource(SecondResource, '/api/items2')  # Different endpoint
+    app.add_resource(SecondResource, "/api/items2")  # Different endpoint
 
   async def test_add_resource_with_empty_methods_list(self, app, client):
     """
@@ -944,14 +997,15 @@ class TestResourceEdgeCases:
     Then: Should handle gracefully
     Note: Current implementation uses resource_class.methods, not custom methods
     """
+
     class EmptyMethodsResource(Resource):
       async def get(self):
         return {"data": "value"}
 
     # Current implementation uses Resource.methods
-    app.add_resource(EmptyMethodsResource, '/api/empty')
+    app.add_resource(EmptyMethodsResource, "/api/empty")
 
-    response = await client.get('/api/empty')
+    response = await client.get("/api/empty")
     assert response.status_code == 200
 
   async def test_resource_method_raises_exception(self, app, client):
@@ -960,13 +1014,14 @@ class TestResourceEdgeCases:
     When: Making a request that triggers the exception
     Then: Exception should propagate or be handled appropriately
     """
+
     class ErrorResource(Resource):
       async def get(self):
         raise ValueError("Test error")
 
-    app.add_resource(ErrorResource, '/api/error')
+    app.add_resource(ErrorResource, "/api/error")
 
-    response = await client.get('/api/error')
+    response = await client.get("/api/error")
     # Quart will return 500 for unhandled exceptions
     assert response.status_code == 500
 
@@ -976,13 +1031,14 @@ class TestResourceEdgeCases:
     When: Making an OPTIONS request
     Then: Should return appropriate response
     """
+
     class OptionsResource(Resource):
       async def options(self):
         return {"methods": ["GET", "POST"]}
 
-    app.add_resource(OptionsResource, '/api/options')
+    app.add_resource(OptionsResource, "/api/options")
 
-    response = await client.options('/api/options')
+    response = await client.options("/api/options")
     assert response.status_code == 200
 
   async def test_resource_with_head_method(self, app, client):
@@ -991,6 +1047,7 @@ class TestResourceEdgeCases:
     When: Making a HEAD request
     Then: Should call the head method or return 405
     """
+
     class HeadResource(Resource):
       async def get(self):
         return {"data": "value"}
@@ -998,9 +1055,9 @@ class TestResourceEdgeCases:
       async def head(self):
         return {}, 200, {"X-Custom": "header"}
 
-    app.add_resource(HeadResource, '/api/head')
+    app.add_resource(HeadResource, "/api/head")
 
-    response = await client.head('/api/head')
+    response = await client.head("/api/head")
     assert response.status_code == 200
 
   async def test_resource_inheritance_chain(self, app, client):
@@ -1009,6 +1066,7 @@ class TestResourceEdgeCases:
     When: Overriding methods in the child class
     Then: Child methods should override parent methods
     """
+
     class ParentResource(Resource):
       async def get(self):
         return {"parent": True}
@@ -1017,10 +1075,11 @@ class TestResourceEdgeCases:
       async def get(self):
         return {"child": True}
 
-    app.add_resource(ChildResource, '/api/inherit')
+    app.add_resource(ChildResource, "/api/inherit")
 
-    response = await client.get('/api/inherit')
+    response = await client.get("/api/inherit")
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"child": True}
 
@@ -1030,16 +1089,18 @@ class TestResourceEdgeCases:
     When: Accessing the resource in a request
     Then: Class attributes should be accessible
     """
+
     class AttributeResource(Resource):
       custom_attribute = "attribute_value"
 
       async def get(self):
         return {"attribute": self.custom_attribute}
 
-    app.add_resource(AttributeResource, '/api/attr')
+    app.add_resource(AttributeResource, "/api/attr")
 
-    response = await client.get('/api/attr')
+    response = await client.get("/api/attr")
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"attribute": "attribute_value"}
 
@@ -1049,15 +1110,18 @@ class TestResourceEdgeCases:
     When: Inside a resource method
     Then: Should be able to access current_app or app context
     """
+
     class ContextResource(Resource):
       async def get(self):
         from quart import current_app
+
         return {"app_name": current_app.name}
 
-    app.add_resource(ContextResource, '/api/context')
+    app.add_resource(ContextResource, "/api/context")
 
-    response = await client.get('/api/context')
+    response = await client.get("/api/context")
     import json
+
     data = json.loads(await response.get_data())
     assert "app_name" in data
 
@@ -1065,6 +1129,7 @@ class TestResourceEdgeCases:
 # ==============================================================================
 # Test Client Integration Tests
 # ==============================================================================
+
 
 class TestResourceClientIntegration:
   """Tests using Quart test client for full request/response cycle."""
@@ -1085,15 +1150,17 @@ class TestResourceClientIntegration:
     When: Making GET request via test client
     Then: Should receive JSON response {'status': 'ok'} with status 200
     """
+
     class TestResource(Resource):
       async def get(self):
         return {"status": "ok"}
 
-    app.add_resource(TestResource, '/api/test')
+    app.add_resource(TestResource, "/api/test")
 
-    response = await client.get('/api/test')
+    response = await client.get("/api/test")
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"status": "ok"}
 
@@ -1103,16 +1170,18 @@ class TestResourceClientIntegration:
     When: Making POST request with JSON body via test client
     Then: Should receive appropriate response
     """
+
     class PostResource(Resource):
       async def post(self):
         data = await request.get_json()
         return {"received": data}, 201
 
-    app.add_resource(PostResource, '/api/test')
+    app.add_resource(PostResource, "/api/test")
 
-    response = await client.post('/api/test', json={"key": "value"})
+    response = await client.post("/api/test", json={"key": "value"})
     assert response.status_code == 201
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"received": {"key": "value"}}
 
@@ -1122,16 +1191,18 @@ class TestResourceClientIntegration:
     When: Making PUT request via test client
     Then: Should receive appropriate response
     """
+
     class PutResource(Resource):
       async def put(self, id):
         data = await request.get_json()
         return {"id": id, "updated": data}
 
-    app.add_resource(PutResource, '/api/test/<id>')
+    app.add_resource(PutResource, "/api/test/<id>")
 
-    response = await client.put('/api/test/123', json={"name": "updated"})
+    response = await client.put("/api/test/123", json={"name": "updated"})
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"id": "123", "updated": {"name": "updated"}}
 
@@ -1141,13 +1212,14 @@ class TestResourceClientIntegration:
     When: Making DELETE request via test client
     Then: Should receive 204 No Content
     """
+
     class DeleteResource(Resource):
       async def delete(self, id):
         return None, 204
 
-    app.add_resource(DeleteResource, '/api/test/<id>')
+    app.add_resource(DeleteResource, "/api/test/<id>")
 
-    response = await client.delete('/api/test/123')
+    response = await client.delete("/api/test/123")
     assert response.status_code == 204
 
   async def test_patch_request_via_client(self, app, client):
@@ -1156,16 +1228,18 @@ class TestResourceClientIntegration:
     When: Making PATCH request via test client
     Then: Should receive appropriate response
     """
+
     class PatchResource(Resource):
       async def patch(self, id):
         data = await request.get_json()
         return {"id": id, "patched": data}
 
-    app.add_resource(PatchResource, '/api/test/<id>')
+    app.add_resource(PatchResource, "/api/test/<id>")
 
-    response = await client.patch('/api/test/123', json={"field": "value"})
+    response = await client.patch("/api/test/123", json={"field": "value"})
     assert response.status_code == 200
     import json
+
     data = json.loads(await response.get_data())
     assert data == {"id": "123", "patched": {"field": "value"}}
 
@@ -1175,13 +1249,14 @@ class TestResourceClientIntegration:
     When: Making POST request via test client
     Then: Should receive 405 Method Not Allowed
     """
+
     class GetOnlyResource(Resource):
       async def get(self):
         return {"data": "value"}
 
-    app.add_resource(GetOnlyResource, '/api/test')
+    app.add_resource(GetOnlyResource, "/api/test")
 
-    response = await client.post('/api/test')
+    response = await client.post("/api/test")
     assert response.status_code == 405
 
   async def test_404_response_via_client(self, app, client):
@@ -1190,11 +1265,12 @@ class TestResourceClientIntegration:
     When: Making request to '/api/nonexistent'
     Then: Should receive 404 Not Found
     """
+
     class TestResource(Resource):
       async def get(self):
         return {"data": "value"}
 
-    app.add_resource(TestResource, '/api/test')
+    app.add_resource(TestResource, "/api/test")
 
-    response = await client.get('/api/nonexistent')
+    response = await client.get("/api/nonexistent")
     assert response.status_code == 404

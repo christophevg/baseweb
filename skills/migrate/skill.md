@@ -246,6 +246,62 @@ function formatDate(value) {
 }
 ```
 
+### v-if and v-for Priority
+
+**Critical:** In Vue 3, `v-if` has **higher priority** than `v-for` when on the same element.
+
+```html
+<!-- Before (Vue 2 - v-for has priority) -->
+<div v-for="item in items" v-if="item.active">
+  {{ item.name }}
+</div>
+
+<!-- After (Vue 3 - use computed property) -->
+<div v-for="item in activeItems" :key="item.id">
+  {{ item.name }}
+</div>
+
+<script>
+computed: {
+  activeItems: function() {
+    return this.items.filter(function(item) {
+      return item.active;
+    });
+  }
+}
+</script>
+
+<!-- Alternative: use template wrapper -->
+<template v-for="item in items" :key="item.id">
+  <div v-if="item.active">
+    {{ item.name }}
+  </div>
+</template>
+```
+
+**For table headers:**
+```html
+<!-- Before (Vue 2) -->
+<td v-for="header in headers" v-if="header.value">
+  {{ header.text }}
+</td>
+
+<!-- After (Vue 3) -->
+<td v-for="header in filteredHeaders" :key="header.value">
+  {{ header.text }}
+</td>
+
+<script>
+computed: {
+  filteredHeaders: function() {
+    return this.headers.filter(function(h) {
+      return h.value !== '' && h.value !== undefined;
+    });
+  }
+}
+</script>
+```
+
 ### Notification System
 
 ```javascript
@@ -403,21 +459,40 @@ For navigation items using slots:
 
 ## Tabs
 
-```html
-<!-- Before -->
-<v-tabs>
-  <v-tab>Tab 1</v-tab>
-  <v-tab-item>Content 1</v-tab-item>
-</v-tabs>
+**Critical:** In Vuetify 3, `v-tabs` and `v-tabs-window` must be **siblings**, not nested.
 
-<!-- After -->
-<v-tabs>
+```html
+<!-- Before (Vuetify 2 - nested structure) -->
+<v-tabs v-model="tab">
   <v-tab>Tab 1</v-tab>
+  <v-tab>Tab 2</v-tab>
   <v-tabs-window>
-    <v-tab-item>Content 1</v-tab-item>
+    <v-tab-item key="0">Content 1</v-tab-item>
+    <v-tab-item key="1">Content 2</v-tab-item>
   </v-tabs-window>
 </v-tabs>
+
+<!-- After (Vuetify 3 - sibling structure) -->
+<v-tabs v-model="tab">
+  <v-tab value="tab1">Tab 1</v-tab>
+  <v-tab value="tab2">Tab 2</v-tab>
+</v-tabs>
+
+<v-divider></v-divider>
+
+<v-tabs-window v-model="tab">
+  <v-window-item value="tab1">Content 1</v-window-item>
+  <v-window-item value="tab2">Content 2</v-window-item>
+</v-tabs-window>
 ```
+
+**Key changes:**
+- `v-tabs-window` must be outside `v-tabs` (sibling, not child)
+- `v-tab-item` renamed to `v-window-item`
+- Use `value` prop instead of `key` for tab items
+- Use `value` prop instead of text content for tabs
+- Add `v-model` to both `v-tabs` and `v-tabs-window`
+- Add `v-divider` for visual separation
 
 ## Expansion Panels
 
@@ -463,6 +538,199 @@ For navigation items using slots:
 <v-btn variant="text" color="secondary">Cancel</v-btn>
 ```
 
+## Data Tables
+
+**Critical:** Vuetify 3 separates client-side and server-side tables.
+
+```html
+<!-- Before (Vuetify 2 - single component) -->
+<v-data-table
+  :headers="headers"
+  :items="items"
+  :pagination.sync="pagination"
+  :total-items="totalItems"
+></v-data-table>
+
+<!-- After (Vuetify 3 - client-side data) -->
+<v-data-table
+  :headers="headers"
+  :items="items"
+></v-data-table>
+
+<!-- After (Vuetify 3 - server-side data) -->
+<v-data-table-server
+  :headers="headers"
+  :items="items"
+  :items-length="totalItems"
+  v-model:page="page"
+  v-model:items-per-page="itemsPerPage"
+  v-model:sort-by="sortBy"
+  @update:options="loadFromServer"
+></v-data-table-server>
+```
+
+**Key changes:**
+- Use `v-data-table` for client-side data
+- Use `v-data-table-server` for server-side pagination/sorting
+- `items-length` instead of `total-items`
+- Use `v-model:page`, `v-model:items-per-page`, `v-model:sort-by` instead of `options` object
+- `@update:options` event for server-side data loading
+- `item-value` must use literal string (not bound)
+
+**Common migration issues:**
+
+```html
+<!-- WRONG: dynamic item-value -->
+<v-data-table-server :item-value="id"></v-data-table-server>
+
+<!-- CORRECT: literal item-value -->
+<v-data-table-server item-value="id"></v-data-table-server>
+```
+
+**Custom row templates:**
+
+```html
+<!-- Vuetify 3 requires CSS classes on custom rows -->
+<v-data-table-server :items="items" :headers="headers">
+  <template v-slot:item="{ item }">
+    <tr :key="item.id" :class="['v-data-table__tr']">
+      <td v-for="header in filteredHeaders" :key="header.value" class="v-data-table__td">
+        {{ item[header.value] }}
+      </td>
+    </tr>
+  </template>
+</v-data-table-server>
+```
+
+## Images
+
+```html
+<!-- Before (Vuetify 2 - cover by default) -->
+<v-img src="/image.jpg" aspect-ratio="2.75"></v-img>
+
+<!-- After (Vuetify 3 - must add cover) -->
+<v-img src="/image.jpg" aspect-ratio="2.75" cover></v-img>
+```
+
+**Key change:** Images use `contain` behavior by default in Vuetify 3. Add `cover` prop for full-bleed display.
+
+## Snackbars
+
+```html
+<!-- Before (Vuetify 2) -->
+<v-snackbar v-model="showing">
+  {{ message }}
+  <v-btn flat @click="showing = false">Close</v-btn>
+</v-snackbar>
+
+<!-- After (Vuetify 3) -->
+<v-snackbar v-model="showing">
+  {{ message }}
+  <template v-slot:actions>
+    <v-btn variant="plain" @click="showing = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </template>
+</v-snackbar>
+```
+
+**Key changes:**
+- Action buttons must be in `v-slot:actions`
+- `variant="flat"` replaced by `variant="plain"`
+
+## Navigation Sections
+
+```javascript
+// Before (Vue 2 - all sections expanded by default)
+Navigation.add_section({
+  name: "admin",
+  icon: "settings",
+  text: "Administration"
+});
+
+// After (Vue 3 - control initial expansion)
+Navigation.add_section({
+  name: "admin",
+  icon: "settings",
+  text: "Administration",
+  expanded: true  // Optional: defaults to false
+});
+```
+
+**Implementation in NavigationDrawer:**
+```html
+<v-list v-model:opened="openGroups">
+  <v-list-group v-if="section.group" :value="section.text">
+    <!-- section content -->
+  </v-list-group>
+</v-list>
+
+<script>
+computed: {
+  openGroups: {
+    get: function() {
+      // Return section names that should be expanded
+      return this.sections
+        .filter(function(section) { return section.group && section.expanded === true; })
+        .map(function(section) { return section.text; });
+    },
+    set: function(value) {
+      store.commit('set_open_sections', value);
+    }
+  }
+}
+</script>
+```
+
+## Calendar Component
+
+**Note:** As of Vuetify 3.11+, Calendar is in core distribution (no Labs required).
+
+```html
+<v-calendar
+  v-model="focus"
+  :events="events"
+></v-calendar>
+
+<script>
+data: function() {
+  return {
+    focus: '2019-01-08',  // Set to date range with events
+    events: [
+      {
+        title: 'Event Name',
+        start: '2019-01-08',  // Required: YYYY-MM-DD format
+        end: '2019-01-10',     // Optional: for multi-day events
+        color: 'blue'          // Optional: event color
+      }
+    ]
+  };
+}
+</script>
+```
+
+**Event format:**
+- `start` (required): Date string in `YYYY-MM-DD` format
+- `end` (optional): End date for multi-day events
+- `title` (required): Event title
+- `color` (optional): Event color
+- `timed` (optional): Boolean for timed events
+
+**Custom event display:**
+```html
+<v-calendar
+  v-model="focus"
+  :events="events"
+>
+  <template v-slot:event="{ event }">
+    <div class="pa-1" @click="showEvent(event)">
+      <strong>{{ event.title }}</strong>
+      <div v-if="event.details">{{ event.details }}</div>
+    </div>
+  </template>
+</v-calendar>
+```
+
 ## Chart.js Options
 
 ```javascript
@@ -475,6 +743,111 @@ options: {
 options: {
   plugins: {
     legend: { display: true }
+  }
+}
+```
+
+**Critical:** Baseweb uses Chart.js 2.x, not 3.x. Scale configuration differs:
+
+```javascript
+// ❌ WRONG - Chart.js 3.x format (doesn't work in baseweb)
+scales: {
+  x: { display: true },
+  y: { beginAtZero: true }
+}
+
+// ✅ CORRECT - Chart.js 2.x format (required for baseweb)
+scales: {
+  xAxes: [{
+    id: 'x-axis-0',
+    display: true
+  }],
+  yAxes: [{
+    id: 'y-axis-0',
+    display: true,
+    ticks: {
+      beginAtZero: true
+    }
+  }]
+}
+```
+
+**Chart.js 2.x limitations:**
+- Cannot replace `chart.options` after creation
+- Must destroy and recreate chart when options change
+- Scales use `xAxes` and `yAxes` arrays (not `x` and `y` objects)
+
+```javascript
+// ✅ CORRECT - Chart.js 2.x update pattern
+methods: {
+  createChart: function() {
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: this.chartData,
+      options: this.merged_options
+    });
+  },
+  
+  updateChartData: function() {
+    // Only update data, not options
+    if (this.chart) {
+      this.chart.data = this.chartData;
+      this.chart.update();
+    }
+  },
+  
+  recreateChart: function() {
+    // Destroy and recreate for options changes
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+    this.createChart();
+  }
+},
+
+watch: {
+  chartData: {
+    handler: function() { this.updateChartData(); }
+  },
+  options: {
+    handler: function() { this.recreateChart(); }
+  }
+}
+```
+
+### Vue 3 Proxy Reactivity with Third-Party Libraries
+
+**Problem:** Vue 3's Proxy-based reactivity breaks Chart.js and similar libraries when they try to mutate data.
+
+```javascript
+// ❌ WRONG - Vue Proxy causes issues
+this.chart.data = this.chartData;  // Proxy object!
+
+// ✅ CORRECT - Clone to break reactivity
+this.chart.data = JSON.parse(JSON.stringify(this.chartData));
+this.chart.options = JSON.parse(JSON.stringify(this.merged_options));
+```
+
+**Complete pattern:**
+```javascript
+methods: {
+  createChart: function() {
+    var ctx = this.$refs.canvas.getContext('2d');
+    // Clone to break Vue 3 Proxy chain
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: JSON.parse(JSON.stringify(this.chartData)),
+      options: JSON.parse(JSON.stringify(this.merged_options))
+    });
+  },
+  
+  updateChartData: function() {
+    if (this.chart) {
+      // Clone to prevent infinite loops
+      this.chart.data = JSON.parse(JSON.stringify(this.chartData));
+      this.chart.update();
+    }
   }
 }
 ```
@@ -677,6 +1050,170 @@ import { VCalendar } from 'vuetify/labs/components'
 // CDN approach doesn't work - Labs overwrites Vuetify global
 ```
 
+**Note:** As of Vuetify 3.11+, Calendar is in core distribution and doesn't require Labs:
+
+```html
+<!-- Calendar is now in core Vuetify 3 -->
+<v-calendar
+  v-model="focus"
+  :events="events"
+></v-calendar>
+
+<script>
+data: function() {
+  return {
+    focus: '2019-01-08',  // Set to event date range
+    events: [
+      { title: 'Event', start: '2019-01-08', color: 'blue' }
+    ]
+  };
+}
+</script>
+```
+
+## Issue: Chart.js TypeError "scales.xAxes.concat"
+
+**Symptom:** `TypeError: undefined is not an object (evaluating 'e.scales.xAxes.concat')`
+
+**Cause:** Using Chart.js 3.x scale format with Chart.js 2.x library.
+
+**Solution:** Use Chart.js 2.x scale format:
+
+```javascript
+// Wrong - Chart.js 3.x format
+scales: {
+  x: { display: true },
+  y: { beginAtZero: true }
+}
+
+// Correct - Chart.js 2.x format
+scales: {
+  xAxes: [{
+    id: 'x-axis-0',
+    display: true
+  }],
+  yAxes: [{
+    id: 'y-axis-0',
+    ticks: { beginAtZero: true }
+  }]
+}
+```
+
+## Issue: "undefined is not a object (evaluating 'header.value')"
+
+**Symptom:** TypeError when component mounts with `v-for` and `v-if` on same element.
+
+**Cause:** Vue 3 gives `v-if` higher priority than `v-for`.
+
+**Solution:** Use computed property or template wrapper:
+
+```javascript
+// Wrong
+<td v-for="header in headers" v-if="header.value">
+
+// Correct - computed property
+computed: {
+  filteredHeaders: function() {
+    return this.headers.filter(function(h) {
+      return h.value !== '' && h.value !== undefined;
+    });
+  }
+}
+<td v-for="header in filteredHeaders" :key="header.value">
+```
+
+## Issue: Browser Freezes When Updating Chart Data
+
+**Symptom:** Browser becomes unresponsive when chart data changes.
+
+**Cause:** Vue 3 Proxy reactivity causes infinite loop with Chart.js internal mutations.
+
+**Solution:** Clone data before passing to Chart.js:
+
+```javascript
+// Always clone
+this.chart.data = JSON.parse(JSON.stringify(this.chartData));
+this.chart.options = JSON.parse(JSON.stringify(this.mergedOptions));
+```
+
+## Issue: CollectionView Shows Duplicate Rows
+
+**Symptom:** Data table shows duplicate or missing rows on pagination.
+
+**Cause:** Multiple issues:
+1. Using `v-data-table` instead of `v-data-table-server`
+2. `item-value` bound as dynamic prop instead of literal
+3. Multiple `@update:options` handlers causing race conditions
+4. Array reference issues in computed properties
+
+**Solution:**
+
+```html
+<!-- Use v-data-table-server for server-side data -->
+<v-data-table-server
+  :items="model.results"
+  :items-length="model.totalElements"
+  item-value="id"
+  @update:options="onOptionsUpdate"
+>
+  <!-- ... -->
+</v-data-table-server>
+
+<script>
+methods: {
+  // Use event parameter, not stale v-model
+  onOptionsUpdate: function(options) {
+    if (options.page !== undefined) this.tableOptions.page = options.page;
+    if (options.itemsPerPage !== undefined) this.tableOptions.itemsPerPage = options.itemsPerPage;
+    this.search();
+  },
+  
+  // Prevent race conditions
+  search: async function() {
+    if (this.searchInProgress) return;
+    this.searchInProgress = true;
+    // ... fetch data
+    this.searchInProgress = false;
+  }
+},
+
+computed: {
+  // Return array directly, not mapped copy
+  rows: function() {
+    return this.model.results;  // Not .map(item => item)
+  }
+}
+</script>
+```
+
+## Issue: Calendar Not Showing Events
+
+**Symptom:** Calendar displays but events don't appear.
+
+**Cause:** Events in wrong format or calendar showing wrong date range.
+
+**Solution:**
+
+```javascript
+// Events need start/end timestamps
+events: [
+  { 
+    title: 'Event', 
+    start: '2019-01-08',  // Required
+    end: '2019-01-10',     // Optional (for multi-day)
+    color: 'blue' 
+  }
+]
+
+// Set focus to event date range
+data: function() {
+  return {
+    focus: '2019-01-08',  // Show Jan 2019, not today
+    events: [...]
+  };
+}
+```
+
 ---
 
 # Part 5: Migration Checklist
@@ -711,10 +1248,40 @@ import { VCalendar } from 'vuetify/labs/components'
 - [ ] Replace `v-layout`/`v-flex` with `v-container`/`v-row`/`v-col`
 - [ ] Replace `v-toolbar` with `v-app-bar`
 - [ ] Replace `v-content` with `v-main`
-- [ ] Wrap `v-tab-item` in `v-tabs-window`
+- [ ] **Fix v-tabs structure** (siblings, not nested)
+  - [ ] Move `v-tabs-window` outside `v-tabs`
+  - [ ] Rename `v-tab-item` to `v-window-item`
+  - [ ] Use `value` props instead of `key`
+- [ ] **Fix v-if/v-for priority**
+  - [ ] Use computed properties for filtered lists
+  - [ ] Or use template wrapper pattern
+- [ ] **Fix v-data-table for server-side data**
+  - [ ] Use `v-data-table-server` instead of `v-data-table`
+  - [ ] Convert `:pagination.sync` to `v-model:page`, `v-model:items-per-page`, `v-model:sort-by`
+  - [ ] Use `item-value` as literal, not bound
+- [ ] **Add `cover` prop to `v-img` components**
+- [ ] **Fix v-snackbar actions**
+  - [ ] Move buttons to `v-slot:actions`
+  - [ ] Change `variant="flat"` to `variant="plain"`
+- [ ] **Fix navigation sections**
+  - [ ] Add `expanded` property to control initial state
+  - [ ] Use `v-model:opened` on `v-list`
+  - [ ] Set unique `value` on each `v-list-group`
 - [ ] Update expansion panels (title/text structure)
 - [ ] Update card titles (remove `primary-title`, use `text-h*` classes)
 - [ ] Update button variants (`flat` → `variant="text"`)
+
+## Chart.js (If Using Charts)
+
+- [ ] **Use Chart.js 2.x format** (not 3.x)
+  - [ ] Use `xAxes`/`yAxes` arrays instead of `x`/`y` objects
+  - [ ] Add `id` property to each axis
+- [ ] **Handle Vue 3 Proxy reactivity**
+  - [ ] Clone data before passing to Chart.js: `JSON.parse(JSON.stringify(data))`
+  - [ ] Clone options too
+- [ ] **Use separate methods for data vs options updates**
+  - [ ] `updateChartData()` - only updates data
+  - [ ] `recreateChart()` - destroys and recreates for options changes
 
 ## Testing
 

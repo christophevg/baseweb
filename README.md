@@ -1,6 +1,7 @@
 # baseweb
 
 [![PyPI](https://img.shields.io/pypi/v/baseweb.svg)](https://pypi.org/project/baseweb/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/baseweb.svg)](https://pypistats.org/packages/baseweb)
 [![Python](https://img.shields.io/pypi/pyversions/baseweb.svg)](https://pypi.org/project/baseweb/)
 ![CI](https://github.com/christophevg/baseweb/actions/workflows/test.yaml/badge.svg)
 [![Docs](https://readthedocs.org/projects/baseweb/badge/?version=latest)](https://baseweb.readthedocs.io/)

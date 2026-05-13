@@ -65,10 +65,10 @@ Issues = "https://github.com/christophevg/baseweb/issues"
 sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/baseweb"]
+packages = ["baseweb"]
 artifacts = [
-  "src/baseweb/static",
-  "src/baseweb/templates",
+  "baseweb/static",
+  "baseweb/templates",
 ]
 
 # Testing configuration

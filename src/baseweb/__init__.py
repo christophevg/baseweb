@@ -37,8 +37,8 @@ OPTIONAL_PARAM = re.compile(r"<[^\d\W]\w*\?>", re.UNICODE)
 class Baseweb(Quart):
   _banner_shown: bool = False
 
-  def __init__(self, name=None, *args, **kwargs):
-    self._load_config()
+  def __init__(self, name=None, settings=None, *args, **kwargs):
+    self._load_config(settings)
 
     if name is None:
       name = self.settings.name
@@ -84,7 +84,7 @@ class Baseweb(Quart):
 
   # CONFIG
 
-  def _load_config(self):
+  def _load_config(self, settings=None):
     # load configuration from environment variables with some sane defaults
     self.settings = DotMap(
       {
@@ -113,6 +113,8 @@ class Baseweb(Quart):
         }.items()
       }
     )
+    if settings:
+      self.settings.update(settings)
 
     if self.settings.short_name is None:
       self.settings.short_name = util.to_camel_case(self.settings.name)

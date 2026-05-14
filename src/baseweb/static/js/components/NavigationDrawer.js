@@ -57,12 +57,8 @@ app.component("navigation-drawer", {
     </template>
   </v-list>
 
-  <template v-slot:append>
-    <v-list-item
-      class="ma-2"
-      link
-      nav
-      prepend-icon="mdi-cog-outline"
+  <template v-slot:append v-if="bottom">
+    <v-list-item class="ma-2" link nav prepend-icon="mdi-cog-outline"
       title="Settings"
     ></v-list-item>
   </template>
@@ -79,6 +75,9 @@ app.component("navigation-drawer", {
     },
     sections: function() {
       return store.state.drawer.sections;
+    },
+    bottom: function () {
+      return false;
     },
     openGroups: {
       get: function() {

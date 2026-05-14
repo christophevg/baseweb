@@ -1,10 +1,10 @@
 # Hello World Example
 
-A minimal example application demonstrating Vue 3 + Vuetify 3 integration with baseweb.
+A minimal example application demonstrating a minimal baseweb application.
 
 ## Purpose
 
-This example validates that the core baseweb setup works correctly after the Vue 3 + Vuetify 3 migration. It serves as a "canary" to detect configuration or compatibility issues early.
+This example validates that the core baseweb setup works correctly. It serves as a "canary" to detect configuration or compatibility issues early.
 
 ## Prerequisites
 
@@ -21,23 +21,7 @@ cd examples/hello-world
 uv sync
 
 # Run the server
-uv run uvicorn app:asgi_app --reload
-```
-
-Then open http://localhost:8000 in your browser.
-
-## Running the Server
-
-### Option 1: Using uvicorn (development)
-
-```bash
-uv run uvicorn app:asgi_app --reload --port 8000
-```
-
-### Option 2: Using gunicorn (production-like)
-
-```bash
-uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "app:asgi_app" --bind 0.0.0.0:8000
+uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "app:asgi_app"
 ```
 
 ## Expected Output
@@ -47,21 +31,19 @@ uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker "app:asgi_app" --bind 0.0.
 You should see the baseweb banner in the console:
 
 ```
- _                   _
-| |__   __ _ _ __ __| |
-| '_ \ / _` | '__/ _` |
-| |_) | (_| | |  | (_| |
-|_.__/ \__,_|_|   \__,_|
+ _                                 _
+| |__   __ _ ___  _____      _____| |__
+| '_ \ / _` / __|/ _ \ \ /\ / / _ \ '_ \
+| |_) | (_| \__ \  __/\ V  V /  __/ |_) |
+|_.__/ \__,_|___/\___| \_/\_/ \___|_.__/ 0.5.1
 baseweb 0.4.3
-[INFO] Starting uvicorn...
-[INFO] Uvicorn running on http://127.0.0.1:8000
+...
 ```
 
 ### Browser
 
 1. Open http://localhost:8000
-2. You should see a styled page with:
-   - A toolbar showing "hello-world" as the app name
+2. You should see a page with:
    - A card containing "Hello World" title
    - Welcome message text
 
@@ -70,10 +52,7 @@ baseweb 0.4.3
 Open the browser developer console (F12). You should see:
 
 ```
-Queueing component: HelloWorld
-Registering components: ['HelloWorld']
-✓ Registered: HelloWorld
-✅ Vue 3 app mounted successfully
+🛜 socketio: connected to backend...
 ```
 
 ## Validation Checklist

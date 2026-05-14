@@ -1,7 +1,7 @@
 /**
  * HelloWorld Component
  *
- * A minimal Vue 3 + Vuetify 3 component demonstrating baseweb integration.
+ * A minimal Vuetify component demonstrating baseweb integration.
  * Uses the Page component wrapper and basic Vuetify components.
  */
 
@@ -25,6 +25,7 @@ var HelloWorld = {
               <v-card-text>
                 <p>Welcome to baseweb with Vue 3 + Vuetify 3!</p>
                 <p>This is a minimal example application.</p>
+                <v-btn color="primary" to="/about">About...</v-btn>
               </v-card-text>
             </v-card>
           </v-col>

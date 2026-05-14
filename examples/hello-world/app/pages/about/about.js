@@ -1,7 +1,7 @@
 /**
  * About Component
  *
- * A second page to demonstrate routing in baseweb with Vue 3 + Vuetify 3.
+ * A second page to demonstrate routing in baseweb with Vue + Vuetify.
  */
 
 var About = {

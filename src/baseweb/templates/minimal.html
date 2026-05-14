@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    {% if app.style == "pwa" %}<link rel="manifest" href="/manifest.json" />{% endif %}
+    <title>{{ app.name }}{% if self.title() %} - {% endif %} {% block title %}{% endblock %}</title>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="/static/vendor/js/html5shiv.min.js"></script>
+      <script src="/static/vendor/js/respond.min.js"></script>
+    <![endif]-->
+
+    <link href="/static/vendor/css/roboto.css"                   rel="stylesheet">
+    <link href="/static/vendor/css/mdi.min.css"                  rel="stylesheet">
+    <link href="/static/vendor/css/vuetify-labs.v4.css"          rel="stylesheet">
+    <link href="/static/vendor/css/vue-multiselect.min.css"      rel="stylesheet">
+    <link href="/static/vendor/css/bootstrap-datetimepicker.css" rel="stylesheet">
+    <link href="/static/vendor/css/highlight.js.github.css"      rel="stylesheet">
+
+    <link href="/static/css/main.css"                            rel="stylesheet">
+    <link href="/static/css/process_diagram.css"                 rel="stylesheet">
+    {% for file in stylesheets %}
+    <link href="/app/style/{{ file }}" rel="stylesheet">{% endfor %}
+
+    {% if app.favicon_support %}
+    <link rel="apple-touch-icon" sizes="180x180" href="/app/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/app/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/app/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/app/static/favicon/site.webmanifest">
+    <link rel="mask-icon" href="/app/static/favicon/safari-pinned-tab.svg" color="{{ app.favicon_mask_icon_color }}">
+    <meta name="msapplication-TileColor" content="{{ app.favicon_msapp_tile_color }}">
+    <meta name="theme-color" content="{{ app.color}}">
+    {% endif %}
+    <meta name="title"       property="og:type"        content="website"/>
+    <meta name="title"       property="og:title"       content="{{ app.title }}"/>
+    <meta name="author"      property="og:author"      content="{{ app.author }}"/>
+    <meta name="description" property="og:description" content="{{ app.description }}"/>
+    {% if app.url %}<meta name="url"         property="og:url"         content="//{{ app.url }}"/>{% endif %}
+    {% if app.social_image %}<meta name="image"       property="og:image"       content="{{ app.social_image }}"/>{% endif %}
+  </head>
+
+  <body>
+    <v-app id="app">
+      {% if app.keep_alive %}<keep-alive>{% endif %}
+      <router-view></router-view>
+      {% if app.keep_alive %}</keep-alive>{% endif %}
+      <notification-snackbar></notification-snackbar>
+    </v-app>
+
+    <!-- Vue 3 -->
+    <script src="/static/vendor/js/vue.js"></script>
+    <script src="/static/js/app.js"></script>
+
+    <!-- Vuetify 4 -->
+    <script src="/static/vendor/js/vuetify-labs.v4.js"></script>
+
+    <!-- Vuex 4 and Vue Router 4 -->
+    <script src="/static/vendor/js/vuex.js"></script>
+    <script src="/static/vendor/js/vue-router.js"></script>
+
+    <!-- Store and Router -->
+    <script src="/static/js/store.js"></script>
+    <script src="/static/js/router.js"></script>
+
+    <!-- Notification system (Vuetify snackbar-based, replaces vue-notification) -->
+    <script src="/static/js/components/NotificationSnackbar.js"></script>
+
+    <!-- VuetifyFormGenerator (Vue 3 compatible replacement for vue-form-generator) -->
+    <script src="/static/js/components/VuetifyFormGenerator.js"></script>
+
+    <!-- vue-multiselect -->
+    <script src="/static/vendor/js/vue-multiselect.min.js"></script>
+    <script>
+      app.component('Multiselect', VueMultiselect.Multiselect);
+    </script>
+
+    <!-- Navigation Drawer -->
+    <script src="/static/js/components/NavigationDrawer.js"></script>
+
+    <!-- Vendor utilities -->
+    <script src="/static/vendor/js/socket.io.slim.js"></script>
+    <script src="/static/vendor/js/Chart.min.js"></script>
+    <script src="/static/vendor/js/jquery.min.js"></script>
+    <script src="/static/vendor/js/bootstrap.min.js"></script>
+    <script src="/static/vendor/js/moment.min.js"></script>
+    <script src="/static/vendor/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="/static/vendor/js/highlight.min.js"></script>
+
+    {% if app.socketio %}
+    <script>
+      app.config.globalProperties.$socketio = true;
+    </script>
+    {% endif %}
+
+    <!-- Common utilities -->
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/socketio.js"></script>
+
+    <!-- Base components -->
+    <script src="/static/js/components/Page.js"></script>
+    <script src="/static/js/components/PageWithBanner.js"></script>
+    <script src="/static/js/components/PageWithStatus.js"></script>
+    <script src="/static/js/components/CollectionView.js"></script>
+    <script src="/static/js/components/LineChart.js"></script>
+    <script src="/static/js/components/ProcessDiagram.js"></script>
+
+    {% for file in components %}
+    <script src="/app/{{ file }}"></script>
+    {% endfor %}
+
+    {% for url in scripts %}
+    <script src="{{ url }}"></script>
+    {% endfor %}
+
+    <!-- Final initialization: install plugins and mount -->
+    <script>
+      // Install core plugins
+      app.use(store);
+      app.use(router);
+
+      // Create and install Vuetify
+      // Labs components are automatically merged from vuetify-labs.js
+      var vuetify = Vuetify.createVuetify();
+      app.use(vuetify);
+
+      // Register global filters as Vue 3 methods
+      app.config.globalProperties.$filters = {
+        syntaxHighlight: syntaxHighlight,
+        formatDate: formatDate,
+        formatEpoch: formatEpoch
+      };
+
+      // Mount the app
+      app.mount('#app');
+    </script>
+
+  </body>
+</html>

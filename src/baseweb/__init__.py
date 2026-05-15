@@ -8,9 +8,10 @@ import os
 import re
 from functools import wraps
 from pathlib import Path
+from typing import TypedDict
 
-import socketio
-from dotmap import DotMap
+import socketio  # type: ignore[import-untyped]
+from dotmap import DotMap  # type: ignore[import-untyped]
 from jinja2 import TemplateNotFound
 from pyfiglet import Figlet
 from quart import (
@@ -23,7 +24,7 @@ from quart import (
   send_from_directory,
 )
 from slugify import slugify
-from socketio.exceptions import ConnectionRefusedError
+from socketio.exceptions import ConnectionRefusedError  # type: ignore[import-untyped]
 from tabulate import tabulate
 
 from baseweb import util
@@ -32,6 +33,14 @@ from baseweb.resource import Resource as Resource
 OK = ["yes", "true", "ok"]
 HERE = Path(__file__).resolve().parent
 OPTIONAL_PARAM = re.compile(r"<[^\d\W]\w*\?>", re.UNICODE)
+
+
+class FilesDict(TypedDict):
+  """Type for the _files registry."""
+
+  components: dict[str, Path]
+  stylesheets: dict[str, Path]
+  scripts: list[str]
 
 
 class Baseweb(Quart):
@@ -47,15 +56,15 @@ class Baseweb(Quart):
     super().__init__(name, *args, **kwargs)
 
     # wire logging to gunicorn logging if available
-    logger=logging.getLogger("gunicorn.error")
+    logger = logging.getLogger("gunicorn.error")
     if logger:
       self.logger.handlers = logger.handlers
       self.logger.setLevel(logger.level)
 
     self._show_banner()
 
-    self.template_folder: Path = HERE / "templates"
-    self.static_folder: Path = HERE / "static"
+    self.template_folder = str(HERE / "templates")
+    self.static_folder = str(HERE / "static")
     self.app_static_folder: Path | None = None
 
     self.authenticator = None
@@ -70,7 +79,7 @@ class Baseweb(Quart):
       self._asgi_app = None
       self.socketio = None
 
-    self._files = {"components": {}, "stylesheets": {}, "scripts": []}
+    self._files: FilesDict = {"components": {}, "stylesheets": {}, "scripts": []}
     self._app_routes = {}
 
     self._setup_routes()

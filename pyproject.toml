@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "baseweb"
-version = "0.5.1"
+version = "0.5.2"
 description = "A Pythonic base for building interactive web applications"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE.txt"]
 authors = [
   {name = "Christophe VG", email = "contact@christophe.vg"}
 ]

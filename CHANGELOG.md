@@ -5,6 +5,18 @@ All notable changes to Baseweb will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-05-15
+
+### Added
+
+- **Minimal template**: New `minimal.html` template for simplified applications without full navigation
+- **Settings constructor parameter**: Pass custom settings when initializing Baseweb: `Baseweb(name, settings={...})`
+
+### Changed
+
+- **NavigationDrawer**: Settings item in bottom slot is now hidden by default (controlled by `bottom` computed property)
+- **Hello-world example**: Refactored to use the minimal template and demonstrate settings parameter
+
 ## [0.5.1] - 2026-05-13
 
 ### Fixed

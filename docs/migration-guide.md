@@ -237,6 +237,96 @@ def auth_required(f):
     return decorated
 ```
 
+## Vue Components
+
+### Page Component (Unified)
+
+Baseweb 1.0.0 unifies the Page, PageWithBanner, and PageWithStatus components into a single unified Page component with configurable props and slots.
+
+**Breaking Change:** `PageWithBanner` and `PageWithStatus` components have been **removed**. Use the unified `Page` component instead.
+
+**Before (0.x):**
+
+```html
+<!-- Basic page -->
+<Page>
+  <v-container>Content</v-container>
+</Page>
+
+<!-- Page with banner -->
+<PageWithBanner>
+  <v-container>Content</v-container>
+</PageWithBanner>
+
+<!-- Page with status notifications -->
+<PageWithStatus>
+  <v-container>Content</v-container>
+</PageWithStatus>
+```
+
+**After (1.0.0):**
+
+```html
+<!-- Basic page (unchanged) -->
+<Page>
+  <v-container>Content</v-container>
+</Page>
+
+<!-- Page with banner -->
+<Page banner>
+  <v-container>Content</v-container>
+</Page>
+
+<!-- Page with status notifications -->
+<Page status>
+  <v-container>Content</v-container>
+</Page>
+
+<!-- Page with both banner and status -->
+<Page banner status>
+  <v-container>Content</v-container>
+</Page>
+```
+
+**Store Mutations:**
+
+```javascript
+// Banner control
+store.commit('page/banner', { alert: true, type: 'success', message: 'Hello!' });
+
+// Status notifications
+store.commit('page/success', 'Operation completed!');
+store.commit('page/error', 'Something went wrong!');
+store.commit('page/warning', 'Be careful!');
+store.commit('page/info', 'For your information...');
+```
+
+**Full-Page Layout (New Feature):**
+
+```html
+<Page full-page>
+  <template #header>
+    <v-toolbar>
+      <v-toolbar-title>Dashboard</v-toolbar-title>
+    </v-toolbar>
+  </template>
+
+  <v-container>Scrollable content here</v-container>
+
+  <template #footer>
+    <v-toolbar>
+      <v-btn>Save</v-btn>
+    </v-toolbar>
+  </template>
+</Page>
+```
+
+### Migration Steps for Components
+
+1. **Page** - No changes required (backward compatible)
+2. **PageWithBanner** - Replace with `<Page banner>` and use `store.commit('page/banner', {...})`
+3. **PageWithStatus** - Replace with `<Page status>` and use `store.commit('page/success', 'message')`
+
 ## Migration Checklist
 
 - [ ] Update Python to 3.11+
@@ -246,6 +336,9 @@ def auth_required(f):
 - [ ] Add `await` to all `request.get_json()` calls
 - [ ] Add `await` to all `send_from_directory()` calls
 - [ ] Update WebSocket code to Quart native format
+- [ ] Replace `<PageWithBanner>` with `<Page banner>`
+- [ ] Replace `<PageWithStatus>` with `<Page status>`
+- [ ] Update store mutations: use `page/banner` and `page/success` (namespaced)
 - [ ] Run tests and verify all functionality
 
 ## Estimated Migration Time

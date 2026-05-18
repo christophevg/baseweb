@@ -5,6 +5,25 @@ All notable changes to Baseweb will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-05-18
+
+### Added
+
+- **Unified Page component**: New unified `Page` component consolidating PageWithBanner and PageWithStatus functionality
+  - `banner` prop for optional alert banner
+  - `status` prop for snackbar notifications
+  - `statusTimeout` prop for notification display duration
+  - Named slots: `header`, `footer` for flexible layouts
+  - Vuex store module `page` with `banner` and `status` state management
+  - Store mutations: `page/banner`, `page/success`, `page/error`, `page/warning`, `page/info`, `page/clearStatus`
+
+### Changed
+
+- **BREAKING**: Removed `PageWithBanner.js` and `PageWithStatus.js` components
+- Migration: `<PageWithBanner>` → `<Page banner>`, `<PageWithStatus>` → `<Page status>`
+- Migration: `store.state.banner` → `store.state.page.banner`
+- Migration: `store.commit('banner', ...)` → `store.commit('page/banner', ...)`
+
 ## [0.5.2] - 2026-05-15
 
 ### Added

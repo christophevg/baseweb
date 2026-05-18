@@ -12,57 +12,51 @@ RED=\033[0;31m
 BLUE=\033[0;34m
 NC=\033[0m
 
-## Setup
+## environment management
 
-install: ## Install package in development mode with all extras
-	@echo "👷‍♂️ $(BLUE)syncing dependencies with uv$(NC)"
-	@uv sync --all-extras
+env-dev:
+	uv sync --extra dev
 
-uninstall: clean-venv ## Remove virtual environment
-
-clean-venv: ## Remove virtual environment
-	@echo "👷‍♂️ $(RED)removing .venv directory$(NC)"
-	@-rm -rf .venv
-
-reinstall: clean-venv install ## Clean install (removes venv and reinstalls)
-
-upgrade: ## Upgrade all packages to latest versions
-	@echo "👷‍♂️ $(BLUE)upgrading all packages$(NC)"
-	@uv sync --all-extras --upgrade
-
-sync: ## Sync dependencies from lock file
-	uv sync --frozen --all-extras
+env-run:
+	uv sync
 
 ## Testing
 
-test: format-check lint pytest ## Run all tests with linting and formatting checks
+### Run all tests with linting and formatting checks
+test: env-dev format-check lint pytest
 
-test-all: ## Run tests against all supported Python versions (3.10, 3.11, 3.12)
+### Run tests against all supported Python versions
+test-all: env-dev(3.10, 3.11, 3.12)
 	uv run tox
 
-pytest: ## Run tests with pytest
+### Run tests with pytest
+pytest: env-dev
 	@echo "👷‍♂️ $(BLUE)running tests$(NC)"
 	@uv run pytest -v
 
-coverage: ## Run tests with coverage reporting
+### Run tests with coverage reporting
+coverage: env-dev
 	@echo "👷‍♂️ $(BLUE)running tests with coverage$(NC)"
 	@uv run pytest --cov=src --cov-report=term --cov-report=html --cov-report=lcov
 
 ## Code Quality
 
-typecheck: ## Run mypy type checking
+typecheck: env-dev ## Run mypy type checking
 	@echo "👷‍♂️ $(BLUE)running type checking$(NC)"
 	@uv run mypy src
 
-lint: ## Run ruff linting
+fix-lint: env-dev
+	@uv run ruff check --fix src tests
+
+lint: env-dev ## Run ruff linting
 	@echo "👷‍♂️ $(BLUE)running linter$(NC)"
 	@uv run ruff check src tests
 
-format: ## Format code with ruff
+format: env-dev  ## Format code with ruff
 	@echo "👷‍♂️ $(BLUE)formatting$(NC)"
 	@uv run ruff format src tests
 
-format-check: ## Check formatting without making changes
+format-check: env-dev ## Check formatting without making changes
 	@echo "👷‍♂️ $(BLUE)checking formatting$(NC)"
 	@uv run ruff format --check src tests
 
@@ -72,15 +66,15 @@ check: lint typecheck pytest ## Run all checks (lint, typecheck, test)
 
 build: dist ## Build package distributions
 
-publish: dist ## Build and publish to PyPI (requires credentials)
+publish: env-dev dist ## Build and publish to PyPI (requires credentials)
 	@echo "👷‍♂️ $(BLUE)publishing to PyPI$(NC)"
 	uv run twine upload dist/*
 
-publish-test: dist ## Build and publish to TestPyPI (requires credentials)
+publish-test: env-dev dist ## Build and publish to TestPyPI (requires credentials)
 	@echo "👷‍♂️ $(BLUE)publishing to TestPyPI$(NC)"
 	uv run twine upload --repository testpypi dist/*
 
-dist: dist-clean ## Build distributions
+dist: env-dev dist-clean ## Build distributions
 	@echo "👷‍♂️ $(BLUE)building distribution$(NC)"
 	uv build
 
@@ -98,11 +92,11 @@ clean-all: clean dist-clean clean-venv ## Deep clean (removes venv, build artifa
 
 ## Development
 
-run: ## Run the example hello-world app
+run: env-run ## Run the example hello-world app
 	@echo "👷‍♂️ $(BLUE)starting hello-world example$(NC)"
 	cd examples/hello-world && uv run gunicorn -k uvicorn.workers.UvicornWorker app:asgi_app --reload
 
-docs: ## Build and open documentation
+docs: env-dev ## Build and open documentation
 	@echo "👷‍♂️ $(BLUE)building documentation$(NC)"
 	cd docs && uv run sphinx-build -M html . _build
 	@open docs/_build/html/index.html

@@ -36,23 +36,6 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 6: PWA and Push Notifications
 
-- [ ] **task-6.2: Push notification backend infrastructure**
-  - Implement VAPID key generation and management
-  - Create push subscription storage endpoint
-  - Create push subscription retrieval endpoint
-  - Create push notification sending endpoint
-  - **iOS-Specific Requirements**:
-    - VAPID keys required for Apple Push Notification service authentication
-    - Store subscription endpoint URLs (unique per device/browser)
-    - Handle expired/invalid subscriptions gracefully
-  - **Satisfies**: R85, R86, R87, NFR3
-  - **Acceptance**:
-    - Backend generates VAPID keys (public/private pair)
-    - Subscriptions stored with user association
-    - Push notifications sent to APNS via VAPID authentication
-    - Works with Safari Web Push on iOS 16.4+
-  - **Requires**: task-6.1
-
 - [ ] **task-6.3: Push notification frontend integration**
   - Integrate Push API with Service Worker
   - Integrate Notifications API
@@ -168,6 +151,20 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 ## Done
 
 ### Phase 6: PWA and Push Notifications
+
+- [x] **task-6.2: Push notification backend infrastructure** (2026-05-19)
+  - Implemented VAPID key generation and management (src/baseweb/vapid.py)
+  - Created push subscription storage with CRUD operations
+  - Created GET /api/vapid-public-key endpoint (unauthenticated)
+  - Created POST/GET/DELETE /api/push-subscriptions endpoints (authenticated)
+  - Created POST /api/push-notifications endpoint (admin only)
+  - Added rate limiting (10/hour, 50/day per user, 100/min global)
+  - Added input validation (endpoint URL, keys, payload)
+  - Added known push service validation (FCM, Mozilla, Apple)
+  - Added security features (VAPID private key from env, subscription validation)
+  - iOS Safari compatible (VAPID claims with subject and audience)
+  - Files: vapid.py, push.py, test_push.py (89 tests)
+  - **Satisfies**: R85, R86, R87, NFR3
 
 - [x] **task-6.1: PWA manifest and service worker foundation** (2026-05-19)
   - Enhanced manifest.json with 180x180 icon, description, scope fields

@@ -126,9 +126,9 @@ This document tracks all functional and non-functional requirements for the base
 - [ ] R82: Notifications API integration
 - [x] R83: iOS Safari standalone mode support (iOS 16.4+) (Phase 6)
 - [ ] R84: User permission prompt triggered by user action
-- [ ] R85: Backend VAPID key generation and management
-- [ ] R86: Push subscription storage and retrieval
-- [ ] R87: Push notification sending functionality
+- [x] R85: Backend VAPID key generation and management (Phase 6)
+- [x] R86: Push subscription storage and retrieval (Phase 6)
+- [x] R87: Push notification sending functionality (Phase 6)
 - [ ] R88: Documentation for PWA installation workflow
 
 #### iOS-Specific Technical Notes
@@ -185,7 +185,7 @@ This document tracks all functional and non-functional requirements for the base
 ### Security
 - [x] NFR1: Authentication hooks support async handlers
 - [x] NFR2: WebSocket authentication preserved after migration
-- [ ] NFR3: Push notification authentication uses VAPID keys securely
+- [x] NFR3: Push notification authentication uses VAPID keys securely (Phase 6)
 
 ### Performance
 - [x] NFR4: Async handlers improve request throughput

@@ -36,22 +36,21 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 6: PWA and Push Notifications
 
-- [ ] **task-6.1: PWA manifest and service worker foundation**
-  - Enhance PWA manifest for iOS Safari compatibility
-  - Implement Service Worker for offline support
-  - Configure app manifest (name, icons, display mode)
-  - Test PWA installation on iOS Safari (iOS 16.4+)
-  - **Satisfies**: R79, R80, R83
-  - **Acceptance**: PWA installs on iOS Home Screen, works offline
-  - **Requires**: Phase 5 complete
-
 - [ ] **task-6.2: Push notification backend infrastructure**
   - Implement VAPID key generation and management
   - Create push subscription storage endpoint
   - Create push subscription retrieval endpoint
   - Create push notification sending endpoint
+  - **iOS-Specific Requirements**:
+    - VAPID keys required for Apple Push Notification service authentication
+    - Store subscription endpoint URLs (unique per device/browser)
+    - Handle expired/invalid subscriptions gracefully
   - **Satisfies**: R85, R86, R87, NFR3
-  - **Acceptance**: Backend can generate VAPID keys, store subscriptions, send push notifications
+  - **Acceptance**:
+    - Backend generates VAPID keys (public/private pair)
+    - Subscriptions stored with user association
+    - Push notifications sent to APNS via VAPID authentication
+    - Works with Safari Web Push on iOS 16.4+
   - **Requires**: task-6.1
 
 - [ ] **task-6.3: Push notification frontend integration**
@@ -59,8 +58,17 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Integrate Notifications API
   - Implement permission prompt triggered by user action
   - Handle push events in Service Worker
+  - **iOS-Specific Requirements**:
+    - Permission prompt must be triggered by direct user action (button click)
+    - Must only prompt when running in standalone mode (installed PWA)
+    - Standard Safari tabs cannot receive push notifications
+    - Third-party browsers (Chrome/Firefox on iOS) cannot receive push notifications
   - **Satisfies**: R81, R82, R84
-  - **Acceptance**: Users can subscribe to push notifications, receive notifications in standalone mode
+  - **Acceptance**:
+    - User clicks "Subscribe" button in standalone PWA → permission prompt appears
+    - User grants permission → push subscription created
+    - Push notification received → displays as system notification
+    - Does NOT work in standard Safari tabs or non-Safari iOS browsers
   - **Requires**: task-6.2
 
 - [ ] **task-6.4: PWA and push notifications documentation**
@@ -68,8 +76,18 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Document push notification setup for developers
   - Document user-facing permission flow
   - Create troubleshooting guide
+  - **iOS-Specific Documentation Requirements**:
+    - Step-by-step user guide: Open Safari → Add to Home Screen → Launch PWA → Subscribe
+    - Developer guide: VAPID key setup, subscription management
+    - Troubleshooting: "Why don't I see notifications?" (not in standalone mode, iOS version too old, wrong browser)
+    - Compatibility matrix: iOS 16.4+ Safari only
   - **Satisfies**: R88
-  - **Acceptance**: Documentation covers installation, subscription, and troubleshooting
+  - **Acceptance**:
+    - Documentation covers iOS 16.4+ requirement clearly
+    - Documentation explains Safari-only limitation on iOS
+    - Documentation explains standalone mode requirement
+    - Documentation provides user-facing installation steps
+    - Documentation provides developer-facing API setup
   - **Requires**: task-6.3
 
 ### Phase 7: Plugin System Architecture
@@ -140,6 +158,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Measure and document size reduction
   - Keep non-bundled approach as fallback option
   - Document build process
+  - Update Service Worker STATIC_ASSETS to use bundled files instead of hardcoded list
   - **Satisfies**: R109, R110, R111, R112, R113, NFR5
   - **Acceptance**: Bundle size reduced by 30%+, non-bundled option still works
   - **Requires**: Phase 5 complete
@@ -147,6 +166,24 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 ---
 
 ## Done
+
+### Phase 6: PWA and Push Notifications
+
+- [x] **task-6.1: PWA manifest and service worker foundation** (2026-05-19)
+  - Enhanced manifest.json with 180x180 icon, description, scope fields
+  - Added iOS Safari meta tags (apple-mobile-web-app-capable, status-bar-style, title, touch-icon)
+  - Created Service Worker (sw.js) with cache-first strategy for static assets
+  - Added Service Worker route with correct headers (Service-Worker-Allowed: /)
+  - Registered Service Worker on window.load when APP_STYLE=pwa
+  - Generated 9 placeholder icons (72x72 to 512x512)
+  - Added offline UX indicator (isOnline state, offline badge in app bar)
+  - Added python-dotenv to hello-world example for .env file loading
+  - Removed python-dotenv from baseweb core dependencies (not needed in framework)
+  - Fixed icon paths from /images/icons/ to /static/images/icons/
+  - Files: manifest.json, main.html, store.js, sw.js, __init__.py, test_pwa.py
+  - Files: scripts/generate_icons.py, static/images/icons/*.png
+  - Files: examples/hello-world/app/__init__.py, examples/hello-world/pyproject.toml
+  - **Satisfies**: R79, R80, R83
 
 ### Phase 5: Post-modernization Further Feature Development
 

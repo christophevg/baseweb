@@ -4,6 +4,7 @@
  * Provides centralized state management including:
  * - App configuration from backend
  * - Notification system for Vuetify snackbar integration (queue-based)
+ * - Connection state for offline/online tracking
  */
 
 var notificationId = 0;
@@ -11,10 +12,18 @@ var notificationId = 0;
 var store = Vuex.createStore({
   state: {
     config : {{ app.toDict() | tojson }},
-    notifications: []  // Queue of notifications
+    notifications: [],  // Queue of notifications
+    connection: {
+      isOnline: navigator.onLine  // Track online/offline status
+    }
   },
 
   mutations: {
+    // Connection state mutations
+    setOnline: function(state, isOnline) {
+      state.connection.isOnline = isOnline;
+    },
+
     // Add a notification to the queue
     notify: function(state, payload) {
       // Support both simple string and object payload
@@ -98,6 +107,9 @@ var store = Vuex.createStore({
   getters: {
     notifications: function(state) {
       return state.notifications;
+    },
+    isOnline: function(state) {
+      return state.connection.isOnline;
     }
   }
 });

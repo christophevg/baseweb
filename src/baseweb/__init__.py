@@ -295,6 +295,7 @@ class Baseweb(Quart):
     # only provide manifest when run as PWA
     if self.settings.style == "pwa":
       self.route("/manifest.json", endpoint="manifest")(self._render("manifest.json"))
+      self.route("/sw.js", endpoint="service-worker")(self._serve_service_worker())
 
     # app files
     self.route("/app/<path:filename>", endpoint="app")(self._send(self._files["components"]))
@@ -356,6 +357,22 @@ class Baseweb(Quart):
       # but we catch any exception to ensure proper 404 handling
       self.logger.warning(f"static file not found: {filename}")
       abort(404)
+
+  def _serve_service_worker(self):
+    """Serve the Service Worker script with appropriate headers."""
+
+    async def handler():
+      sw_path = HERE / "static" / "js" / "sw.js"
+      try:
+        content = sw_path.read_text()
+        response = Response(content, mimetype="application/javascript")
+        response.headers["Service-Worker-Allowed"] = "/"
+        return response
+      except FileNotFoundError:
+        self.logger.warning("service worker script not found")
+        abort(404)
+
+    return handler
 
   def add_resource(self, resource_or_class, route, endpoint=None, security_scope=None):
     """

@@ -4,7 +4,16 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    {% if app.style == "pwa" %}<link rel="manifest" href="/manifest.json" />{% endif %}
+    {% if app.style == "pwa" %}
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS Safari PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ app.short_name }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/icons/icon-180x180.png">
+    {% endif %}
     <title>{{ app.name }}{% if self.title() %} - {% endif %} {% block title %}{% endblock %}</title>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -62,11 +71,15 @@
             {{ app.name }}
           </v-app-bar-title>
 
-          {% if app.socketio %}
           <v-spacer></v-spacer>
+          {% if app.socketio %}
           <v-icon color="green" v-if="connected" class="mr-2">mdi-cloud-check</v-icon>
           <v-icon color="red"   v-else class="mr-2">mdi-cloud-off</v-icon>
           {% endif %}
+          <v-chip v-if="!$store.getters.isOnline" color="warning" size="small" class="mr-2">
+            <v-icon start>mdi-wifi-off</v-icon>
+            Offline
+          </v-chip>
         </v-app-bar>
 
         <navigation-drawer></navigation-drawer>
@@ -166,6 +179,31 @@
       // Mount the app
       app.mount('#app');
     </script>
+
+    {% if app.style == "pwa" %}
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then((registration) => {
+              console.log('Service Worker registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+
+      // Track online/offline status for PWA
+      window.addEventListener('online', function() {
+        store.commit('setOnline', true);
+      });
+      window.addEventListener('offline', function() {
+        store.commit('setOnline', false);
+      });
+    </script>
+    {% endif %}
 
   </body>
 </html>

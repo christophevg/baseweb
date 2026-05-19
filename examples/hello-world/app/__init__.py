@@ -5,6 +5,10 @@ A minimal example demonstrating Vue 3 + Vuetify 3 integration with baseweb.
 This validates that the core baseweb setup works correctly after the migration.
 """
 
+# Load environment variables from .env file (for local development)
+from dotenv import load_dotenv
+load_dotenv()
+
 from baseweb import Baseweb
 
 # Create baseweb app with custom name

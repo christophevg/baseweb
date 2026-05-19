@@ -45,9 +45,6 @@ typecheck: env-dev ## Run mypy type checking
 	@echo "👷‍♂️ $(BLUE)running type checking$(NC)"
 	@uv run mypy src
 
-fix-lint: env-dev
-	@uv run ruff check --fix src tests
-
 lint: env-dev ## Run ruff linting
 	@echo "👷‍♂️ $(BLUE)running linter$(NC)"
 	@uv run ruff check src tests
@@ -55,6 +52,7 @@ lint: env-dev ## Run ruff linting
 format: env-dev  ## Format code with ruff
 	@echo "👷‍♂️ $(BLUE)formatting$(NC)"
 	@uv run ruff format src tests
+	@uv run ruff check --fix src tests
 
 format-check: env-dev ## Check formatting without making changes
 	@echo "👷‍♂️ $(BLUE)checking formatting$(NC)"

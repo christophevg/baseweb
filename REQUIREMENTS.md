@@ -120,16 +120,24 @@ This document tracks all functional and non-functional requirements for the base
 ### Phase 6: PWA and Push Notifications
 
 #### PWA Support Enhancement
-- [ ] R79: Progressive Web App manifest enhanced for iOS compatibility
-- [ ] R80: Service Worker implementation for offline support
+- [x] R79: Progressive Web App manifest enhanced for iOS compatibility (Phase 6)
+- [x] R80: Service Worker implementation for offline support (Phase 6)
 - [ ] R81: Push API integration with VAPID key support
 - [ ] R82: Notifications API integration
-- [ ] R83: iOS Safari standalone mode support (iOS 16.4+)
+- [x] R83: iOS Safari standalone mode support (iOS 16.4+) (Phase 6)
 - [ ] R84: User permission prompt triggered by user action
 - [ ] R85: Backend VAPID key generation and management
 - [ ] R86: Push subscription storage and retrieval
 - [ ] R87: Push notification sending functionality
 - [ ] R88: Documentation for PWA installation workflow
+
+#### iOS-Specific Technical Notes
+- **iOS Version Requirement**: Web Push requires iOS 16.4 or newer. Older iOS versions cannot receive push notifications.
+- **Safari Only**: Push notifications only work in iOS Safari. Third-party browsers (Chrome, Firefox on iOS) use WebKit but cannot prompt or receive push notifications.
+- **Standalone Mode Required**: The PWA must be installed to the Home Screen and launched from there. Standard Safari tabs cannot receive push notifications.
+- **User Action Required**: Permission prompts must be triggered by direct user action (e.g., clicking a "Subscribe" button) while running in standalone mode.
+- **VAPID Keys Required**: Backend must generate VAPID keys for secure push message authentication with Apple's push service.
+- **User Workflow**: Open Safari → Add to Home Screen → Launch PWA → User action triggers permission prompt → Grant permission
 
 ### Phase 7: Plugin System Architecture
 

@@ -26,6 +26,8 @@ from quart import request
 async def dummy_authenticator(scope, req, *args, **kwargs):
   # Set a dummy user ID on the request object
   req.user_id = "hello-world-user"
+  # Allow sending push notifications in demo mode
+  req.is_admin = True
   return True
 
 server.authenticator = dummy_authenticator

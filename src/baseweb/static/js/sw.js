@@ -118,11 +118,31 @@ self.addEventListener('push', (event) => {
     const title = payload.title || 'New Notification';
     const options = {
       body: payload.body || 'You have a new update.',
-      data: { url: payload.url }
+      icon: payload.icon,
+      badge: payload.badge,
+      data: { url: payload.url },
+      tag: payload.tag,
+      requireInteraction: payload.requireInteraction,
+      actions: payload.actions
     };
 
+    // Remove undefined options
+    Object.keys(options).forEach(key => {
+      if (options[key] === undefined) {
+        delete options[key];
+      }
+    });
+
+    // Increment badge count if Badging API is supported
+    const badgePromise = 'setAppBadge' in navigator
+      ? navigator.setAppBadge().catch(() => {})
+      : Promise.resolve();
+
     event.waitUntil(
-      self.registration.showNotification(title, options)
+      Promise.all([
+        self.registration.showNotification(title, options),
+        badgePromise
+      ])
     );
   } catch (e) {
     console.error('Error handling push event:', e);

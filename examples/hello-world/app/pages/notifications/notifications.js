@@ -89,19 +89,47 @@ const PushNotificationSettings = {
             <span class="text-body-1">Subscribing...</span>
           </div>
 
-          <div v-else-if="status === 'subscribed'" class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-body-1">Notifications Enabled</div>
-              <div class="text-caption">You will receive push updates.</div>
+          <div v-else-if="status === 'subscribed'">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <div>
+                <div class="text-body-1">Notifications Enabled</div>
+                <div class="text-caption">You will receive push updates.</div>
+              </div>
+              <v-btn
+                variant="outlined"
+                color="error"
+                prepend-icon="mdi-bell-off"
+                @click="unsubscribe"
+              >
+                Disable
+              </v-btn>
             </div>
+            <v-divider class="mb-4"></v-divider>
+            <div class="text-subtitle-2 mb-2">Test Notifications</div>
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-bell-ring"
+              @click="sendTestNotification"
+              :loading="sendingNotification"
+              class="mr-2"
+            >
+              Send Test Notification
+            </v-btn>
             <v-btn
               variant="outlined"
-              color="error"
-              prepend-icon="mdi-bell-off"
-              @click="unsubscribe"
+              prepend-icon="mdi-numeric"
+              @click="incrementBadge"
+              :loading="incrementingBadge"
             >
-              Disable
+              Increment Badge
             </v-btn>
+            <v-snackbar
+              v-model="showSnackbar"
+              :color="snackbarColor"
+              :timeout="3000"
+            >
+              {{ snackbarMessage }}
+            </v-snackbar>
           </div>
 
           <div v-else-if="status === 'error'" class="d-flex flex-column">
@@ -126,13 +154,13 @@ const PushNotificationSettings = {
       errorMessage: '',
       isSupported: true,
       isSecure: true,
-      vapidKey: null // Pre-fetched VAPID key
+      vapidKey: null, // Pre-fetched VAPID key
+      sendingNotification: false,
+      incrementingBadge: false,
+      showSnackbar: false,
+      snackbarMessage: '',
+      snackbarColor: 'success'
     };
-  },
-  mounted: function() {
-    this.checkSupport();
-    this.fetchVapidKey();
-    this.updateSubscriptionStatus();
   },
   methods: {
     checkSupport: function() {
@@ -262,7 +290,89 @@ const PushNotificationSettings = {
         this.status = 'error';
         this.errorMessage = 'Failed to disable notifications.';
       }
+    },
+    async sendTestNotification() {
+      this.sendingNotification = true;
+      try {
+        const response = await fetch('/api/push-notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: 'Test Notification',
+            body: 'This is a test push notification from baseweb!',
+            url: window.location.origin
+          }),
+          credentials: 'include'
+        });
+
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Failed to send notification');
+        }
+
+        const result = await response.json();
+        this.showSnackbar = true;
+        this.snackbarMessage = `Notification sent to ${result.sent} device(s)`;
+        this.snackbarColor = 'success';
+      } catch (e) {
+        console.error('Send notification error:', e);
+        this.showSnackbar = true;
+        this.snackbarMessage = e.message || 'Failed to send notification';
+        this.snackbarColor = 'error';
+      } finally {
+        this.sendingNotification = false;
+      }
+    },
+    async incrementBadge() {
+      this.incrementingBadge = true;
+      try {
+        // Check if Badging API is supported
+        if ('setAppBadge' in navigator) {
+          // Get current badge count from service worker
+          const registration = await navigator.serviceWorker.ready;
+          const currentBadge = await this.getCurrentBadgeCount();
+
+          // Increment and set
+          await navigator.setAppBadge(currentBadge + 1);
+
+          this.showSnackbar = true;
+          this.snackbarMessage = 'Badge count incremented';
+          this.snackbarColor = 'success';
+        } else {
+          this.showSnackbar = true;
+          this.snackbarMessage = 'Badge API not supported on this device';
+          this.snackbarColor = 'warning';
+        }
+      } catch (e) {
+        console.error('Badge increment error:', e);
+        this.showSnackbar = true;
+        this.snackbarMessage = 'Failed to increment badge';
+        this.snackbarColor = 'error';
+      } finally {
+        this.incrementingBadge = false;
+      }
+    },
+    async getCurrentBadgeCount() {
+      // Try to get badge count from service worker or default to 0
+      // Note: The Badging API doesn't provide a way to read current badge count
+      // We track it in localStorage for this demo
+      const count = parseInt(localStorage.getItem('badgeCount') || '0', 10);
+      return count;
     }
+  },
+  mounted: function() {
+    // Initialize badge count in localStorage if not present
+    if (!localStorage.getItem('badgeCount')) {
+      localStorage.setItem('badgeCount', '0');
+    }
+    this.checkSupport();
+    this.fetchVapidKey();
+    this.updateSubscriptionStatus();
   }
 };
 

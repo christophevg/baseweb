@@ -34,14 +34,14 @@ from urllib.parse import urlparse
 from quart import request
 
 from baseweb import Resource
-from baseweb.vapid import get_public_key, get_vapid_claims, is_configured
+from baseweb.vapid import get_private_key_pem, get_public_key, get_vapid_claims, is_configured
 
 logger = logging.getLogger("gunicorn.error")
 
-logger.info("*"*40)
-logger.info("*"*40)
-logger.info("*"*40)
-logger.info("*"*40)
+logger.info("*" * 40)
+logger.info("*" * 40)
+logger.info("*" * 40)
+logger.info("*" * 40)
 
 # Rate limiting configuration
 RATE_LIMITS = {
@@ -1184,10 +1184,10 @@ async def send_push_notification(
     # Get VAPID claims
     vapid_claims = get_vapid_claims(subscription.endpoint)
 
-    # Get VAPID private key from environment
-    vapid_private_key = os.environ.get("VAPID_PRIVATE_KEY")
+    # Get VAPID private key
+    vapid_private_key = get_private_key_pem()
     if not vapid_private_key:
-      raise PushNotificationError("VAPID_PRIVATE_KEY not configured")
+      raise PushNotificationError("VAPID keys not configured")
 
     # Send notification
     response = await webpush_async(

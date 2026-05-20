@@ -258,9 +258,9 @@ def _init_vapid():
       # Clean up the key (remove extra quotes/whitespace from .env)
       key_content = private_key_pem.strip().strip('"').strip("'")
       _vapid_instance = Vapid01.from_pem(key_content.encode())
-      logger.info("✓ VAPID keys loaded successfully from environment")
+      logger.info("VAPID keys loaded successfully from environment")
     except Exception as e:
-      logger.error(f"✗ Failed to load VAPID key: {e}")
+      logger.error(f"Failed to load VAPID key: {e}")
       logger.warning("Falling back to temporary keys...")
       _vapid_instance = Vapid01()
       _vapid_instance.generate_keys()
@@ -274,9 +274,9 @@ def _init_vapid():
   if _vapid_instance:
     try:
       _public_key_cache = get_public_key()
-      logger.info(f"✓ VAPID Public Key: {_public_key_cache}")
+      logger.info(f"VAPID Public Key: {_public_key_cache}")
     except Exception as e:
-      logger.error(f"✗ Failed to generate public key: {e}")
+      logger.error(f"Failed to generate public key: {e}")
 
 
 # Initialize at module import

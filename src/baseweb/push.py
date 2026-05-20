@@ -1194,13 +1194,19 @@ async def send_push_notification(
     if vapid_instance is None:
       raise PushNotificationError("VAPID keys not configured")
 
-    # Send notification
+    # Log for debugging
+    logger.info(f"VAPID claims: {vapid_claims}")
+    logger.info(f"Vapid01 instance: {type(vapid_instance)}")
+    logger.info(f"Vapid01 has private_key: {hasattr(vapid_instance, 'private_key')}")
+
+    # Send notification with Vapid01 instance (pywebpush handles signing)
     response = await webpush_async(
       subscription_info=subscription.to_webpush_format(),
       data=json.dumps(payload.to_dict()),
       vapid_private_key=vapid_instance,
       vapid_claims=vapid_claims,
       ttl=payload.ttl,
+      verbose=True,  # Enable verbose logging
     )
 
     # Check response

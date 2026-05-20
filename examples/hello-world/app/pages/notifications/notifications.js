@@ -200,6 +200,17 @@ const PushNotificationSettings = {
         }
         const data = await response.json();
         this.vapidKey = data.public_key;
+
+        // Store VAPID key for comparison (detects key changes)
+        const storedVapidKey = localStorage.getItem('vapidKey');
+        if (storedVapidKey && storedVapidKey !== this.vapidKey) {
+          // VAPID key changed on server - need to re-subscribe
+          console.log('VAPID key changed, will need to re-subscribe');
+          this.status = 'unsubscribed';
+          // Clear old subscription from browser
+          await this.clearOldSubscription();
+        }
+
         this.status = 'unsubscribed'; // Ready for subscription
       } catch (e) {
         console.error('Failed to fetch VAPID key:', e);
@@ -207,15 +218,77 @@ const PushNotificationSettings = {
         this.errorMessage = 'Could not load notification settings. Please try again later.';
       }
     },
+    async clearOldSubscription() {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          // Unsubscribe from push service
+          await subscription.unsubscribe();
+          console.log('Cleared old subscription (VAPID key changed)');
+        }
+        // Clear local badge count
+        localStorage.setItem('badgeCount', '0');
+      } catch (e) {
+        console.error('Error clearing old subscription:', e);
+      }
+    },
     async updateSubscriptionStatus() {
       try {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
-          this.status = 'subscribed';
+          // Subscription exists in browser - sync with server
+          const syncResult = await this.syncSubscriptionWithServer(subscription);
+          if (syncResult === 'valid') {
+            this.status = 'subscribed';
+          } else if (syncResult === 'vapid_mismatch') {
+            // Server's VAPID key doesn't match - need to re-subscribe
+            console.log('VAPID key mismatch, re-subscribing...');
+            await subscription.unsubscribe();
+            this.status = 'unsubscribed';
+          } else {
+            // Sync failed - show as unsubscribed, let user re-enable
+            this.status = 'unsubscribed';
+          }
         }
       } catch (e) {
         console.error('Failed to get subscription status:', e);
+      }
+    },
+    async syncSubscriptionWithServer(subscription) {
+      try {
+        // Try to sync subscription with server (server may have restarted)
+        const syncPayload = {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: arrayBufferToBase64Url(subscription.getKey('p256dh')),
+            auth: arrayBufferToBase64Url(subscription.getKey('auth'))
+          }
+        };
+
+        const response = await fetch('/api/push-subscriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(syncPayload),
+          credentials: 'include'
+        });
+
+        if (response.status === 201 || response.status === 200 || response.status === 409) {
+          // Sync successful - subscription is valid
+          localStorage.setItem('vapidKey', this.vapidKey);
+          return 'valid';
+        } else if (response.status === 400) {
+          // Check if it's a VAPID mismatch error
+          const error = await response.json();
+          if (error.detail && error.detail.includes('VAPID')) {
+            return 'vapid_mismatch';
+          }
+        }
+        return 'unknown';
+      } catch (e) {
+        console.error('Failed to sync subscription with server:', e);
+        return 'error';
       }
     },
     async subscribe() {
@@ -266,6 +339,8 @@ const PushNotificationSettings = {
         if (syncResponse.status === 401) { window.location.href = '/login'; return; }
         if (syncResponse.status === 201 || syncResponse.status === 200 || syncResponse.status === 409) {
           this.status = 'subscribed';
+          // Store VAPID key for comparison
+          localStorage.setItem('vapidKey', this.vapidKey);
           if (window.notifySuccess) window.notifySuccess('Notifications enabled!');
         } else {
           throw new Error('Failed to register subscription with server.');
@@ -290,6 +365,13 @@ const PushNotificationSettings = {
           });
           if (unsubResponse.status === 401) { window.location.href = '/login'; return; }
           await subscription.unsubscribe();
+        }
+        // Clear stored VAPID key and badge count
+        localStorage.removeItem('vapidKey');
+        localStorage.setItem('badgeCount', '0');
+        // Clear app badge
+        if ('clearAppBadge' in navigator) {
+          await navigator.clearAppBadge().catch(() => {});
         }
         this.status = 'unsubscribed';
         if (window.notifySuccess) window.notifySuccess('Notifications disabled.');
@@ -397,8 +479,10 @@ const PushNotificationSettings = {
       localStorage.setItem('badgeCount', '0');
     }
     this.checkSupport();
-    this.fetchVapidKey();
-    this.updateSubscriptionStatus();
+    this.fetchVapidKey().then(() => {
+      // After fetching VAPID key, check if we have an existing subscription
+      this.updateSubscriptionStatus();
+    });
   }
 };
 

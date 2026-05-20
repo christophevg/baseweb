@@ -120,8 +120,16 @@ const PushNotificationSettings = {
               prepend-icon="mdi-numeric"
               @click="incrementBadge"
               :loading="incrementingBadge"
+              class="mr-2"
             >
               Increment Badge
+            </v-btn>
+            <v-btn
+              variant="text"
+              prepend-icon="mdi-notification-clear-all"
+              @click="clearBadge"
+            >
+              Clear Badge
             </v-btn>
             <v-snackbar
               v-model="showSnackbar"
@@ -333,15 +341,16 @@ const PushNotificationSettings = {
       try {
         // Check if Badging API is supported
         if ('setAppBadge' in navigator) {
-          // Get current badge count from service worker
-          const registration = await navigator.serviceWorker.ready;
+          // Get current badge count from localStorage
           const currentBadge = await this.getCurrentBadgeCount();
+          const newBadge = currentBadge + 1;
 
-          // Increment and set
-          await navigator.setAppBadge(currentBadge + 1);
+          // Set badge and save to localStorage
+          await navigator.setAppBadge(newBadge);
+          localStorage.setItem('badgeCount', String(newBadge));
 
           this.showSnackbar = true;
-          this.snackbarMessage = 'Badge count incremented';
+          this.snackbarMessage = `Badge count: ${newBadge}`;
           this.snackbarColor = 'success';
         } else {
           this.showSnackbar = true;
@@ -363,6 +372,23 @@ const PushNotificationSettings = {
       // We track it in localStorage for this demo
       const count = parseInt(localStorage.getItem('badgeCount') || '0', 10);
       return count;
+    },
+    async clearBadge() {
+      try {
+        if ('clearAppBadge' in navigator) {
+          await navigator.clearAppBadge();
+          localStorage.setItem('badgeCount', '0');
+          this.showSnackbar = true;
+          this.snackbarMessage = 'Badge cleared';
+          this.snackbarColor = 'success';
+        } else {
+          this.showSnackbar = true;
+          this.snackbarMessage = 'Badge API not supported';
+          this.snackbarColor = 'warning';
+        }
+      } catch (e) {
+        console.error('Clear badge error:', e);
+      }
     }
   },
   mounted: function() {

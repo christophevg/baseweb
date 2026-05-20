@@ -133,10 +133,16 @@ self.addEventListener('push', (event) => {
       }
     });
 
-    // Increment badge count if Badging API is supported
-    const badgePromise = 'setAppBadge' in navigator
-      ? navigator.setAppBadge().catch(() => {})
-      : Promise.resolve();
+    // Get current badge count from clients and increment
+    const badgePromise = self.registration.getNotifications()
+      .then(notifications => {
+        // Set badge to number of notifications + 1 (for this new one)
+        const count = notifications.length + 1;
+        if ('setAppBadge' in navigator) {
+          return navigator.setAppBadge(count);
+        }
+      })
+      .catch(() => {});
 
     event.waitUntil(
       Promise.all([

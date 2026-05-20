@@ -5,6 +5,7 @@ const STATIC_ASSETS = [
   // Core JS files
   '/static/js/app.js',
   '/static/js/store.js',
+  '/static/js/store-push.js',
   '/static/js/router.js',
   '/static/js/common.js',
   '/static/js/socketio.js',

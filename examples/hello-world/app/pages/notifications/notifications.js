@@ -2,28 +2,8 @@
  * PushNotificationSettings - Component for managing push notification subscriptions.
  *
  * This is a page component for the hello-world example.
+ * Uses Vuex store for state management to avoid redundant API calls.
  */
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-function arrayBufferToBase64Url(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return window.btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
 
 const PushNotificationSettings = {
   navigation: {
@@ -79,14 +59,10 @@ const PushNotificationSettings = {
               color="primary"
               prepend-icon="mdi-bell-outline"
               @click="subscribe"
+              :loading="subscribing"
             >
               Enable
             </v-btn>
-          </div>
-
-          <div v-else-if="status === 'subscribing'" class="d-flex align-center">
-            <v-progress-circular indeterminate color="primary" size="24" class="mr-3"></v-progress-circular>
-            <span class="text-body-1">Subscribing...</span>
           </div>
 
           <div v-else-if="status === 'subscribed'">
@@ -100,6 +76,7 @@ const PushNotificationSettings = {
                 color="error"
                 prepend-icon="mdi-bell-off"
                 @click="unsubscribe"
+                :loading="unsubscribing"
               >
                 Disable
               </v-btn>
@@ -179,18 +156,30 @@ const PushNotificationSettings = {
   `,
   data: function() {
     return {
-      status: 'checking', // Start with 'checking' while we fetch the key
-      errorMessage: '',
-      isSupported: true,
-      isSecure: true,
-      isStandalone: false, // True when running as installed PWA
-      vapidKey: null, // Pre-fetched VAPID key
+      // Local UI state
+      subscribing: false,
+      unsubscribing: false,
       sendingNotification: false,
       incrementingBadge: false,
       showSnackbar: false,
       snackbarMessage: '',
-      snackbarColor: 'success'
+      snackbarColor: 'success',
+      isStandalone: false,
+      isSupported: true,
+      isSecure: true
     };
+  },
+  computed: {
+    // Get state from Vuex store
+    status: function() {
+      return this.$store.state.push.subscriptionStatus;
+    },
+    errorMessage: function() {
+      return this.$store.state.push.subscriptionError;
+    },
+    vapidKey: function() {
+      return this.$store.state.push.vapidKey;
+    }
   },
   methods: {
     checkSupport: function() {
@@ -204,8 +193,6 @@ const PushNotificationSettings = {
       // Push API requires HTTPS (or localhost)
       if (!isSecure) {
         this.isSupported = false;
-        this.status = 'error';
-        this.errorMessage = 'Push notifications require HTTPS or localhost.';
         return;
       }
 
@@ -215,193 +202,26 @@ const PushNotificationSettings = {
         this.isSupported = false;
       }
     },
-    async fetchVapidKey() {
-      try {
-        const response = await fetch('/api/vapid-public-key', { credentials: 'include' });
-        if (!response.ok) {
-          throw new Error('Failed to fetch VAPID key');
-        }
-        const data = await response.json();
-        this.vapidKey = data.public_key;
-
-        // Store VAPID key for comparison (detects key changes)
-        const storedVapidKey = localStorage.getItem('vapidKey');
-        if (storedVapidKey && storedVapidKey !== this.vapidKey) {
-          // VAPID key changed on server - need to re-subscribe
-          console.log('VAPID key changed, will need to re-subscribe');
-          this.status = 'unsubscribed';
-          // Clear old subscription from browser
-          await this.clearOldSubscription();
-        }
-
-        this.status = 'unsubscribed'; // Ready for subscription
-      } catch (e) {
-        console.error('Failed to fetch VAPID key:', e);
-        this.status = 'error';
-        this.errorMessage = 'Could not load notification settings. Please try again later.';
-      }
-    },
-    async clearOldSubscription() {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          // Unsubscribe from push service
-          await subscription.unsubscribe();
-          console.log('Cleared old subscription (VAPID key changed)');
-        }
-        // Clear local badge count
-        localStorage.setItem('badgeCount', '0');
-      } catch (e) {
-        console.error('Error clearing old subscription:', e);
-      }
-    },
-    async updateSubscriptionStatus() {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          // Subscription exists in browser - sync with server
-          const syncResult = await this.syncSubscriptionWithServer(subscription);
-          if (syncResult === 'valid') {
-            this.status = 'subscribed';
-          } else if (syncResult === 'vapid_mismatch') {
-            // Server's VAPID key doesn't match - need to re-subscribe
-            console.log('VAPID key mismatch, re-subscribing...');
-            await subscription.unsubscribe();
-            this.status = 'unsubscribed';
-          } else {
-            // Sync failed - show as unsubscribed, let user re-enable
-            this.status = 'unsubscribed';
-          }
-        }
-      } catch (e) {
-        console.error('Failed to get subscription status:', e);
-      }
-    },
-    async syncSubscriptionWithServer(subscription) {
-      try {
-        // Try to sync subscription with server (server may have restarted)
-        const syncPayload = {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: arrayBufferToBase64Url(subscription.getKey('p256dh')),
-            auth: arrayBufferToBase64Url(subscription.getKey('auth'))
-          }
-        };
-
-        const response = await fetch('/api/push-subscriptions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(syncPayload),
-          credentials: 'include'
-        });
-
-        if (response.status === 201 || response.status === 200 || response.status === 409) {
-          // Sync successful - subscription is valid
-          localStorage.setItem('vapidKey', this.vapidKey);
-          return 'valid';
-        } else if (response.status === 400) {
-          // Check if it's a VAPID mismatch error
-          const error = await response.json();
-          if (error.detail && error.detail.includes('VAPID')) {
-            return 'vapid_mismatch';
-          }
-        }
-        return 'unknown';
-      } catch (e) {
-        console.error('Failed to sync subscription with server:', e);
-        return 'error';
-      }
-    },
     async subscribe() {
-      // Check if we have the VAPID key
-      if (!this.vapidKey) {
-        this.status = 'error';
-        this.errorMessage = 'Notification settings not loaded. Please refresh the page.';
-        return;
-      }
+      this.subscribing = true;
+      const result = await this.$store.dispatch('push/subscribe');
+      this.subscribing = false;
 
-      this.status = 'subscribing';
-      this.errorMessage = '';
-
-      try {
-        // Request permission FIRST (this is the user gesture)
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          this.status = 'error';
-          this.errorMessage = 'Notification permission denied.';
-          return;
-        }
-
-        // Subscribe IMMEDIATELY after permission (still in user gesture context)
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(this.vapidKey)
-        });
-
-        if (!subscription || !subscription.endpoint) {
-          throw new Error('Browser returned empty subscription endpoint. This usually means the VAPID key was rejected by Apple\'s push service.');
-        }
-
-        const syncPayload = {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: arrayBufferToBase64Url(subscription.getKey('p256dh')),
-            auth: arrayBufferToBase64Url(subscription.getKey('auth'))
-          }
-        };
-
-        const syncResponse = await fetch('/api/push-subscriptions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(syncPayload),
-          credentials: 'include'
-        });
-        if (syncResponse.status === 401) { window.location.href = '/login'; return; }
-        if (syncResponse.status === 201 || syncResponse.status === 200 || syncResponse.status === 409) {
-          this.status = 'subscribed';
-          // Store VAPID key for comparison
-          localStorage.setItem('vapidKey', this.vapidKey);
-          if (window.notifySuccess) window.notifySuccess('Notifications enabled!');
-        } else {
-          throw new Error('Failed to register subscription with server.');
-        }
-      } catch (e) {
-        console.error('Subscription error:', e);
-        this.status = 'error';
-        this.errorMessage = e.message || 'An unexpected error occurred.';
+      if (result === 'subscribed') {
+        this.showSnackbar = true;
+        this.snackbarMessage = 'Notifications enabled!';
+        this.snackbarColor = 'success';
       }
     },
     async unsubscribe() {
-      this.status = 'subscribing';
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          const unsubResponse = await fetch('/api/push-subscriptions', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint: subscription.endpoint }),
-            credentials: 'include'
-          });
-          if (unsubResponse.status === 401) { window.location.href = '/login'; return; }
-          await subscription.unsubscribe();
-        }
-        // Clear stored VAPID key and badge count
-        localStorage.removeItem('vapidKey');
-        localStorage.setItem('badgeCount', '0');
-        // Clear app badge
-        if ('clearAppBadge' in navigator) {
-          await navigator.clearAppBadge().catch(() => {});
-        }
-        this.status = 'unsubscribed';
-        if (window.notifySuccess) window.notifySuccess('Notifications disabled.');
-      } catch (e) {
-        console.error('Unsubscribe error:', e);
-        this.status = 'error';
-        this.errorMessage = 'Failed to disable notifications.';
+      this.unsubscribing = true;
+      const result = await this.$store.dispatch('push/unsubscribe');
+      this.unsubscribing = false;
+
+      if (result === 'unsubscribed') {
+        this.showSnackbar = true;
+        this.snackbarMessage = 'Notifications disabled.';
+        this.snackbarColor = 'success';
       }
     },
     async sendTestNotification() {
@@ -430,7 +250,7 @@ const PushNotificationSettings = {
 
         const result = await response.json();
         this.showSnackbar = true;
-        this.snackbarMessage = `Notification sent to ${result.sent} device(s)`;
+        this.snackbarMessage = 'Notification sent to ' + result.sent + ' device(s)';
         this.snackbarColor = 'success';
       } catch (e) {
         console.error('Send notification error:', e);
@@ -444,18 +264,15 @@ const PushNotificationSettings = {
     async incrementBadge() {
       this.incrementingBadge = true;
       try {
-        // Check if Badging API is supported
         if ('setAppBadge' in navigator) {
-          // Get current badge count from localStorage
-          const currentBadge = await this.getCurrentBadgeCount();
+          const currentBadge = parseInt(localStorage.getItem('badgeCount') || '0', 10);
           const newBadge = currentBadge + 1;
 
-          // Set badge and save to localStorage
           await navigator.setAppBadge(newBadge);
           localStorage.setItem('badgeCount', String(newBadge));
 
           this.showSnackbar = true;
-          this.snackbarMessage = `Badge count: ${newBadge}`;
+          this.snackbarMessage = 'Badge count: ' + newBadge;
           this.snackbarColor = 'success';
         } else {
           this.showSnackbar = true;
@@ -470,13 +287,6 @@ const PushNotificationSettings = {
       } finally {
         this.incrementingBadge = false;
       }
-    },
-    async getCurrentBadgeCount() {
-      // Try to get badge count from service worker or default to 0
-      // Note: The Badging API doesn't provide a way to read current badge count
-      // We track it in localStorage for this demo
-      const count = parseInt(localStorage.getItem('badgeCount') || '0', 10);
-      return count;
     },
     async clearBadge() {
       try {
@@ -496,20 +306,24 @@ const PushNotificationSettings = {
       }
     },
     reloadApp() {
-      // Force reload from server (bypass cache)
       window.location.reload();
     }
   },
-  mounted: function() {
-    // Initialize badge count in localStorage if not present
+  mounted: async function() {
+    this.checkSupport();
+
+    // Initialize badge count from localStorage
     if (!localStorage.getItem('badgeCount')) {
       localStorage.setItem('badgeCount', '0');
     }
-    this.checkSupport();
-    this.fetchVapidKey().then(() => {
-      // After fetching VAPID key, check if we have an existing subscription
-      this.updateSubscriptionStatus();
-    });
+
+    // Fetch VAPID key (only once per session, cached in store)
+    await this.$store.dispatch('push/fetchVapidKey');
+
+    // Check subscription status (only once per session)
+    if (this.isSupported && this.isSecure) {
+      await this.$store.dispatch('push/checkSubscription');
+    }
   }
 };
 

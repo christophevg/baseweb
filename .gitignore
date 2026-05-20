@@ -12,3 +12,4 @@ docs/_build
 baseweb-demo
 .DS_Store
 .env
+local/

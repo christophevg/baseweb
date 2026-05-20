@@ -108,3 +108,51 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// Handle push event
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const payload = event.data.json();
+    const title = payload.title || 'New Notification';
+    const options = {
+      body: payload.body || 'You have a new update.',
+      data: { url: payload.url }
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  } catch (e) {
+    console.error('Error handling push event:', e);
+  }
+});
+
+// Handle notification click event
+self.addEventListener('notificationclick', (event) => {
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      const urlToOpen = event.notification.data?.url;
+
+      // Security check: Validate URL starts with https://
+      if (urlToOpen && urlToOpen.startsWith('https://')) {
+        // If a window is already open, focus it and navigate
+        for (const client of clientList) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Otherwise open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      } else {
+        // Fallback to app root if URL is invalid or missing
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      }
+    })
+  );
+});

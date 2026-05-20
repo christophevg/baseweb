@@ -34,9 +34,14 @@ from urllib.parse import urlparse
 from quart import request
 
 from baseweb import Resource
-from baseweb.vapid import VAPIDKeyError, get_vapid_manager
+from baseweb.vapid import get_public_key, get_vapid_claims, is_configured
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("gunicorn.error")
+
+logger.info("*"*40)
+logger.info("*"*40)
+logger.info("*"*40)
+logger.info("*"*40)
 
 # Rate limiting configuration
 RATE_LIMITS = {
@@ -702,9 +707,7 @@ class VAPIDPublicKeyResource(Resource):
         JSON response with public_key field, or 503 if not configured.
     """
     try:
-      manager = await get_vapid_manager()
-
-      if not manager.is_configured():
+      if not is_configured():
         return (
           {
             "type": "https://api.baseweb.io/errors/vapid-not-configured",
@@ -715,8 +718,8 @@ class VAPIDPublicKeyResource(Resource):
           503,
         )
 
-      public_key = manager.get_public_key()
-      subject = manager.get_subject()
+      public_key = get_public_key()
+      subject = os.environ.get("VAPID_SUBJECT", "mailto:admin@localhost")
 
       # Add caching headers
       return (
@@ -725,7 +728,7 @@ class VAPIDPublicKeyResource(Resource):
         {"Cache-Control": "public, max-age=86400"},  # Cache for 24 hours
       )
 
-    except VAPIDKeyError as e:
+    except Exception as e:
       logger.error(f"VAPID key error: {e}")
       return (
         {
@@ -761,9 +764,12 @@ class PushSubscriptionResource(Resource):
     # Check authentication (implemented by application using authenticator)
     # The security_scope parameter on add_resource handles this
 
+    logger.info("registering subscription")
+
     # Get current user ID (application must provide this)
     user_id = getattr(request, "user_id", None)
     if not user_id:
+      logger.error(f"Push subscription request missing user_id from request: {request.remote_addr}")
       return (
         {
           "type": "https://api.baseweb.io/errors/unauthorized",
@@ -777,7 +783,8 @@ class PushSubscriptionResource(Resource):
     # Parse request body
     try:
       data = await request.get_json()
-    except Exception:
+    except Exception as e:
+      logger.error(f"parsing body failed {e}")
       return (
         {
           "type": "https://api.baseweb.io/errors/invalid-json",
@@ -791,12 +798,12 @@ class PushSubscriptionResource(Resource):
     # Validate subscription data
     is_valid, error, cleaned = validate_subscription_data(data)
     if not is_valid or cleaned is None:
+      logger.error(f"Invalid subscription data: {error}. Data received: {json.dumps(data)}")
       return (
         {
           "type": "https://api.baseweb.io/errors/invalid-subscription",
           "title": "Invalid Subscription",
-          "status": 400,
-          "detail": error,
+          " la-detail": error,
         },
         400,
       )
@@ -806,6 +813,7 @@ class PushSubscriptionResource(Resource):
     # Check for duplicate
     existing = storage.get_by_endpoint(cleaned["endpoint"])
     if existing and existing.user_id == user_id:
+      logger.error("duplicate")
       return (
         {
           "type": "https://api.baseweb.io/errors/subscription-exists",
@@ -818,6 +826,7 @@ class PushSubscriptionResource(Resource):
       )
     elif existing:
       # Different user - don't reveal existence
+      logger.error("different user")
       return (
         {
           "type": "https://api.baseweb.io/errors/subscription-exists",
@@ -1172,19 +1181,19 @@ async def send_push_notification(
     # Import pywebpush
     from pywebpush import webpush_async  # type: ignore[import-untyped]
 
-    # Get VAPID manager
-    manager = await get_vapid_manager()
-    if not manager.is_configured():
-      raise PushNotificationError("VAPID keys not configured")
-
     # Get VAPID claims
-    vapid_claims = manager.get_vapid_claims(subscription.endpoint)
+    vapid_claims = get_vapid_claims(subscription.endpoint)
+
+    # Get VAPID private key from environment
+    vapid_private_key = os.environ.get("VAPID_PRIVATE_KEY")
+    if not vapid_private_key:
+      raise PushNotificationError("VAPID_PRIVATE_KEY not configured")
 
     # Send notification
     response = await webpush_async(
       subscription_info=subscription.to_webpush_format(),
       data=json.dumps(payload.to_dict()),
-      vapid_private_key=manager.get_private_key_pem(),
+      vapid_private_key=vapid_private_key,
       vapid_claims=vapid_claims,
       ttl=payload.ttl,
     )

@@ -34,27 +34,8 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 5: Post-modernization Further Feature Development
 
-### Phase 6: PWA and Push Notifications
-
-- [ ] **task-6.3: Push notification frontend integration**
-  - Integrate Push API with Service Worker
-  - Integrate Notifications API
-  - Implement permission prompt triggered by user action
-  - Handle push events in Service Worker
-  - **iOS-Specific Requirements**:
-    - Permission prompt must be triggered by direct user action (button click)
-    - Must only prompt when running in standalone mode (installed PWA)
-    - Standard Safari tabs cannot receive push notifications
-    - Third-party browsers (Chrome/Firefox on iOS) cannot receive push notifications
-  - **Satisfies**: R81, R82, R84
-  - **Acceptance**:
-    - User clicks "Subscribe" button in standalone PWA → permission prompt appears
-    - User grants permission → push subscription created
-    - Push notification received → displays as system notification
-    - Does NOT work in standard Safari tabs or non-Safari iOS browsers
-  - **Requires**: task-6.2
-
-- [ ] **task-6.4: PWA and push notifications documentation**
+### Phase 6: PWA and Push Notifications	
+86	- [ ] **task-6.4: PWA and push notifications documentation**
   - Document iOS Safari PWA installation workflow
   - Document push notification setup for developers
   - Document user-facing permission flow
@@ -151,6 +132,20 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 ## Done
 
 ### Phase 6: PWA and Push Notifications
+
+- [x] **task-6.3: Push notification frontend integration** (2026-05-20)
+  - Implemented notification UI component (PushNotificationSettings.js)
+  - Added standalone PWA mode detection for iOS Safari
+  - Added HTTPS/localhost security check for Push API
+  - Pre-fetched VAPID key on page load for Safari user gesture requirement
+  - Implemented subscribe/unsubscribe flow with permission handling
+  - Synced subscription state with backend via POST/DELETE endpoints
+  - Added iOS-specific guidance for non-PWA users
+  - Service Worker already handles push events (from task-6.1)
+  - Created testing documentation for ngrok + real iPhone testing
+  - Files: notifications.js, PushNotificationSettings.js, docs/push-notifications-testing.md
+  - **Satisfies**: R81, R82, R84
+  - **Note**: iOS Simulator does NOT support Web Push - must test on real device
 
 - [x] **task-6.2: Push notification backend infrastructure** (2026-05-19)
   - Implemented VAPID key generation and management (src/baseweb/vapid.py)

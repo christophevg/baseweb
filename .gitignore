@@ -11,3 +11,4 @@ docs/_build
 *.backup
 baseweb-demo
 .DS_Store
+.env

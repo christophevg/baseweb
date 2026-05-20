@@ -13,13 +13,26 @@ from baseweb import Baseweb
 
 # Create baseweb app with custom name
 server = Baseweb(
-  "hello-world",
-  settings={
-    "main_template": "minimal.html"   # use the minimal.html template
-  }
+  "hello-world"
 )
 
 from . import pages # noqa: E402, I001
+from .pages import notifications # Ensure notifications page is registered
+from baseweb.push import register_push_resources
+from quart import request
+
+# Simple dummy authenticator for the hello-world example
+# This allows testing push notifications without a full auth system
+async def dummy_authenticator(scope, req, *args, **kwargs):
+  # Set a dummy user ID on the request object
+  req.user_id = "hello-world-user"
+  return True
+
+server.authenticator = dummy_authenticator
+
+# Register push notification resources (VAPID, subscriptions, etc.)
+register_push_resources(server)
+
 
 # ASGI entry point for uvicorn/gunicorn
 # Note: If socketio is disabled (APP_SOCKETIO=no), _asgi_app is None

@@ -122,10 +122,10 @@ This document tracks all functional and non-functional requirements for the base
 #### PWA Support Enhancement
 - [x] R79: Progressive Web App manifest enhanced for iOS compatibility (Phase 6)
 - [x] R80: Service Worker implementation for offline support (Phase 6)
-- [ ] R81: Push API integration with VAPID key support
-- [ ] R82: Notifications API integration
+- [x] R81: Push API integration with VAPID key support (Phase 6)
+- [x] R82: Notifications API integration (Phase 6)
 - [x] R83: iOS Safari standalone mode support (iOS 16.4+) (Phase 6)
-- [ ] R84: User permission prompt triggered by user action
+- [x] R84: User permission prompt triggered by user action (Phase 6)
 - [x] R85: Backend VAPID key generation and management (Phase 6)
 - [x] R86: Push subscription storage and retrieval (Phase 6)
 - [x] R87: Push notification sending functionality (Phase 6)

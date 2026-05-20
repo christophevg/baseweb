@@ -154,6 +154,27 @@ const PushNotificationSettings = {
         </div>
       </v-card-text>
     </v-card>
+
+    <!-- PWA Updates - Only show in standalone mode -->
+    <v-card v-if="isStandalone" variant="outlined" class="pa-4">
+      <v-card-title class="text-h6">App Updates</v-card-title>
+      <v-card-text>
+        <div class="d-flex align-center justify-space-between">
+          <div>
+            <div class="text-body-1">Refresh App</div>
+            <div class="text-caption">Reload the app to get the latest version.</div>
+          </div>
+          <v-btn
+            color="primary"
+            variant="outlined"
+            prepend-icon="mdi-refresh"
+            @click="reloadApp"
+          >
+            Reload
+          </v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
   </page>
   `,
   data: function() {
@@ -162,6 +183,7 @@ const PushNotificationSettings = {
       errorMessage: '',
       isSupported: true,
       isSecure: true,
+      isStandalone: false, // True when running as installed PWA
       vapidKey: null, // Pre-fetched VAPID key
       sendingNotification: false,
       incrementingBadge: false,
@@ -177,6 +199,7 @@ const PushNotificationSettings = {
       const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
       this.isSecure = isSecure;
+      this.isStandalone = isStandalone;
 
       // Push API requires HTTPS (or localhost)
       if (!isSecure) {
@@ -471,6 +494,10 @@ const PushNotificationSettings = {
       } catch (e) {
         console.error('Clear badge error:', e);
       }
+    },
+    reloadApp() {
+      // Force reload from server (bypass cache)
+      window.location.reload();
     }
   },
   mounted: function() {

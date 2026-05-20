@@ -34,7 +34,7 @@ from urllib.parse import urlparse
 from quart import request
 
 from baseweb import Resource
-from baseweb.vapid import get_private_key_pem, get_public_key, get_vapid_claims, is_configured
+from baseweb.vapid import get_public_key, get_vapid_claims, get_vapid_instance, is_configured
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -849,6 +849,7 @@ class PushSubscriptionResource(Resource):
     )
 
     storage.create(subscription)
+    logger.info(f"Created subscription {subscription.id} for user {user_id}")
 
     # Return subscription (without sensitive keys)
     return subscription.to_dict(include_keys=False), 201
@@ -1111,14 +1112,18 @@ class PushNotificationResource(Resource):
       subscriptions = []
       for uid in target_user_ids:
         subscriptions.extend(storage.get_by_user(uid))
+      logger.info(f"Sending to specific users: {target_user_ids}, found {len(subscriptions)} subscriptions")
     else:
       # Send to all active subscriptions
       subscriptions = storage.get_all_active()
+      logger.info(f"Sending to all active subscriptions: found {len(subscriptions)} total")
 
     # Filter active subscriptions
     active_subscriptions = [sub for sub in subscriptions if sub.is_active]
+    logger.info(f"Active subscriptions after filtering: {len(active_subscriptions)}")
 
     if not active_subscriptions:
+      logger.warning("No active subscriptions found for push notification")
       return {"sent": 0, "failed": 0, "message": "No active subscriptions found"}, 200
 
     # Send notifications
@@ -1184,16 +1189,16 @@ async def send_push_notification(
     # Get VAPID claims
     vapid_claims = get_vapid_claims(subscription.endpoint)
 
-    # Get VAPID private key
-    vapid_private_key = get_private_key_pem()
-    if not vapid_private_key:
+    # Get VAPID instance for signing
+    vapid_instance = get_vapid_instance()
+    if vapid_instance is None:
       raise PushNotificationError("VAPID keys not configured")
 
     # Send notification
     response = await webpush_async(
       subscription_info=subscription.to_webpush_format(),
       data=json.dumps(payload.to_dict()),
-      vapid_private_key=vapid_private_key,
+      vapid_private_key=vapid_instance,
       vapid_claims=vapid_claims,
       ttl=payload.ttl,
     )

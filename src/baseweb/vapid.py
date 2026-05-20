@@ -227,27 +227,16 @@ def is_configured() -> bool:
   return _vapid_instance is not None
 
 
-def get_private_key_pem() -> str | None:
+def get_vapid_instance():
   """
-  Get the VAPID private key as PEM string.
+  Get the VAPID instance for signing.
 
-  This is needed for signing push notifications.
+  This is needed for pywebpush which accepts a Vapid01 instance.
 
   Returns:
-      PEM-encoded private key, or None if not configured.
+      Vapid01 instance, or None if not configured.
   """
-  global _vapid_instance
-
-  if _vapid_instance is None:
-    return None
-
-  try:
-    pem = _vapid_instance.private_pem()
-    if isinstance(pem, bytes):
-      return pem.decode()
-    return pem
-  except Exception:
-    return None
+  return _vapid_instance
 
 
 def _init_vapid():

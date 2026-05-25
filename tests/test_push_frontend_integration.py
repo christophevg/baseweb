@@ -1,6 +1,7 @@
 import pytest
 
 from baseweb import Baseweb
+from baseweb.push import register_push_resources
 
 # ==============================================================================
 # Push Notification Frontend Integration Tests
@@ -13,13 +14,29 @@ from baseweb import Baseweb
 
 @pytest.fixture
 def app():
-  """Create a test Baseweb app."""
-  return Baseweb("test_push_frontend")
+  """Create a test Baseweb app with push resources registered."""
+  app = Baseweb("test_push_frontend")
+  register_push_resources(app)
+  return app
 
 
 @pytest.fixture
 def client(app):
   """Create a test client."""
+  return app.test_client()
+
+
+@pytest.fixture
+def auth_client(app):
+  """Create a test client with authentication."""
+
+  # Mock authenticator that sets user_id on request
+  def mock_authenticator(scope, request):
+    # Set user_id on request for authenticated requests
+    request.user_id = "test-user-123"
+    return True
+
+  app.authenticator = mock_authenticator
   return app.test_client()
 
 
@@ -38,7 +55,7 @@ class TestPushFrontendVAPIDKeyRetrieval:
     """
     response = await client.get("/api/vapid-public-key")
     assert response.status_code == 200
-    data = response.get_json()
+    data = await response.get_json()
     assert "public_key" in data
     assert isinstance(data["public_key"], str)
     # Check if it's a valid base64url string (roughly)
@@ -69,7 +86,7 @@ class TestPushFrontendSubscriptionSync:
   """
 
   @pytest.mark.asyncio
-  async def test_frontend_submits_valid_subscription(self, client):
+  async def test_frontend_submits_valid_subscription(self, auth_client):
     """
     Given: A valid browser push subscription object
     When: Frontend transforms keys to base64url and calls POST /api/push-subscriptions
@@ -79,11 +96,11 @@ class TestPushFrontendSubscriptionSync:
       "endpoint": "https://push.example.com/subscriptions/123",
       "keys": {"p256dh": "BMAA97hS_p-Example-Key-p256dh", "auth": "S-Example-Key-auth"},
     }
-    response = await client.post("/api/push-subscriptions", json=payload)
+    response = await auth_client.post("/api/push-subscriptions", json=payload)
     assert response.status_code in [200, 201, 409]
 
   @pytest.mark.asyncio
-  async def test_frontend_handles_duplicate_subscription_as_success(self, client):
+  async def test_frontend_handles_duplicate_subscription_as_success(self, auth_client):
     """
     Given: An existing subscription for the same endpoint
     When: Frontend calls POST /api/push-subscriptions with the same data
@@ -93,8 +110,8 @@ class TestPushFrontendSubscriptionSync:
       "endpoint": "https://push.example.com/subscriptions/duplicate",
       "keys": {"p256dh": "BMAA97hS_p-Duplicate-Key-p256dh", "auth": "S-Duplicate-Key-auth"},
     }
-    await client.post("/api/push-subscriptions", json=payload)
-    response = await client.post("/api/push-subscriptions", json=payload)
+    await auth_client.post("/api/push-subscriptions", json=payload)
+    response = await auth_client.post("/api/push-subscriptions", json=payload)
     assert response.status_code == 409
 
   @pytest.mark.asyncio
@@ -112,11 +129,11 @@ class TestPushFrontendSubscriptionSync:
     # In most test clients, this is the default.
     response = await client.post("/api/push-subscriptions", json=payload)
     assert response.status_code == 401
-    data = response.get_json()
+    data = await response.get_json()
     assert data["title"] == "Unauthorized"
 
   @pytest.mark.asyncio
-  async def test_frontend_handles_invalid_subscription_data(self, client):
+  async def test_frontend_handles_invalid_subscription_data(self, auth_client):
     """
     Given: A malformed subscription object (e.g. non-HTTPS endpoint)
     When: Frontend calls POST /api/push-subscriptions
@@ -126,7 +143,7 @@ class TestPushFrontendSubscriptionSync:
       "endpoint": "http://insecure.example.com/sub",
       "keys": {"p256dh": "invalid", "auth": "invalid"},
     }
-    response = await client.post("/api/push-subscriptions", json=payload)
+    response = await auth_client.post("/api/push-subscriptions", json=payload)
     assert response.status_code == 400
 
 

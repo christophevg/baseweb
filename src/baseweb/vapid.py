@@ -45,7 +45,7 @@ class VAPIDKeyManager:
         VAPIDKeyError: If key generation fails.
     """
     try:
-      from py_vapid import Vapid01
+      from py_vapid import Vapid01  # type: ignore[import-untyped]
     except ImportError:
       logger.warning("py-vapid not installed, VAPID features disabled")
       return
@@ -117,7 +117,7 @@ class VAPIDKeyManager:
       pem = self._vapid.private_pem()
       if isinstance(pem, bytes):
         return pem.decode()
-      return pem
+      return str(pem)
     except Exception:
       return None
 
@@ -130,7 +130,7 @@ class VAPIDKeyManager:
     """
     return self._subject or "mailto:admin@localhost"
 
-  def get_vapid_claims(self, push_service_url: str = None) -> dict:
+  def get_vapid_claims(self, push_service_url: str | None = None) -> dict:
     """
     Generate VAPID claims for signing.
 

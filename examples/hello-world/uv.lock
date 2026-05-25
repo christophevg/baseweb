@@ -206,6 +206,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "coveralls", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "dotmap" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "myst-parser", marker = "extra == 'docs'", specifier = ">=2.0.0" },

@@ -1,11 +1,12 @@
 # baseweb
 
-[![PyPI](https://img.shields.io/pypi/v/baseweb.svg)](https://pypi.org/project/baseweb/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/baseweb.svg)](https://pypistats.org/packages/baseweb)
-[![Python](https://img.shields.io/pypi/pyversions/baseweb.svg)](https://pypi.org/project/baseweb/)
-![CI](https://github.com/christophevg/baseweb/actions/workflows/test.yaml/badge.svg)
-[![Docs](https://readthedocs.org/projects/baseweb/badge/?version=latest)](https://baseweb.readthedocs.io/)
-[![Coverage](https://coveralls.io/repos/github/christophevg/baseweb/badge.svg?branch=master)](https://coveralls.io/github/christophevg/baseweb?branch=master)
+[![PyPI](https://img.shields.io/pypi/v/baseweb.svg)][pypi]
+[![Python](https://img.shields.io/pypi/pyversions/baseweb.svg)][pypi]
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)][uv]
+[![CI](https://img.shields.io/github/actions/workflow/status/christophevg/baseweb/test.yaml.svg)][ci]
+[![Coverage](https://img.shields.io/coveralls/github/christophevg/baseweb.svg)][coveralls]
+[![License](https://img.shields.io/github/license/christophevg/baseweb.svg)][license]
+[![Agentic](https://img.shields.io/badge/workflow-agentic-blueviolet?style=flat-square)](https://christophe.vg/about/Agentic-Workflow)
 
 > A Pythonic base for building interactive web applications
 
@@ -197,3 +198,9 @@ See [CHANGELOG.md](CHANGELOG.md) for version history. For released versions, see
 ## License
 
 [MIT](LICENSE)
+
+[pypi]: https://pypi.org/project/baseweb/
+[uv]: https://docs.astral.sh/uv/
+[ci]: https://github.com/christophevg/baseweb/actions
+[coveralls]: https://coveralls.io/github/christophevg/baseweb
+[license]: https://github.com/christophevg/baseweb/blob/main/LICENSE

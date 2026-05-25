@@ -1,112 +1,98 @@
 -include ~/.claude/Makefile
 
-.PHONY: install sync test test-all pytest coverage \
-        typecheck lint format format-check check \
-        build publish publish-test dist dist-clean \
-        clean clean-all run docs help
+.PHONY: env-dev env-run install-pythons test test-cov test-all format lint typecheck check run docs docs-view build pre-publish publish publish-test clean clean-all help
 
-# colors
+## Environment
 
-GREEN=\033[0;32m
-RED=\033[0;31m
-BLUE=\033[0;34m
-NC=\033[0m
+env-dev: ## Install all dependencies (dev + docs)
+	uv sync --all-extras
 
-## environment management
-
-env-dev:
-	uv sync --extra dev
-
-env-run:
+env-run: ## Install runtime dependencies only
 	uv sync
+
+install-pythons: ## Install Python 3.10, 3.11, 3.12
+	uv python install 3.10 3.11 3.12
 
 ## Testing
 
-### Run all tests with linting and formatting checks
-test: env-dev format-check lint pytest
+test: env-dev ## Run tests (usage: make test / optional: TEST=file|file:test_name)
+	uv run pytest -v $(TEST)
 
-### Run tests against all supported Python versions
-test-all: env-dev(3.10, 3.11, 3.12)
+test-cov: env-dev ## Run tests with coverage
+	uv run pytest --cov=src --cov-report=term-missing $(TEST)
+
+test-all: env-dev ## Run tests on all Python versions
 	uv run tox
-
-### Run tests with pytest
-pytest: env-dev
-	@echo "👷‍♂️ $(BLUE)running tests$(NC)"
-	@uv run pytest -v
-
-### Run tests with coverage reporting
-coverage: env-dev
-	@echo "👷‍♂️ $(BLUE)running tests with coverage$(NC)"
-	@uv run pytest --cov=src --cov-report=term --cov-report=html --cov-report=lcov
 
 ## Code Quality
 
-typecheck: env-dev ## Run mypy type checking
-	@echo "👷‍♂️ $(BLUE)running type checking$(NC)"
-	@uv run mypy src
+format: env-dev ## Format code and fix linting issues
+	uv run ruff format src tests
+	uv run ruff check --fix src tests
 
-lint: env-dev ## Run ruff linting
-	@echo "👷‍♂️ $(BLUE)running linter$(NC)"
-	@uv run ruff check src tests
+lint: env-dev ## Check code for linting issues
+	uv run ruff check src tests
 
-format: env-dev  ## Format code with ruff
-	@echo "👷‍♂️ $(BLUE)formatting$(NC)"
-	@uv run ruff format src tests
-	@uv run ruff check --fix src tests
+typecheck: env-dev ## Run type checking
+	uv run mypy src
 
-format-check: env-dev ## Check formatting without making changes
-	@echo "👷‍♂️ $(BLUE)checking formatting$(NC)"
-	@uv run ruff format --check src tests
+check: format lint typecheck test ## Run all quality checks
 
-check: lint typecheck pytest ## Run all checks (lint, typecheck, test)
+## Running
+
+run: env-run ## Run the example hello-world app
+	cd examples/hello-world && uv run gunicorn -k uvicorn.workers.UvicornWorker app:asgi_app --reload
+
+## Documentation
+
+docs: env-dev ## Build HTML documentation
+	cd docs && uv run sphinx-build -M html . _build
+
+docs-view: docs ## Build and open documentation
+	open docs/_build/html/index.html
 
 ## Build & Publish
 
-build: dist ## Build package distributions
-
-publish: env-dev dist ## Build and publish to PyPI (requires credentials)
-	@echo "👷‍♂️ $(BLUE)publishing to PyPI$(NC)"
-	uv run twine upload dist/*
-
-publish-test: env-dev dist ## Build and publish to TestPyPI (requires credentials)
-	@echo "👷‍♂️ $(BLUE)publishing to TestPyPI$(NC)"
-	uv run twine upload --repository testpypi dist/*
-
-dist: env-dev dist-clean ## Build distributions
-	@echo "👷‍♂️ $(BLUE)building distribution$(NC)"
+build: ## Build distribution packages
 	uv build
 
-dist-clean: ## Clean build artifacts
-	@rm -rf dist build *.egg-info
+pre-publish: check ## Pre-publication checks (run before publishing)
+	@echo "Checking for relative image paths in README..."
+	@grep -n '!\[.*](media/' README.md && (echo "ERROR: Relative image paths found - use raw GitHub URLs for PyPI"; exit 1) || echo "OK: No relative image paths"
+	@echo "Checking version sync..."
+	@VERSION_PY=$$(grep '^version =' pyproject.toml | cut -d'"' -f2); \
+	VERSION_INIT=$$(grep '^__version__ = ' src/baseweb/__init__.py | cut -d'"' -f2); \
+	if [ "$$VERSION_PY" != "$$VERSION_INIT" ]; then \
+		echo "ERROR: Version mismatch - pyproject.toml ($$VERSION_PY) vs __init__.py ($$VERSION_INIT)"; \
+		exit 1; \
+	fi; \
+	echo "OK: Versions match ($$VERSION_PY)"
+	@echo "Pre-publication checks passed"
+
+publish: clean build ## Publish to PyPI (runs pre-publish checks)
+	@$(MAKE) pre-publish
+	uv run twine upload dist/*
+
+publish-test: build ## Publish to TestPyPI
+	uv run twine upload --repository testpypi dist/*
 
 ## Cleanup
 
-clean: ## Remove build artifacts and cache files
-	@find . -type f -name "*.backup" -delete
-	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	@rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage coverage.lcov htmlcov
+clean: ## Remove build artifacts
+	rm -rf dist/ build/ *.egg-info .pytest_cache .coverage .mypy_cache .ruff_cache
+	rm -rf docs/_build
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
-clean-all: clean dist-clean clean-venv ## Deep clean (removes venv, build artifacts, caches)
-
-## Development
-
-run: env-run ## Run the example hello-world app
-	@echo "👷‍♂️ $(BLUE)starting hello-world example$(NC)"
-	cd examples/hello-world && uv run gunicorn -k uvicorn.workers.UvicornWorker app:asgi_app --reload
-
-docs: env-dev ## Build and open documentation
-	@echo "👷‍♂️ $(BLUE)building documentation$(NC)"
-	cd docs && uv run sphinx-build -M html . _build
-	@open docs/_build/html/index.html
+clean-all: clean ## Remove virtualenv and lock file
+	rm -rf .venv uv.lock
 
 ## Help
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | grep -v "install-pythons\|sync" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-# include optional a personal/local touch
-
+# Project-specific targets (review and remove or integrate)
 -include Makefile.mak

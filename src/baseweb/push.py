@@ -1112,7 +1112,9 @@ class PushNotificationResource(Resource):
       subscriptions = []
       for uid in target_user_ids:
         subscriptions.extend(storage.get_by_user(uid))
-      logger.info(f"Sending to specific users: {target_user_ids}, found {len(subscriptions)} subscriptions")
+      logger.info(
+        f"Sending to specific users: {target_user_ids}, found {len(subscriptions)} subscriptions"
+      )
     else:
       # Send to all active subscriptions
       subscriptions = storage.get_all_active()

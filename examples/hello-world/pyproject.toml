@@ -5,8 +5,6 @@ description = "Minimal Hello World example for baseweb"
 requires-python = ">=3.10"
 dependencies = [
   "baseweb>=0.5.0",
-  "gunicorn>=21.0.0",
-  "uvicorn[standard]>=0.24.0",
   "python-dotenv",
 ]
 

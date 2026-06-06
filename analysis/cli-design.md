@@ -1180,9 +1180,419 @@ app = Baseweb(get_config(BasewebConfig, name="baseweb"))
 
 ---
 
+## Clevis Command Integration
+
+### The Problem with Current Implementation
+
+The current `__main__.py` **incorrectly reimplements argparse** instead of using Clevis's built-in command support:
+
+```python
+# ❌ WRONG: Manual argparse implementation
+def main():
+    parser = argparse.ArgumentParser(...)
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Manual subparser creation for each command
+    init_parser = subparsers.add_parser("init", help="...")
+    init_parser.add_argument("--config", "-c", ...)
+    init_parser.add_argument("--force", "-f", ...)
+    init_parser.set_defaults(func=cmd_init)
+
+    # ... more manual parser setup ...
+
+    args = parser.parse_args()
+    if args.command is None:
+        parser.print_help()
+        sys.exit(1)
+
+    args.func(args)
+```
+
+**Why this is wrong:**
+- Clevis already provides subcommand support via `@configclass(cmd="...")`
+- Manual argument parsing duplicates work Clevis already does
+- Command dispatch should use `get_cmd()` instead of `func` callbacks
+- No benefit from Clevis's automatic CLI argument generation
+
+### How Clevis Commands Work
+
+Clevis provides a complete command system:
+
+1. **`@configclass(cmd="serve")`** - Registers a dataclass as a subcommand
+   - The `cmd` parameter tells Clevis this config is for a subcommand
+   - Optional `help` parameter for help text
+   - Optional `aliases` parameter for command shortcuts
+
+2. **Automatic CLI argument generation** - Clevis generates arguments from dataclass fields:
+   - Nested fields become dashed arguments: `--server-bind`
+   - Boolean fields use `store_true` action
+   - All commands appear automatically in `--help`
+
+3. **`get_cmd()` function** - Returns the active subcommand name
+   - Returns `None` if no subcommand was used
+   - Returns the command name or alias used
+
+4. **Command dispatch pattern** - Use conditional logic to dispatch:
+
+```python
+from clevis import configclass, get_cmd, get_config
+
+@configclass(cmd="serve", help="Run the server")
+class ServeConfig:
+    app_uri: str = "app:asgi_app"
+    gunicorn: GunicornConfig = field(default_factory=GunicornConfig)
+
+@configclass(cmd="check", help="Validate configuration", aliases=["c", "chk"])
+class CheckConfig:
+    verbose: bool = False
+
+def main():
+    cmd = get_cmd()
+
+    if cmd == "serve":
+        config = get_config(ServeConfig, name="baseweb")
+        serve(config)
+    elif cmd == "check":
+        config = get_config(CheckConfig, name="baseweb")
+        check(config)
+    # ... other commands ...
+
+if __name__ == "__main__":
+    main()
+```
+
+### Proper Pattern for Multiple Commands
+
+Each command should have its own configclass with `cmd` parameter:
+
+```python
+# src/baseweb/commands/serve.py
+from dataclasses import dataclass, field
+from clevis import configclass
+
+@configclass(cmd="serve", help="Run baseweb application")
+class ServeConfig:
+    """Configuration for serve command."""
+    # Inherit from BasewebConfig or define command-specific fields
+    app_uri: str = "app:asgi_app"
+    bind: str = "0.0.0.0:8000"
+    workers: int = 1
+    worker_class: str = "uvicorn.workers.UvicornWorker"
+    timeout: int = 120
+    keepalive: int = 5
+```
+
+```python
+# src/baseweb/commands/check.py
+from clevis import configclass
+
+@configclass(cmd="check", help="Validate configuration", aliases=["c", "chk"])
+class CheckConfig:
+    """Configuration for check command."""
+    verbose: bool = False
+```
+
+```python
+# src/baseweb/commands/config.py
+from clevis import configclass
+
+@configclass(cmd="config", help="Display current configuration", aliases=["c"])
+class ConfigConfig:
+    """Configuration for config command."""
+    format: str = "table"  # "table" or "toml"
+```
+
+```python
+# src/baseweb/commands/init.py
+from clevis import configclass
+
+@configclass(cmd="init", help="Create default configuration file")
+class InitConfig:
+    """Configuration for init command."""
+    config: str = "baseweb.toml"  # Path to config file
+    force: bool = False  # Overwrite existing
+```
+
+```python
+# src/baseweb/commands/version.py
+# Note: version command has NO configuration - it just prints version
+# Can be handled without configclass
+```
+
+### Commands That Don't Need Configuration
+
+For commands that don't need configuration (like `version`), handle them in the dispatch:
+
+```python
+def main():
+    cmd = get_cmd()
+
+    if cmd == "version":
+        # Simple command, no config needed
+        from baseweb import __version__
+        print(f"baseweb {__version__}")
+        return
+
+    # Commands with configuration
+    if cmd == "serve":
+        config = get_config(ServeConfig, name="baseweb")
+        serve(config)
+    elif cmd == "check":
+        config = get_config(CheckConfig, name="baseweb")
+        check(config)
+    # ...
+```
+
+Or use a minimal configclass for consistency:
+
+```python
+@configclass(cmd="version", help="Show version")
+class VersionConfig:
+    """Configuration for version command (no fields needed)."""
+    pass
+```
+
+### Correct `__main__.py` Structure
+
+Here's the proper implementation using Clevis commands:
+
+```python
+#!/usr/bin/env python3
+"""Baseweb CLI - Run and manage baseweb applications."""
+
+import sys
+from pathlib import Path
+
+from clevis import configclass, get_cmd, get_config
+from dataclasses import dataclass, field
+
+# Import command handlers
+from baseweb.commands.serve import ServeConfig, serve
+from baseweb.commands.check import CheckConfig, check
+from baseweb.commands.config import ConfigConfig, show_config
+from baseweb.commands.init import InitConfig, init
+
+# Import common configuration
+from baseweb.config import BasewebConfig
+
+
+@configclass(cmd="version", help="Show baseweb version")
+class VersionConfig:
+    """Version command configuration (no fields needed)."""
+    pass
+
+
+def main():
+    """Main CLI entry point."""
+    cmd = get_cmd()
+
+    # Dispatch to command handler
+    if cmd == "serve":
+        config = get_config(ServeConfig, name="baseweb")
+        serve(config)
+
+    elif cmd == "check":
+        config = get_config(CheckConfig, name="baseweb")
+        check(config)
+
+    elif cmd == "config":
+        config = get_config(ConfigConfig, name="baseweb")
+        show_config(config)
+
+    elif cmd == "init":
+        config = get_config(InitConfig, name="baseweb")
+        init(config)
+
+    elif cmd == "version":
+        # Simple command, no config needed
+        from baseweb import __version__
+        print(f"baseweb {__version__}")
+
+    else:
+        # No command or unknown command
+        # Clevis will have already shown help for --help
+        # This handles the case when called without arguments
+        if cmd is None:
+            import argparse
+            parser = argparse.ArgumentParser(description="Baseweb CLI")
+            parser.print_help()
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### Command Implementation Pattern
+
+Each command should be in its own module:
+
+```python
+# src/baseweb/commands/serve.py
+from dataclasses import dataclass, field
+from clevis import configclass
+from baseweb.config import BasewebConfig
+
+@configclass(cmd="serve", help="Run baseweb application")
+class ServeConfig:
+    """Configuration for serve command."""
+    # Override fields from BasewebConfig as needed
+    app_uri: str = "app:asgi_app"
+    bind: str = "0.0.0.0:8000"
+    workers: int = 1
+    worker_class: str = "uvicorn.workers.UvicornWorker"
+    timeout: int = 120
+    keepalive: int = 5
+
+def serve(config: ServeConfig):
+    """Run baseweb application with Gunicorn."""
+    # Import app
+    from baseweb.__main__ import import_app
+
+    try:
+        app = import_app(config.app_uri)
+    except (ImportError, AttributeError) as e:
+        print(f"Failed to import application: {e}")
+        sys.exit(1)
+
+    # Build Gunicorn options from config
+    options = {
+        "bind": config.bind,
+        "workers": config.workers,
+        "worker_class": config.worker_class,
+        "timeout": config.timeout,
+        "keepalive": config.keepalive,
+    }
+
+    # Run Gunicorn
+    from gunicorn.app.wsgiapp import WSGIApplication
+    StandaloneApplication(app, options).run()
+```
+
+### Inheriting Configuration
+
+If commands share common configuration, use dataclass composition:
+
+```python
+# src/baseweb/commands/serve.py
+from dataclasses import dataclass, field
+from clevis import configclass
+from baseweb.config import BasewebConfig, GunicornConfig
+
+@configclass(cmd="serve", help="Run baseweb application")
+class ServeConfig:
+    """Configuration for serve command."""
+    # Inherit full BasewebConfig
+    app: BasewebConfig = field(default_factory=BasewebConfig)
+
+    # Add serve-specific overrides
+    bind: str | None = None  # Override from CLI
+    workers: int | None = None  # Override from CLI
+
+def serve(config: ServeConfig):
+    """Run baseweb application."""
+    # Use app config
+    app_config = config.app
+
+    # Apply CLI overrides
+    bind = config.bind or app_config.server.bind
+    workers = config.workers or app_config.server.workers
+
+    # ...
+```
+
+### Testing Commands
+
+Testing with Clevis commands is straightforward:
+
+```python
+# tests/test_cli.py
+import tempfile
+from pathlib import Path
+from clevis import get_cmd, get_config, _reset_factories
+
+def test_serve_command():
+    """Test serve command."""
+    _reset_factories()
+
+    from baseweb.commands.serve import ServeConfig
+
+    # Simulate CLI args
+    cmd = get_cmd(args=["serve"])
+    assert cmd == "serve"
+
+    # Get config
+    config = get_config(ServeConfig, name="baseweb", args=["serve", "--bind", ":8080"])
+    assert config.bind == ":8080"
+
+def test_check_command():
+    """Test check command."""
+    _reset_factories()
+
+    from baseweb.commands.check import CheckConfig
+
+    cmd = get_cmd(args=["check"])
+    assert cmd == "check"
+
+    config = get_config(CheckConfig, name="baseweb", args=["check", "--verbose"])
+    assert config.verbose is True
+
+def test_init_command():
+    """Test init command."""
+    _reset_factories()
+
+    from baseweb.commands.init import InitConfig
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = Path(tmpdir) / "test.toml"
+
+        cmd = get_cmd(args=["init"])
+        assert cmd == "init"
+
+        config = get_config(InitConfig, name="baseweb", args=["init", "--config", str(config_path)])
+        assert config.config == str(config_path)
+```
+
+### Benefits of Clevis Command Pattern
+
+1. **Less boilerplate** - No manual argparse setup
+2. **Type-safe** - Configuration is strongly typed
+3. **Consistent** - All commands follow the same pattern
+4. **Automatic CLI help** - Generated from configclass fields
+5. **Layered configuration** - Commands support TOML + env + CLI
+6. **Testable** - Easy to test with simulated args
+7. **Extensible** - Add new commands by adding new configclasses
+
+### Migration Steps
+
+To migrate from manual argparse to Clevis commands:
+
+1. **Create command modules** - One module per command in `src/baseweb/commands/`
+2. **Define configclasses** - Add `@configclass(cmd="...")` decorator
+3. **Move command logic** - Extract from `__main__.py` to command modules
+4. **Simplify `__main__.py`** - Use `get_cmd()` dispatch instead of argparse
+5. **Update tests** - Use `_reset_factories()` and `get_config()` for testing
+6. **Remove argparse code** - Delete manual subparser setup
+
+### Summary
+
+**Do:**
+- Use `@configclass(cmd="...")` for each command
+- Use `get_cmd()` to dispatch commands
+- Use `get_config()` to load command configuration
+- Use dataclasses for command-specific configuration
+- Create separate modules for each command
+
+**Don't:**
+- Manually create argparse subparsers
+- Use `func` callbacks in argparse
+- Duplicate Clevis functionality
+- Mix argparse with Clevis commands
+
 ## References
 
 - [Clevis Documentation](https://github.com/christophevg/clevis)
+- [Clevis Examples - commands.py](https://github.com/christophevg/clevis/blob/main/examples/commands.py)
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/settings.html)
 - [TOML Specification](https://toml.io)
 - [Quart Configuration](https://pgjones.gitlab.io/quart/configuration.html)

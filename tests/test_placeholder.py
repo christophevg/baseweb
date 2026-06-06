@@ -1,6 +1,8 @@
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 
 
 def test_placeholder():
-  test = Baseweb("test")
-  assert test.name == "test"
+  config = BasewebConfig(name="test")
+  test = Baseweb(config)
+  assert test._config.name == "test"

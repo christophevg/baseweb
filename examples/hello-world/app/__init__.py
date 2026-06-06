@@ -10,11 +10,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 
 # Create baseweb app with custom name
-server = Baseweb(
-  "hello-world"
-)
+config = BasewebConfig(name="hello-world")
+server = Baseweb(config)
 
 from . import pages # noqa: E402, I001
 from .pages import notifications # Ensure notifications page is registered

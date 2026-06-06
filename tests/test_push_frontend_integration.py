@@ -1,6 +1,7 @@
 import pytest
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 from baseweb.push import register_push_resources
 
 # ==============================================================================
@@ -15,7 +16,8 @@ from baseweb.push import register_push_resources
 @pytest.fixture
 def app():
   """Create a test Baseweb app with push resources registered."""
-  app = Baseweb("test_push_frontend")
+  config = BasewebConfig(name="test_push_frontend")
+  app = Baseweb(config)
   register_push_resources(app)
   return app
 

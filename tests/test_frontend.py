@@ -8,6 +8,7 @@ integration testing where infrastructure allows.
 import pytest
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 
 # ==============================================================================
 # Test Infrastructure Verification
@@ -24,7 +25,8 @@ class TestFrontendInfrastructure:
     When: Requesting component JavaScript files
     Then: Files should be served from /static/js/components/
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       # This test verifies the infrastructure is in place
       response = await client.get("/static/js/components/Page.js")
@@ -63,7 +65,8 @@ class TestUnifiedPageComponent:
     Expected behavior: Page should render default slot content exactly like
     the current Page.js implementation (template: `<div><slot></slot></div>`).
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -82,7 +85,8 @@ class TestUnifiedPageComponent:
 
     This test verifies the component supports Vue slot syntax.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -107,7 +111,8 @@ class TestUnifiedPageComponent:
     - Alert message displays bannerState.message
     - Alert is dismissible when bannerState.dismissible is true
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -129,7 +134,8 @@ class TestUnifiedPageComponent:
     Expected behavior: bannerState computed property should return
     store.state.page.banner or default values { alert: false, ... }.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -149,7 +155,8 @@ class TestUnifiedPageComponent:
     Expected behavior: v-alert with :closable="bannerState.dismissible"
     should allow user to dismiss the banner.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -170,7 +177,8 @@ class TestUnifiedPageComponent:
     - status: Boolean, default: false
     - statusTimeout: Number, default: 5000
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -191,7 +199,8 @@ class TestUnifiedPageComponent:
     This verifies that the Page component registers its own Vuex store module
     for banner and status state management.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -210,7 +219,8 @@ class TestUnifiedPageComponent:
 
     This verifies the component supports named slots for layout flexibility.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -237,7 +247,8 @@ class TestPageComponentStructure:
 
     This verifies the component follows baseweb's component registration pattern.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -254,7 +265,8 @@ class TestPageComponentStructure:
 
     This verifies the component has a Vue template definition.
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200
@@ -275,7 +287,8 @@ class TestPageComponentStructure:
     - statusMessage: Returns status message
     - statusLevel: Returns status level (success, error, etc.)
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     async with app.test_client() as client:
       response = await client.get("/static/js/components/Page.js")
       assert response.status_code == 200

@@ -7,6 +7,7 @@ import pytest
 from quart import request
 
 from baseweb import Baseweb, Resource
+from baseweb.config import BasewebConfig
 
 # ==============================================================================
 # Resource Base Class Tests
@@ -308,7 +309,8 @@ class TestAddResource:
     When: Checking for add_resource method
     Then: Method should exist and be callable
     """
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     assert hasattr(app, "add_resource")
     assert callable(app.add_resource)
 
@@ -323,7 +325,8 @@ class TestAddResource:
       async def get(self):
         return {"items": []}
 
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     app.add_resource(ItemsResource, "/api/items")
 
     # Check that the route was registered
@@ -345,7 +348,8 @@ class TestAddResource:
       async def post(self):
         return {"created": True}, 201
 
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     app.add_resource(ItemsResource, "/api/items")
 
     # The implementation uses Resource.methods for all supported methods
@@ -362,7 +366,8 @@ class TestAddResource:
       async def get(self):
         return {"items": []}
 
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     _ = app.add_resource(ItemsResource, "/api/items")
 
     # Verify the resource has all methods defined
@@ -387,7 +392,8 @@ class TestAddResource:
       async def get(self):
         return {"count": len(instance_count)}
 
-    app = Baseweb()
+    config = BasewebConfig(name="test")
+    app = Baseweb(config)
     app.add_resource(CountingResource, "/api/count")
 
     # The handler creates a new instance per request
@@ -615,7 +621,8 @@ class TestResourceIntegration:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb()
+    config = BasewebConfig(name="test")
+    return Baseweb(config)
 
   @pytest.fixture
   def client(self, app):
@@ -824,7 +831,8 @@ class TestBackwardCompatibility:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb()
+    config = BasewebConfig(name="test")
+    return Baseweb(config)
 
   @pytest.fixture
   def client(self, app):
@@ -937,7 +945,8 @@ class TestResourceEdgeCases:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb()
+    config = BasewebConfig(name="test")
+    return Baseweb(config)
 
   @pytest.fixture
   def client(self, app):
@@ -1137,7 +1146,8 @@ class TestResourceClientIntegration:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb()
+    config = BasewebConfig(name="test")
+    return Baseweb(config)
 
   @pytest.fixture
   def client(self, app):

@@ -8,12 +8,12 @@ foundation. Tests verify:
 """
 
 import json
-import os
 
 import pytest
 from quart.testing import QuartClient
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 
 # ==============================================================================
 # Test Infrastructure
@@ -27,17 +27,10 @@ def create_pwa_app(name: str = "test") -> Baseweb:
     name: Application name
 
   Returns:
-    Baseweb instance with APP_STYLE=pwa
+    Baseweb instance configured as PWA
   """
-  original_style = os.environ.get("APP_STYLE")
-  os.environ["APP_STYLE"] = "pwa"
-  try:
-    return Baseweb(name)
-  finally:
-    if original_style is None:
-      os.environ.pop("APP_STYLE", None)
-    else:
-      os.environ["APP_STYLE"] = original_style
+  config = BasewebConfig(name=name, style="pwa")
+  return Baseweb(config)
 
 
 def create_web_app(name: str = "test") -> Baseweb:
@@ -47,17 +40,10 @@ def create_web_app(name: str = "test") -> Baseweb:
     name: Application name
 
   Returns:
-    Baseweb instance with APP_STYLE=web
+    Baseweb instance configured as web app
   """
-  original_style = os.environ.get("APP_STYLE")
-  os.environ["APP_STYLE"] = "web"
-  try:
-    return Baseweb(name)
-  finally:
-    if original_style is None:
-      os.environ.pop("APP_STYLE", None)
-    else:
-      os.environ["APP_STYLE"] = original_style
+  config = BasewebConfig(name=name, style="web")
+  return Baseweb(config)
 
 
 # ==============================================================================

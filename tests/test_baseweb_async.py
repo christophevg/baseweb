@@ -11,7 +11,6 @@ These tests verify the Flask to Quart migration:
 """
 
 import inspect
-import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -21,6 +20,7 @@ from quart import Quart
 from werkzeug.exceptions import HTTPException
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 
 # =============================================================================
 # Async Handler Tests
@@ -38,7 +38,7 @@ class TestAsyncHandlers:
     When: Inspecting the landing route handler
     Then: The handler should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # Get the view function for the landing endpoint
     landing_handler = app.view_functions.get("landing")
     assert landing_handler is not None, "Landing endpoint should exist"
@@ -52,7 +52,7 @@ class TestAsyncHandlers:
     When: Inspecting the store route handler
     Then: The handler should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     store_handler = app.view_functions.get("store")
     assert store_handler is not None, "Store endpoint should exist"
     assert inspect.iscoroutinefunction(store_handler), (
@@ -65,21 +65,13 @@ class TestAsyncHandlers:
     When: Inspecting the manifest route handler
     Then: The handler should be an async coroutine function
     """
-    # Temporarily set style to pwa
-    original_style = os.environ.get("APP_STYLE")
-    os.environ["APP_STYLE"] = "pwa"
-    try:
-      app = Baseweb("test")
-      manifest_handler = app.view_functions.get("manifest")
-      assert manifest_handler is not None, "Manifest endpoint should exist for PWA"
-      assert inspect.iscoroutinefunction(manifest_handler), (
-        "Manifest handler must be async coroutine function"
-      )
-    finally:
-      if original_style is None:
-        os.environ.pop("APP_STYLE", None)
-      else:
-        os.environ["APP_STYLE"] = original_style
+    config = BasewebConfig(name="test", style="pwa")
+    app = Baseweb(config)
+    manifest_handler = app.view_functions.get("manifest")
+    assert manifest_handler is not None, "Manifest endpoint should exist for PWA"
+    assert inspect.iscoroutinefunction(manifest_handler), (
+      "Manifest handler must be async coroutine function"
+    )
 
   def test_component_handler_is_async(self):
     """
@@ -87,7 +79,7 @@ class TestAsyncHandlers:
     When: Inspecting the component route handler
     Then: The handler should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app_handler = app.view_functions.get("app")
     assert app_handler is not None, "App endpoint should exist"
     assert inspect.iscoroutinefunction(app_handler), (
@@ -100,7 +92,7 @@ class TestAsyncHandlers:
     When: Inspecting the stylesheet route handler
     Then: The handler should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     style_handler = app.view_functions.get("app-style")
     assert style_handler is not None, "App-style endpoint should exist"
     assert inspect.iscoroutinefunction(style_handler), (
@@ -113,7 +105,7 @@ class TestAsyncHandlers:
     When: Inspecting the static files route handler
     Then: The handler should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # The static handler is registered directly, not through _send
     # Find the static handler in the route rules
     for rule in app.url_map._rules:
@@ -138,7 +130,7 @@ class TestRenderTemplateAsync:
     When: Requesting the landing page (GET /)
     Then: render_template should be awaited, returning a Response object
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/")
       assert response.status_code == 200
@@ -154,7 +146,7 @@ class TestRenderTemplateAsync:
     When: Requesting the Vuex store (GET /static/js/store.js)
     Then: render_template should be awaited, returning a Response object
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/static/js/store.js")
       assert response.status_code == 200
@@ -168,20 +160,13 @@ class TestRenderTemplateAsync:
     When: Requesting the manifest (GET /manifest.json)
     Then: render_template should be awaited, returning a Response object
     """
-    original_style = os.environ.get("APP_STYLE")
-    os.environ["APP_STYLE"] = "pwa"
-    try:
-      app = Baseweb("test")
-      async with app.test_client() as client:
-        response = await client.get("/manifest.json")
-        assert response.status_code == 200
-        content = await response.get_data()
-        assert b'"name"' in content
-    finally:
-      if original_style is None:
-        os.environ.pop("APP_STYLE", None)
-      else:
-        os.environ["APP_STYLE"] = original_style
+    config = BasewebConfig(name="test", style="pwa")
+    app = Baseweb(config)
+    async with app.test_client() as client:
+      response = await client.get("/manifest.json")
+      assert response.status_code == 200
+      content = await response.get_data()
+      assert b'"name"' in content
 
 
 class TestSendFromDirectoryAsync:
@@ -201,7 +186,7 @@ class TestSendFromDirectoryAsync:
       component_file = Path(tmpdir) / "test.js"
       component_file.write_text("console.log('test component');")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.register_component("test.js", tmpdir)
 
       async with app.test_client() as client:
@@ -221,7 +206,7 @@ class TestSendFromDirectoryAsync:
       stylesheet_file = Path(tmpdir) / "test.css"
       stylesheet_file.write_text("body { color: red; }")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.register_stylesheet("test.css", tmpdir)
 
       async with app.test_client() as client:
@@ -241,7 +226,7 @@ class TestSendFromDirectoryAsync:
       static_file = Path(tmpdir) / "test.txt"
       static_file.write_text("static content")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.app_static_folder = tmpdir
 
       async with app.test_client() as client:
@@ -272,7 +257,7 @@ class TestAuthenticationAsync:
     def sync_authenticator(scope, request):
       return True  # Sync authenticator returning True
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = sync_authenticator
 
     async with app.test_client() as client:
@@ -290,7 +275,7 @@ class TestAuthenticationAsync:
     async def async_authenticator(scope, request):
       return True  # Async authenticator returning True
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = async_authenticator
 
     async with app.test_client() as client:
@@ -304,7 +289,7 @@ class TestAuthenticationAsync:
     When: Inspecting the decorated handler
     Then: The wrapper should be an async coroutine function
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # Check that the _render method returns an async handler
     handler = app._render(security_scope="test.scope")
     assert inspect.iscoroutinefunction(handler), "Authenticated decorator must return async wrapper"
@@ -320,7 +305,7 @@ class TestAuthenticationAsync:
     def failing_authenticator(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = failing_authenticator
 
     async with app.test_client() as client:
@@ -340,7 +325,7 @@ class TestAuthenticationAsync:
     def passing_authenticator(scope, request):
       return True
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = passing_authenticator
 
     async with app.test_client() as client:
@@ -354,7 +339,7 @@ class TestAuthenticationAsync:
     When: Accessing the route
     Then: Should allow access (default permissive behavior)
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = None
 
     async with app.test_client() as client:
@@ -372,7 +357,7 @@ class TestAuthenticationAsync:
     async def async_failing_authenticator(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = async_failing_authenticator
 
     async with app.test_client() as client:
@@ -392,7 +377,7 @@ class TestValidCredentialsAsync:
     When: Checking credentials
     Then: Should return True immediately (no authentication required)
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     result = await app._valid_credentials(None)
     assert result is True
 
@@ -403,7 +388,7 @@ class TestValidCredentialsAsync:
     When: Checking credentials
     Then: Should return True immediately (no authenticator configured)
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = None
     result = await app._valid_credentials("some.scope")
     assert result is True
@@ -419,7 +404,7 @@ class TestValidCredentialsAsync:
     def failing_authenticator(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = failing_authenticator
 
     with patch.object(app, "logger") as mock_logger:
@@ -447,7 +432,7 @@ class TestLandingRoute:
     When: Requesting GET /
     Then: Should return 200 OK with rendered template
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/")
       assert response.status_code == 200
@@ -459,7 +444,7 @@ class TestLandingRoute:
     When: Requesting GET /
     Then: Response should contain rendered main.html template
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/")
       content = await response.get_data()
@@ -477,7 +462,7 @@ class TestLandingRoute:
     def failing_auth(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = failing_auth
 
     async with app.test_client() as client:
@@ -497,7 +482,7 @@ class TestStoreRoute:
     When: Requesting GET /static/js/store.js
     Then: Should return 200 OK with store.js content
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/static/js/store.js")
       assert response.status_code == 200
@@ -509,7 +494,7 @@ class TestStoreRoute:
     When: Requesting GET /static/js/store.js
     Then: Response should have application/javascript content type
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/static/js/store.js")
       content_type = response.content_type
@@ -529,18 +514,11 @@ class TestManifestRoute:
     When: Requesting GET /manifest.json
     Then: Should return 200 OK with manifest content
     """
-    original_style = os.environ.get("APP_STYLE")
-    os.environ["APP_STYLE"] = "pwa"
-    try:
-      app = Baseweb("test")
-      async with app.test_client() as client:
-        response = await client.get("/manifest.json")
-        assert response.status_code == 200
-    finally:
-      if original_style is None:
-        os.environ.pop("APP_STYLE", None)
-      else:
-        os.environ["APP_STYLE"] = original_style
+    config = BasewebConfig(name="test", style="pwa")
+    app = Baseweb(config)
+    async with app.test_client() as client:
+      response = await client.get("/manifest.json")
+      assert response.status_code == 200
 
   @pytest.mark.asyncio
   async def test_manifest_route_returns_404_when_not_pwa(self):
@@ -549,18 +527,11 @@ class TestManifestRoute:
     When: Requesting GET /manifest.json
     Then: Should return 404 Not Found
     """
-    original_style = os.environ.get("APP_STYLE")
-    os.environ["APP_STYLE"] = "web"
-    try:
-      app = Baseweb("test")
-      async with app.test_client() as client:
-        response = await client.get("/manifest.json")
-        assert response.status_code == 404
-    finally:
-      if original_style is None:
-        os.environ.pop("APP_STYLE", None)
-      else:
-        os.environ["APP_STYLE"] = original_style
+    config = BasewebConfig(name="test", style="web")
+    app = Baseweb(config)
+    async with app.test_client() as client:
+      response = await client.get("/manifest.json")
+      assert response.status_code == 404
 
   @pytest.mark.asyncio
   async def test_manifest_route_renders_manifest_template(self):
@@ -569,20 +540,13 @@ class TestManifestRoute:
     When: Requesting GET /manifest.json
     Then: Response should contain rendered manifest.json template
     """
-    original_style = os.environ.get("APP_STYLE")
-    os.environ["APP_STYLE"] = "pwa"
-    try:
-      app = Baseweb("test")
-      async with app.test_client() as client:
-        response = await client.get("/manifest.json")
-        content = await response.get_data()
-        assert b'"name"' in content
-        assert b'"short_name"' in content
-    finally:
-      if original_style is None:
-        os.environ.pop("APP_STYLE", None)
-      else:
-        os.environ["APP_STYLE"] = original_style
+    config = BasewebConfig(name="test", style="pwa")
+    app = Baseweb(config)
+    async with app.test_client() as client:
+      response = await client.get("/manifest.json")
+      content = await response.get_data()
+      assert b'"name"' in content
+      assert b'"short_name"' in content
 
 
 class TestComponentRoute:
@@ -601,7 +565,7 @@ class TestComponentRoute:
       component_file = Path(tmpdir) / "mycomponent.js"
       component_file.write_text("// my component")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.register_component("mycomponent.js", tmpdir)
 
       async with app.test_client() as client:
@@ -615,7 +579,7 @@ class TestComponentRoute:
     When: Requesting GET /app/<filename>
     Then: Should return 404 Not Found or appropriate error
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # No components registered
 
     async with app.test_client() as client:
@@ -637,7 +601,7 @@ class TestComponentRoute:
       component_file = Path(tmpdir) / "protected.js"
       component_file.write_text("// protected component")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.authenticator = failing_auth
       app.register_component("protected.js", tmpdir)
 
@@ -662,7 +626,7 @@ class TestStylesheetRoute:
       stylesheet_file = Path(tmpdir) / "mystyle.css"
       stylesheet_file.write_text("body { margin: 0; }")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.register_stylesheet("mystyle.css", tmpdir)
 
       async with app.test_client() as client:
@@ -676,7 +640,7 @@ class TestStylesheetRoute:
     When: Requesting GET /app/style/<filename>
     Then: Should return 404 Not Found or appropriate error
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # No stylesheets registered
 
     async with app.test_client() as client:
@@ -700,7 +664,7 @@ class TestStaticRoute:
       static_file = Path(tmpdir) / "data.json"
       static_file.write_text('{"key": "value"}')
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.app_static_folder = tmpdir
 
       async with app.test_client() as client:
@@ -715,7 +679,7 @@ class TestStaticRoute:
     Then: Should return 404 Not Found
     """
     with tempfile.TemporaryDirectory() as tmpdir:
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.app_static_folder = tmpdir
 
       async with app.test_client() as client:
@@ -729,7 +693,7 @@ class TestStaticRoute:
     When: Requesting GET /app/static/<filename>
     Then: Should return 404 Not Found with warning logged
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.app_static_folder = None
 
     async with app.test_client() as client:
@@ -749,7 +713,7 @@ class TestAppRoute:
     When: Requesting the registered route
     Then: Should return 200 OK with rendered template
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.register_app_route("/custom")
 
     async with app.test_client() as client:
@@ -767,7 +731,7 @@ class TestAppRoute:
     def failing_auth(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = failing_auth
     app.register_app_route("/protected")
 
@@ -782,7 +746,7 @@ class TestAppRoute:
     When: Requesting with and without optional params
     Then: Both variations should route correctly
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # Register route with optional parameter
     app.register_app_route("/page/<id?>")
 
@@ -893,7 +857,7 @@ class TestInheritance:
     When: Checking instance type
     Then: It should be a Quart application instance
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     assert isinstance(app, Quart), "Baseweb instance must be a Quart application"
 
 
@@ -914,7 +878,7 @@ class TestQuartIntegration:
     When: Accessing the Quart request object
     Then: The request context should be available
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       # Accessing a route should work with request context
       response = await client.get("/")
@@ -929,7 +893,7 @@ class TestQuartIntegration:
     """
     import asyncio
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
 
     async def make_request(client, path):
       response = await client.get(path)
@@ -953,7 +917,7 @@ class TestQuartIntegration:
     """
     import asyncio
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
 
     async def make_request(client, path):
       response = await client.get(path)
@@ -976,7 +940,7 @@ class TestQuartIntegration:
     When: Using Quart's test client
     Then: Async request methods should work correctly
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       # All async HTTP methods should work
       response = await client.get("/")
@@ -995,7 +959,7 @@ class TestBackwardCompatibility:
     When: Listing all routes
     Then: All expected routes should be present (/, /static/js/store.js, etc.)
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
 
     # Get all registered routes
     routes = [str(rule) for rule in app.url_map._rules]
@@ -1005,31 +969,22 @@ class TestBackwardCompatibility:
     assert "/static/js/store.js" in routes, "Store route should exist"
     assert "/app/<path:filename>" in routes, "App route should exist"
 
-  def test_settings_configuration_unchanged(self):
+  def test_config_access(self):
     """
-    Given: Baseweb initialization with environment variables
-    When: Loading configuration
-    Then: Settings should be populated correctly (same as Flask version)
+    Given: Baseweb initialization with BasewebConfig
+    When: Accessing config properties
+    Then: Config should be accessible via _config attribute
     """
-    # Set some environment variables
-    original_name = os.environ.get("APP_NAME")
-    original_title = os.environ.get("APP_TITLE")
-    os.environ["APP_NAME"] = "TestApp"
-    os.environ["APP_TITLE"] = "Test Application"
+    config = BasewebConfig(name="test", title="Test Application")
+    app = Baseweb(config)
 
-    try:
-      app = Baseweb("test")
-      assert app.settings.name == "TestApp"
-      assert app.settings.title == "Test Application"
-    finally:
-      if original_name is None:
-        os.environ.pop("APP_NAME", None)
-      else:
-        os.environ["APP_NAME"] = original_name
-      if original_title is None:
-        os.environ.pop("APP_TITLE", None)
-      else:
-        os.environ["APP_TITLE"] = original_title
+    # Config should be accessible via _config
+    assert app._config.name == "test"
+    assert app._config.title == "Test Application"
+
+    # Flattened properties should work
+    assert app._config.color_scheme == "dark"  # default
+    assert app._config.socketio is True  # default
 
   def test_component_registration_unchanged(self):
     """
@@ -1037,7 +992,7 @@ class TestBackwardCompatibility:
     When: Registering components
     Then: Registration should work the same as Flask version
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.register_component("test.js", "/some/path")
 
     assert "test.js" in app._files["components"]
@@ -1049,7 +1004,7 @@ class TestBackwardCompatibility:
     When: Registering stylesheets
     Then: Registration should work the same as Flask version
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.register_stylesheet("style.css", "/some/path")
 
     assert "style.css" in app._files["stylesheets"]
@@ -1061,7 +1016,7 @@ class TestBackwardCompatibility:
     When: Registering external scripts
     Then: Registration should work the same as Flask version
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.register_external_script("https://example.com/script.js")
 
     assert "https://example.com/script.js" in app._files["scripts"]
@@ -1084,7 +1039,7 @@ class TestErrorHandling:
     When: The handler tries to render it
     Then: Should abort with 404 status code
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
 
     # Create a handler that references a non-existent template
     handler = app._render("nonexistent.html", security_scope=None)
@@ -1110,7 +1065,7 @@ class TestErrorHandling:
     When: The handler tries to send it
     Then: Should return 404 status code
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     # No components registered
 
     async with app.test_client() as client:
@@ -1146,7 +1101,7 @@ class TestResponses:
     When: The template is rendered
     Then: Should return a proper Response object (not coroutine)
     """
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     async with app.test_client() as client:
       response = await client.get("/")
       # Response should be a Quart Response object
@@ -1167,7 +1122,7 @@ class TestResponses:
       test_file = Path(tmpdir) / "test.js"
       test_file.write_text("console.log('test');")
 
-      app = Baseweb("test")
+      app = Baseweb(BasewebConfig(name="test"))
       app.register_component("test.js", tmpdir)
 
       async with app.test_client() as client:
@@ -1190,7 +1145,7 @@ class TestResponses:
     def failing_auth(scope, request):
       return False
 
-    app = Baseweb("test")
+    app = Baseweb(BasewebConfig(name="test"))
     app.authenticator = failing_auth
 
     async with app.test_client() as client:

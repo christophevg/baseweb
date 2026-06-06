@@ -1,7 +1,0 @@
-# default baseweb configuration
-app_uri = "app:asgi_app"
-
-[gunicorn]
-bind = "0.0.0.0:8000"
-workers = 1
-worker_class = "uvicorn.workers.UvicornWorker"

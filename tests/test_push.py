@@ -20,6 +20,7 @@ import os
 import pytest
 
 from baseweb import Baseweb
+from baseweb.config import BasewebConfig
 from baseweb.push import (
   MAX_BODY_LENGTH,
   MAX_KEY_LENGTH,
@@ -281,7 +282,7 @@ class TestVAPIDPublicKeyEndpoint:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_vapid")
+    return Baseweb(BasewebConfig(name="test_vapid"))
 
   @pytest.fixture
   def client(self, app):
@@ -385,7 +386,7 @@ class TestVAPIDPublicKeyEndpointErrors:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_vapid_errors")
+    return Baseweb(BasewebConfig(name="test_vapid_errors"))
 
   @pytest.fixture
   def client(self, app):
@@ -448,7 +449,7 @@ class TestPushSubscriptionRegistration:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_push_subscriptions")
+    return Baseweb(BasewebConfig(name="test_push_subscriptions"))
 
   @pytest.fixture
   def client(self, app):
@@ -669,7 +670,7 @@ class TestPushSubscriptionListing:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_list_subscriptions")
+    return Baseweb(BasewebConfig(name="test_list_subscriptions"))
 
   @pytest.fixture
   def client(self, app):
@@ -798,7 +799,7 @@ class TestPushSubscriptionRemoval:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_delete_subscription")
+    return Baseweb(BasewebConfig(name="test_delete_subscription"))
 
   @pytest.fixture
   def client(self, app):
@@ -913,7 +914,7 @@ class TestPushNotificationSending:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb("test_send_notification")
+    return Baseweb(BasewebConfig(name="test_send_notification"))
 
   @pytest.fixture
   def client(self, app):

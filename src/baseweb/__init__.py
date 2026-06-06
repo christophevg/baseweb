@@ -4,14 +4,13 @@ import asyncio
 import inspect
 import json
 import logging
-import os
 import re
+from dataclasses import asdict
 from functools import wraps
 from pathlib import Path
 from typing import TypedDict
 
 import socketio  # type: ignore[import-untyped]
-from dotmap import DotMap  # type: ignore[import-untyped]
 from jinja2 import TemplateNotFound
 from pyfiglet import Figlet
 from quart import (
@@ -28,6 +27,7 @@ from socketio.exceptions import ConnectionRefusedError  # type: ignore[import-un
 from tabulate import tabulate
 
 from baseweb import util
+from baseweb.config import BasewebConfig
 from baseweb.resource import Resource as Resource
 
 OK = ["yes", "true", "ok"]
@@ -46,14 +46,33 @@ class FilesDict(TypedDict):
 class Baseweb(Quart):
   _banner_shown: bool = False
 
-  def __init__(self, name=None, settings=None, *args, **kwargs):
-    self._load_config(settings)
+  def __init__(self, config: BasewebConfig, *args, **kwargs):
+    """Initialize Baseweb application.
 
-    if name is None:
-      name = self.settings.name
+    Args:
+      config: Baseweb configuration object
+    """
+    self._config = config
+
+    # Apply runtime configuration adjustments
+    if self._config.short_name is None:
+      self._config.short_name = util.to_camel_case(self._config.name)
+
+    if self._config.main_template is None:
+      # default to main.html
+      self._config.main_template = "main.html"
+    else:
+      # if filepath to actual file, use that, else keep simple template name
+      filepath = Path(self._config.main_template).resolve()
+      if filepath.is_file():
+        self._config.main_template = str(filepath)
+
+    # Adjust color name for dark mode (Vuetify convention)
+    if self._config.branding.colors.scheme == "dark":
+      self._config.branding.colors.primary_name += " darken-3"
 
     # create the Quart object part
-    super().__init__(name, *args, **kwargs)
+    super().__init__(config.name, *args, **kwargs)
 
     # wire logging to gunicorn logging if available
     logger = logging.getLogger("gunicorn.error")
@@ -70,7 +89,7 @@ class Baseweb(Quart):
     self.authenticator = None
 
     # Initialize Socket.IO in ASGI mode for Quart compatibility
-    if self.settings.socketio:
+    if self._config.features.socketio.enabled:
       self._sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
       self._asgi_app = socketio.ASGIApp(self._sio, self)
       self.socketio = self._sio
@@ -80,7 +99,7 @@ class Baseweb(Quart):
       self.socketio = None
 
     self._files: FilesDict = {"components": {}, "stylesheets": {}, "scripts": []}
-    self._app_routes = {}
+    self._app_routes: dict[str, dict[str, str]] = {}
 
     self._setup_routes()
 
@@ -93,60 +112,20 @@ class Baseweb(Quart):
 
   # CONFIG
 
-  def _load_config(self, settings=None):
-    # load configuration from environment variables with some sane defaults
-    self.settings = DotMap(
-      {
-        k: os.environ.get(f"APP_{k.upper()}", v)
-        for k, v in {
-          "version": __version__,
-          "url": None,
-          "name": os.path.basename(os.getcwd()),
-          "title": os.path.basename(os.getcwd()),
-          "short_name": None,
-          "author": "Unknown Author",
-          "description": "A baseweb app",
-          "main_template": None,
-          "social_image": None,
-          "color_scheme": "dark",
-          "color": "rgb(21, 101, 192)",
-          "color_name": "blue",
-          "background_color": "rgb(21, 101, 192)",
-          "style": "web",
-          "icon": None,
-          "socketio": "yes",
-          "favicon_support": "no",
-          "favicon_mask_icon_color": None,
-          "favicon_msapp_tile_color": None,
-          "keep_alive": "no",
-        }.items()
-      }
-    )
-    if settings:
-      self.settings.update(settings)
-
-    if self.settings.short_name is None:
-      self.settings.short_name = util.to_camel_case(self.settings.name)
-
-    if self.settings.main_template is None:
-      # default to main.html
-      self.settings.main_template = "main.html"
-    else:
-      # if filepath to actual file, use that, else keep simple template name
-      filepath = Path(self.settings.main_template).resolve()
-      if filepath.is_file():
-        self.settings.main_template = str(filepath)
-
-    if self.settings.color_scheme == "dark":
-      self.settings.color_name += " darken-3"
-
-    self.settings.socketio = self.settings.socketio.lower() in OK
-    self.settings.favicon_support = self.settings.favicon_support.lower() in OK
-    self.settings.keep_alive = self.settings.keep_alive.lower() in OK
-
   def log_config(self):
+    """Log current configuration settings."""
+    config_dict = asdict(self._config)
+    # Flatten nested config for display
+    flat_config = []
+    for key, value in config_dict.items():
+      if isinstance(value, dict):
+        for nested_key, nested_value in value.items():
+          flat_config.append([f"{key}.{nested_key}", nested_value])
+      else:
+        flat_config.append([key, value])
+
     settings = tabulate(
-      [[setting, value] for setting, value in self.settings.toDict().items()],
+      flat_config,
       headers=["setting", "value"],
       tablefmt="rounded_outline",
     )
@@ -230,7 +209,7 @@ class Baseweb(Quart):
     return True
 
   async def _return_401(self):
-    return Response("", 401, {"WWW-Authenticate": f'Basic realm="{self.settings.name}"'})
+    return Response("", 401, {"WWW-Authenticate": f'Basic realm="{self._config.name}"'})
 
   # INTERFACE
 
@@ -293,7 +272,7 @@ class Baseweb(Quart):
     )
 
     # only provide manifest when run as PWA
-    if self.settings.style == "pwa":
+    if self._config.style == "pwa":
       self.route("/manifest.json", endpoint="manifest")(self._render("manifest.json"))
       self.route("/sw.js", endpoint="service-worker")(self._serve_service_worker())
 
@@ -306,7 +285,7 @@ class Baseweb(Quart):
 
   def _render(self, template=None, security_scope=None):
     if template is None:
-      template = self.settings.main_template
+      template = self._config.main_template
 
     async def handler(*args, **kwargs):
       if security_scope is not None:
@@ -316,10 +295,10 @@ class Baseweb(Quart):
         # template can be absolute path or filename of template
         if template.startswith("/"):
           content = await render_template_string(
-            Path(template).read_text(), app=self.settings, **self._files
+            Path(template).read_text(), app=self._config, **self._files
           )
         else:
-          content = await render_template(template, app=self.settings, **self._files)
+          content = await render_template(template, app=self._config, **self._files)
 
         # Set correct content type based on template extension
         if template.endswith(".js"):

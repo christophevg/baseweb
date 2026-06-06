@@ -40,7 +40,8 @@ dependencies = [
   "pywebpush>=2.1.0",
   "gunicorn",
   "uvicorn",
-  "clevis>=0.3.0"
+  "clevis>=0.3.0",
+  "tomli-w>=1.0.0"
 ]
 
 [project.optional-dependencies]

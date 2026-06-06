@@ -6,6 +6,7 @@ These tests verify that add_resource accepts both classes and instances.
 import pytest
 
 from baseweb import Baseweb, Resource
+from baseweb.config import BasewebConfig
 
 
 class TestResourceInstantiation:
@@ -14,7 +15,8 @@ class TestResourceInstantiation:
   @pytest.fixture
   def app(self):
     """Create a test Baseweb app."""
-    return Baseweb(__name__)
+    config = BasewebConfig(name="test")
+    return Baseweb(config)
 
   def test_add_resource_accepts_class(self, app):
     """

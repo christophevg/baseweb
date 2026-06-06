@@ -139,7 +139,26 @@ This document tracks all functional and non-functional requirements for the base
 - **VAPID Keys Required**: Backend must generate VAPID keys for secure push message authentication with Apple's push service.
 - **User Workflow**: Open Safari → Add to Home Screen → Launch PWA → User action triggers permission prompt → Grant permission
 
-### Phase 7: Plugin System Architecture
+### Phase 7: CLI and Configuration System
+
+#### Configuration Infrastructure
+- [ ] R114: Configuration module with dataclass-based schema
+- [ ] R115: TOML configuration file loading
+- [ ] R116: Environment variable override support
+- [ ] R117: Baseweb.from_config() class method
+
+#### CLI Commands
+- [ ] R118: `baseweb init` command for creating configuration files
+- [ ] R119: `baseweb serve` command for running applications
+- [ ] R120: `baseweb config` command for displaying configuration
+- [ ] R121: `baseweb version` command for version information
+- [ ] R122: CLI test coverage
+
+#### Documentation
+- [ ] R123: Configuration documentation
+- [ ] R124: CLI documentation
+
+### Phase 8: Plugin System Architecture
 
 #### Core Plugin Infrastructure
 - [ ] R89: Plugin namespace system designed
@@ -151,7 +170,7 @@ This document tracks all functional and non-functional requirements for the base
 - [ ] R95: Plugin API documentation
 - [ ] R96: Core baseweb package refactored as minimal core
 
-### Phase 8: Plugin Implementations
+### Phase 9: Plugin Implementations
 
 #### baseweb-magic-link Plugin
 - [ ] R97: Magic link authentication plugin implemented
@@ -171,7 +190,7 @@ This document tracks all functional and non-functional requirements for the base
 - [ ] R107: Plugin registration and configuration
 - [ ] R108: Plugin tests
 
-### Phase 9: Performance Optimization
+### Phase 10: Performance Optimization
 
 #### Vendor Bundle Optimization
 - [ ] R109: Bundled/minified vendor.js created from individual files
@@ -213,10 +232,11 @@ This document tracks all functional and non-functional requirements for the base
 | Phase 2 | 9 | 9 |
 | Phase 3 | 35 | 35 |
 | Phase 4 | 5 | 5 |
-| Phase 5 | 10 | 4 |
-| Phase 6 | 10 | 0 |
-| Phase 7 | 8 | 0 |
-| Phase 8 | 12 | 0 |
-| Phase 9 | 5 | 0 |
+| Phase 5 | 10 | 9 |
+| Phase 6 | 10 | 9 |
+| Phase 7 | 11 | 0 |
+| Phase 8 | 8 | 0 |
+| Phase 9 | 12 | 0 |
+| Phase 10 | 5 | 0 |
 
-**Total: 72 completed, 42 remaining**
+**Total: 86 completed, 38 remaining**

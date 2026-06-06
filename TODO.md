@@ -34,8 +34,9 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 5: Post-modernization Further Feature Development
 
-### Phase 6: PWA and Push Notifications	
-86	- [ ] **task-6.4: PWA and push notifications documentation**
+### Phase 6: PWA and Push Notifications
+
+- [ ] **task-6.4: PWA and push notifications documentation**
   - Document iOS Safari PWA installation workflow
   - Document push notification setup for developers
   - Document user-facing permission flow
@@ -54,9 +55,100 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
     - Documentation provides developer-facing API setup
   - **Requires**: task-6.3
 
-### Phase 7: Plugin System Architecture
+### Phase 7: CLI and Configuration System
 
-- [ ] **task-7.1: Design plugin namespace system**
+This phase creates a unified configuration system for baseweb, allowing users to configure applications via TOML files, environment variables, and CLI arguments.
+
+**Priority**: High - Foundation for user experience improvements
+
+- [ ] **task-7.1: Create configuration module**
+  - Create `src/baseweb/config.py` with BasewebConfig and GunicornConfig dataclasses
+  - Implement `load_config()` function using Clevis
+  - Implement `config_from_env()` for backward compatibility
+  - Implement `apply_env_overrides()` for environment variable support
+  - Add configuration validation with clear error messages
+  - **Satisfies**: R114, R115, R116
+  - **Acceptance**:
+    - Configuration loads from TOML files (project and user level)
+    - Environment variables override TOML configuration
+    - Clear error messages for invalid configuration
+    - Unit tests pass with >= 80% coverage
+
+- [ ] **task-7.2: Integrate configuration with Baseweb class**
+  - Add `Baseweb.from_config()` class method
+  - Update `__init__` to accept BasewebConfig objects
+  - Maintain backward compatibility with `settings` dict parameter
+  - Convert between BasewebConfig and DotMap settings
+  - **Satisfies**: R117
+  - **Acceptance**:
+    - `Baseweb.from_config("baseweb.toml")` creates configured app
+    - Existing `Baseweb(settings={...})` still works
+    - Environment variables still work
+    - Integration tests pass
+
+- [ ] **task-7.3: Refactor CLI module**
+  - Update `src/baseweb/__main__.py` with argparse-based CLI
+  - Add `baseweb init` command to create default configuration
+  - Add `baseweb config` command to display current configuration
+  - Add `baseweb version` command
+  - Add `baseweb check` command to validate configuration without running
+  - Improve `baseweb serve` command with better error handling
+  - Add `--config` flag to specify custom config file
+  - Add `--app-uri`, `--bind`, `--workers` flags to serve command
+  - **Satisfies**: R118, R119, R120, R121
+  - **Acceptance**:
+    - `baseweb init` creates baseweb.toml with sensible defaults
+    - `baseweb serve` runs application from TOML config
+    - `baseweb config` displays current configuration
+    - `baseweb version` displays version
+    - `baseweb check` validates configuration without running
+    - CLI arguments override configuration
+    - Error messages are clear and actionable
+
+- [ ] **task-7.4: Add CLI tests**
+  - Create `tests/test_cli.py` for CLI command tests
+  - Add tests for `init` command
+  - Add tests for `serve` command
+  - Add tests for `config` command
+  - Add tests for `version` command
+  - Add tests for argument parsing
+  - Add tests for error handling
+  - **Satisfies**: R122
+  - **Acceptance**:
+    - All CLI commands tested
+    - Edge cases covered (missing config, invalid args)
+    - Error messages verified
+    - Test coverage >= 80%
+
+- [ ] **task-7.5: Create configuration documentation**
+  - Create `docs/configuration.md` with full configuration reference
+  - Document all configuration options
+  - Document configuration priority order
+  - Document environment variables
+  - Add migration guide from environment variables
+  - **Satisfies**: R123
+  - **Acceptance**:
+    - All configuration options documented
+    - Examples for common use cases
+    - Migration guide from environment variables
+    - Troubleshooting section
+
+- [ ] **task-7.6: Create CLI documentation**
+  - Create `docs/cli.md` with CLI command reference
+  - Document all CLI commands with examples
+  - Add usage examples for common workflows
+  - Add troubleshooting guide
+  - Update README.md with quick start
+  - **Satisfies**: R124
+  - **Acceptance**:
+    - All CLI commands documented
+    - Usage examples for each command
+    - Quick start section in README
+    - Troubleshooting guide
+
+### Phase 8: Plugin System Architecture
+
+- [ ] **task-8.1: Design plugin namespace system**
   - Design plugin discovery mechanism
   - Define plugin lifecycle hooks (load, initialize, configure, start, stop)
   - Design plugin dependency resolution
@@ -65,26 +157,26 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - **Acceptance**: Plugin system design documented and reviewed
   - **Requires**: Phase 5 complete
 
-- [ ] **task-7.2: Implement plugin infrastructure**
+- [ ] **task-8.2: Implement plugin infrastructure**
   - Implement plugin discovery and loading
   - Implement plugin lifecycle management
   - Implement plugin isolation and namespacing
   - Create plugin API documentation
   - **Satisfies**: R94, R95
   - **Acceptance**: Plugin system functional, can load/unload plugins
-  - **Requires**: task-7.1
+  - **Requires**: task-8.1
 
-- [ ] **task-7.3: Refactor baseweb as minimal core**
+- [ ] **task-8.3: Refactor baseweb as minimal core**
   - Extract non-essential functionality to potential plugins
   - Identify core vs. plugin functionality boundaries
   - Maintain backward compatibility during transition
   - **Satisfies**: R96, NFR11, NFR15
   - **Acceptance**: Core package minimal, backward compatible
-  - **Requires**: task-7.2
+  - **Requires**: task-8.2
 
-### Phase 8: Plugin Implementations
+### Phase 9: Plugin Implementations
 
-- [ ] **task-8.1: baseweb-magic-link plugin**
+- [ ] **task-9.1: baseweb-magic-link plugin**
   - Create plugin package structure
   - Implement magic link authentication
   - Integrate with generic authentication package
@@ -92,9 +184,9 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Add plugin tests
   - **Satisfies**: R97, R98, R99, R100
   - **Acceptance**: Magic link plugin works independently, can be installed via pip
-  - **Requires**: Phase 7 complete
+  - **Requires**: Phase 8 complete
 
-- [ ] **task-8.2: baseweb-restful-mongo plugin**
+- [ ] **task-9.2: baseweb-restful-mongo plugin**
   - Create plugin package structure
   - Implement pageable RESTful MongoDB integration
   - Based on incubator/ideas/pageable-restful-mongo-review
@@ -102,9 +194,9 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Add plugin tests
   - **Satisfies**: R101, R102, R103, R104
   - **Acceptance**: RESTful MongoDB plugin works independently, can be installed via pip
-  - **Requires**: Phase 7 complete
+  - **Requires**: Phase 8 complete
 
-- [ ] **task-8.3: baseweb-prometheus plugin**
+- [ ] **task-9.3: baseweb-prometheus plugin**
   - Create plugin package structure
   - Implement Prometheus metrics integration
   - Integrate with generic Prometheus package from apps.homemadebycvg
@@ -112,11 +204,11 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
   - Add plugin tests
   - **Satisfies**: R105, R106, R107, R108
   - **Acceptance**: Prometheus plugin works independently, can be installed via pip
-  - **Requires**: Phase 7 complete
+  - **Requires**: Phase 8 complete
 
-### Phase 9: Performance Optimization
+### Phase 10: Performance Optimization
 
-- [ ] **task-9.1: Vendor bundle optimization**
+- [ ] **task-10.1: Vendor bundle optimization**
   - Create bundled/minified vendor.js from individual files
   - Enable tree-shaking for Vuetify components
   - Measure and document size reduction

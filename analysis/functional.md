@@ -295,12 +295,80 @@ baseweb/
 | Phase 3: Quart Migration | 2-4 weeks | Phase 1, 2 |
 | Phase 4: hosted-quarts Coordination | 1 week | Phase 2 |
 | Phase 5: Component Consolidation | 1 week | Phase 3 |
+| Phase 6: PWA and Push Notifications | 1-2 weeks | Phase 5 |
+| Phase 7: CLI and Configuration | 1-2 weeks | Phase 5 |
 
-**Total Estimated Duration:** 5-8 weeks
+**Total Estimated Duration:** 6-10 weeks
 
 ---
 
-## Decisions Made
+---
+
+### Phase 7: CLI and Configuration System
+
+#### 7.1 Configuration Infrastructure
+
+**Rationale:** Baseweb currently relies solely on environment variables for configuration (APP_NAME, APP_TITLE, etc.). A modern configuration system using TOML files with Clevis provides better developer experience and aligns with Python packaging standards.
+
+**Scope:**
+- Create `src/baseweb/config.py` with BasewebConfig dataclass
+- Implement TOML configuration file loading
+- Support layered configuration (defaults < user-level < project-level < CLI args)
+- Integrate with existing Baseweb class
+- Maintain backward compatibility with environment variables
+
+**Acceptance Criteria:**
+- [ ] Configuration loads from TOML files (project and user level)
+- [ ] Environment variables override TOML configuration
+- [ ] CLI arguments override environment variables
+- [ ] `Baseweb.from_config()` creates configured app
+- [ ] Existing `Baseweb(settings={...})` still works
+- [ ] Clear error messages for all failure cases
+
+**Dependencies:** Phase 5 (Hello World example validates approach)
+
+#### 7.2 CLI Commands
+
+**Rationale:** A CLI entry point allows users to run baseweb applications without writing Python code, enabling `baseweb serve` workflows and improving developer experience.
+
+**Scope:**
+- Add `baseweb init` command to create default configuration
+- Add `baseweb serve` command to run applications
+- Add `baseweb config` command to display configuration
+- Add `baseweb version` command
+- Integrate with Gunicorn for ASGI server
+- Support CLI argument overrides
+
+**Acceptance Criteria:**
+- [ ] `baseweb init` creates baseweb.toml with sensible defaults
+- [ ] `baseweb serve` runs application from TOML config
+- [ ] `baseweb config` displays current configuration
+- [ ] `baseweb version` displays version
+- [ ] CLI arguments override configuration
+- [ ] Error messages are clear and actionable
+
+**Dependencies:** 7.1 (configuration infrastructure)
+
+#### 7.3 Documentation
+
+**Rationale:** Users need clear documentation for the new configuration system and CLI commands.
+
+**Scope:**
+- Create `docs/configuration.md` with full configuration reference
+- Create `docs/cli.md` with CLI command reference
+- Update README.md with quick start
+
+**Acceptance Criteria:**
+- [ ] All configuration options documented
+- [ ] CLI commands documented with examples
+- [ ] Migration guide from environment variables
+- [ ] Troubleshooting section
+
+**Dependencies:** 7.2 (CLI commands)
+
+---
+
+## Risk Assessment
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|

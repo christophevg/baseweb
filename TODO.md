@@ -57,52 +57,74 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 7: CLI and Configuration System
 
-This phase creates a unified configuration system for baseweb, allowing users to configure applications via TOML files, environment variables, and CLI arguments.
+This phase creates a unified configuration system for baseweb using Clevis for configuration loading. All configuration is defined in BasewebConfig dataclasses and loaded via `get_config(BasewebConfig, name="baseweb")`.
 
 **Priority**: High - Foundation for user experience improvements
 
+**Design Decisions:**
+- No backward compatibility with settings dict (breaking change)
+- Configuration loaded via `get_config()` from Clevis (no `.load()` method)
+- Baseweb.__init__ accepts BasewebConfig directly (no `.from_config()` method)
+- Clevis handles all environment variable mapping automatically
+- TOML structure with nested sections: [branding.*], [features.*], [server], [app.*]
+- Application-specific config via `register_app_config()` pattern
+
 - [ ] **task-7.1: Create configuration module**
-  - Create `src/baseweb/config.py` with BasewebConfig and GunicornConfig dataclasses
-  - Implement `load_config()` function using Clevis
-  - Implement `config_from_env()` for backward compatibility
-  - Implement `apply_env_overrides()` for environment variable support
-  - Add configuration validation with clear error messages
+  - Create `src/baseweb/config.py` with BasewebConfig dataclass
+  - Define nested dataclasses: GunicornConfig, BrandingConfig, FeaturesConfig, PWAConfig
+  - Implement `register_app_config(name, config_class)` function for app-specific config
+  - Implement configuration validation (e.g., icons_dir required when style="pwa")
+  - Use Clevis's `get_config(BasewebConfig, name="baseweb")` for loading
+  - Document TOML structure with nested sections:
+    - Root level: app_uri, name, title, short_name, description, author, version, url, main_template, style
+    - [branding.colors]: scheme, primary, primary_name, background
+    - [branding.icons]: app, social
+    - [branding.favicon]: enabled, safari_mask_color, windows_tile_color
+    - [features.socketio]: enabled
+    - [features.pwa]: display, orientation, start_url, theme_color, background_color, icons_dir
+    - [server]: bind, workers, worker_class, timeout, keepalive
+    - [app.**]: Application-specific (via register_app_config())
+    - [plugin.**]: Future plugin namespace
+  - Support environment variable interpolation: ${VAR} and ${VAR:-default}
   - **Satisfies**: R114, R115, R116
   - **Acceptance**:
-    - Configuration loads from TOML files (project and user level)
-    - Environment variables override TOML configuration
-    - Clear error messages for invalid configuration
+    - BasewebConfig dataclass with all nested configuration sections
+    - `get_config(BasewebConfig, name="baseweb")` loads from TOML
+    - Clevis handles layered config: defaults < user TOML < project TOML < env vars < CLI args
+    - Clevis handles environment variable mapping automatically (APP_NAME -> name, GUNICORN_BIND -> server.bind)
+    - Configuration validation with clear error messages
     - Unit tests pass with >= 80% coverage
+    - register_app_config() allows apps to define custom config sections
 
 - [ ] **task-7.2: Integrate configuration with Baseweb class**
-  - Add `Baseweb.from_config()` class method
-  - Update `__init__` to accept BasewebConfig objects
-  - Maintain backward compatibility with `settings` dict parameter
-  - Convert between BasewebConfig and DotMap settings
+  - Update `__init__` to accept BasewebConfig parameter (required, no settings dict)
+  - Remove environment variable loading from `__init__` (Clevis handles this)
+  - Remove settings dict support (breaking change)
+  - Apply configuration from BasewebConfig to application
   - **Satisfies**: R117
   - **Acceptance**:
-    - `Baseweb.from_config("baseweb.toml")` creates configured app
-    - Existing `Baseweb(settings={...})` still works
-    - Environment variables still work
+    - `Baseweb(get_config(BasewebConfig, name="baseweb"))` creates configured app
+    - No settings dict parameter in __init__
+    - No environment variable loading in __init__
     - Integration tests pass
 
 - [ ] **task-7.3: Refactor CLI module**
   - Update `src/baseweb/__main__.py` with argparse-based CLI
-  - Add `baseweb init` command to create default configuration
+  - Add `baseweb init` command to create default baseweb.toml
   - Add `baseweb config` command to display current configuration
   - Add `baseweb version` command
   - Add `baseweb check` command to validate configuration without running
   - Improve `baseweb serve` command with better error handling
-  - Add `--config` flag to specify custom config file
   - Add `--app-uri`, `--bind`, `--workers` flags to serve command
+  - CLI uses `get_config(BasewebConfig, name="baseweb")` for configuration loading
   - **Satisfies**: R118, R119, R120, R121
   - **Acceptance**:
-    - `baseweb init` creates baseweb.toml with sensible defaults
+    - `baseweb init` creates baseweb.toml with nested TOML structure
     - `baseweb serve` runs application from TOML config
     - `baseweb config` displays current configuration
     - `baseweb version` displays version
     - `baseweb check` validates configuration without running
-    - CLI arguments override configuration
+    - CLI arguments override configuration (via Clevis)
     - Error messages are clear and actionable
 
 - [ ] **task-7.4: Add CLI tests**
@@ -113,6 +135,7 @@ This phase creates a unified configuration system for baseweb, allowing users to
   - Add tests for `version` command
   - Add tests for argument parsing
   - Add tests for error handling
+  - Add tests for register_app_config() pattern
   - **Satisfies**: R122
   - **Acceptance**:
     - All CLI commands tested
@@ -122,13 +145,17 @@ This phase creates a unified configuration system for baseweb, allowing users to
 
 - [ ] **task-7.5: Create configuration documentation**
   - Create `docs/configuration.md` with full configuration reference
-  - Document all configuration options
-  - Document configuration priority order
-  - Document environment variables
-  - Add migration guide from environment variables
+  - Document TOML structure with nested sections
+  - Document all configuration options with examples
+  - Document configuration priority order (Clevis layered config)
+  - Document environment variables (APP_*, GUNICORN_*)
+  - Document environment variable interpolation (${VAR:-default})
+  - Document register_app_config() pattern for app-specific config
+  - Add migration guide from environment variables to TOML
   - **Satisfies**: R123
   - **Acceptance**:
     - All configuration options documented
+    - Nested TOML structure documented with examples
     - Examples for common use cases
     - Migration guide from environment variables
     - Troubleshooting section

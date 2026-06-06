@@ -308,7 +308,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.0.0" },
-    { name = "clevis" },
+    { name = "clevis", specifier = ">=0.3.0" },
     { name = "coveralls", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "dotmap" },
     { name = "gunicorn" },
@@ -580,14 +580,14 @@ wheels = [
 
 [[package]]
 name = "clevis"
-version = "0.2.0"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dacite" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/13/7243b89eea1b32412c95f64129c30ecdccdfa9d3585e95c0c704bca572b7/clevis-0.2.0.tar.gz", hash = "sha256:6e77ed5521e4e957d301213d920f597162f47bab9d2a1a8526d80a968d169221", size = 122910, upload-time = "2026-05-30T19:47:37.919Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/09/7616437640ae8ba7ad696ae28a921ae27519e401de8c751c498b054d933e/clevis-0.3.0.tar.gz", hash = "sha256:935ca08811e9c767da64bb2f8f5036ee190e1bc0cde7fa26dcb132e2cfe8e4c3", size = 170451, upload-time = "2026-06-05T17:10:21.608Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/cb/04935cacb2f37cca427c764f393c2d98f168739ad13024862813092958a2/clevis-0.2.0-py3-none-any.whl", hash = "sha256:1e2e07ae99f496d8edd7fb6165d19799160a61e4701744905c6dbbefdab16c65", size = 8703, upload-time = "2026-05-30T19:47:36.274Z" },
+    { url = "https://files.pythonhosted.org/packages/60/57/e511ba6dfe9e64e8a21fae38486055bb8d4082e5c66a598f36a5922dde63/clevis-0.3.0-py3-none-any.whl", hash = "sha256:1e292f0c58a90b53f48563f8cb7ce37f3d000ff5e9e1868c9ae18fb52ec06fc1", size = 16234, upload-time = "2026-06-05T17:10:20.189Z" },
 ]
 
 [[package]]

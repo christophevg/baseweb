@@ -13,3 +13,4 @@ baseweb-demo
 .DS_Store
 .env
 local/
+reporting

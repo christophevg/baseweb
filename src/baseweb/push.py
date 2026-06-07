@@ -1192,7 +1192,7 @@ async def send_push_notification(
       raise PushNotificationError("VAPID keys not configured")
 
     # Log for debugging
-    logger.info(f"VAPID claims: {vapid_claims}")
+    logger.debug(f"VAPID claims: {vapid_claims}")
     logger.info(f"Vapid01 instance: {type(vapid_instance)}")
     logger.info(f"Vapid01 has private_key: {hasattr(vapid_instance, 'private_key')}")
 

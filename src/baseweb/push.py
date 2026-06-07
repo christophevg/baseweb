@@ -38,11 +38,6 @@ from baseweb.vapid import get_public_key, get_vapid_claims, get_vapid_instance, 
 
 logger = logging.getLogger("gunicorn.error")
 
-logger.info("*" * 40)
-logger.info("*" * 40)
-logger.info("*" * 40)
-logger.info("*" * 40)
-
 # Rate limiting configuration
 RATE_LIMITS = {
   "notifications_per_user_per_hour": 10,

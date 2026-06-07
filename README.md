@@ -29,15 +29,89 @@ pip install baseweb
 
 ## Quick Start
 
+### Using the CLI (Recommended)
+
+The easiest way to get started with baseweb is using the CLI:
+
 ```bash
 # Install baseweb and an ASGI server
 pip install baseweb gunicorn uvicorn
 
+# Create a new project
+mkdir myapp && cd myapp
+
+# Initialize default configuration
+baseweb init
+
+# Create a minimal application
+cat > app.py << 'EOF'
+from baseweb import Baseweb
+from baseweb.config import BasewebConfig
+
+config = BasewebConfig(
+    name="myapp",
+    title="My Application"
+)
+
+app = Baseweb(config)
+asgi_app = app._asgi_app
+EOF
+
+# Validate configuration
+baseweb check
+
+# Run the application
+baseweb serve
+```
+
+Visit [http://localhost:8000](http://localhost:8000) to see your application.
+
+**Key CLI Commands:**
+
+- `baseweb init` - Create default `baseweb.toml` configuration file
+- `baseweb check` - Validate configuration without running
+- `baseweb config` - Display current configuration
+- `baseweb serve` - Run application from TOML config
+- `baseweb version` - Display baseweb version
+
+See [CLI Reference](docs/cli.md) for complete documentation.
+
+### Using Gunicorn Directly
+
+For advanced use cases, you can run directly with Gunicorn:
+
+```bash
 # Run the stock baseweb application (with WebSocket support)
 gunicorn -w 1 -k uvicorn.workers.UvicornWorker "baseweb:server._asgi_app"
 ```
 
-Visit [http://localhost:8000](http://localhost:8000) to see baseweb in action.
+### Configuration
+
+Baseweb uses TOML configuration files with layered priority:
+
+1. **CLI arguments** (highest priority)
+2. **Environment variables** (`APP_*`, `GUNICORN_*`)
+3. **Project-level TOML** (`./baseweb.toml`)
+4. **User-level TOML** (`~/.baseweb.toml`)
+5. **Built-in defaults** (lowest priority)
+
+**Example `baseweb.toml`:**
+
+```toml
+app_uri = "app:asgi_app"
+name = "myapp"
+title = "My Application"
+style = "web"
+
+[server]
+bind = "0.0.0.0:8000"
+workers = 1
+
+[features.socketio]
+enabled = true
+```
+
+See [Configuration Reference](docs/configuration.md) for all options.
 
 ## Features
 

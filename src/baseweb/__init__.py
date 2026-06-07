@@ -25,6 +25,7 @@ from quart import (
 from slugify import slugify
 from socketio.exceptions import ConnectionRefusedError  # type: ignore[import-untyped]
 from tabulate import tabulate
+from werkzeug.exceptions import NotFound
 
 from baseweb import util
 from baseweb.config import BasewebConfig
@@ -309,7 +310,7 @@ class Baseweb(Quart):
           return Response(content, mimetype="application/json")
         return content
       except TemplateNotFound:
-        self.logger.fatal(f"template not found: {template}")
+        self.logger.critical(f"template not found: {template}")
         abort(404)
 
     return handler
@@ -333,11 +334,12 @@ class Baseweb(Quart):
       abort(404)
     try:
       return await send_from_directory(self.app_static_folder, filename)
-    except Exception:
-      # send_from_directory will raise NotFound if file doesn't exist
-      # but we catch any exception to ensure proper 404 handling
-      self.logger.warning(f"static file not found: {filename}")
+    except NotFound:
+      self.logger.warning(f"file not found: {filename}")
       abort(404)
+    except Exception as e:
+      self.logger.error(f"Error serving static file: {e}")
+      abort(500)
 
   def _serve_service_worker(self):
     """Serve the Service Worker script with appropriate headers."""

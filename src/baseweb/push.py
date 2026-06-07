@@ -34,6 +34,7 @@ from urllib.parse import urlparse
 from quart import request
 
 from baseweb import Resource
+from baseweb.exceptions import PushNotificationError, VAPIDKeyError
 from baseweb.vapid import get_public_key, get_vapid_claims, get_vapid_instance, is_configured
 
 logger = logging.getLogger("gunicorn.error")
@@ -67,12 +68,6 @@ KNOWN_PUSH_SERVICES = [
 
 class PushSubscriptionError(Exception):
   """Base exception for push subscription errors."""
-
-  pass
-
-
-class PushNotificationError(Exception):
-  """Base exception for push notification errors."""
 
   pass
 
@@ -575,7 +570,8 @@ def validate_subscription_data(data: dict[str, Any]) -> tuple[bool, str | None, 
       return False, "Endpoint must use HTTPS", None
     if not parsed.netloc:
       return False, "Invalid endpoint URL format", None
-  except Exception:
+  except (ValueError, AttributeError) as e:
+    logger.debug(f"Invalid endpoint URL '{endpoint}': {e}")
     return False, "Invalid endpoint URL", None
 
   # Validate endpoint is from known push service
@@ -644,7 +640,7 @@ def is_known_push_service(endpoint: str) -> bool:
       if parsed.netloc == service or parsed.netloc.endswith("." + service):
         return True
     return False
-  except Exception:
+  except (ValueError, AttributeError):
     return False
 
 
@@ -674,8 +670,26 @@ def hash_ip(ip_address: str) -> str:
 
   Returns:
       Hashed IP (first 16 characters).
+
+  Raises:
+      ValueError: If IP_HASH_SALT is not set in production environment.
   """
-  salt = os.environ.get("IP_HASH_SALT", "default-salt-change-in-production")
+  salt = os.environ.get("IP_HASH_SALT")
+
+  if not salt:
+    # Check if we're in production environment
+    environment = os.environ.get("ENVIRONMENT", "development")
+    baseweb_env = os.environ.get("BASEWEB_ENV", "development")
+    is_production = environment == "production" or baseweb_env == "production"
+
+    if is_production:
+      raise ValueError(
+        "IP_HASH_SALT environment variable is required in production. "
+        'Generate using: python -c "import secrets; print(secrets.token_hex(16))"'
+      )
+
+    salt = "development-only-salt"
+
   return hashlib.sha256(f"{salt}{ip_address}".encode()).hexdigest()[:16]
 
 
@@ -723,8 +737,19 @@ class VAPIDPublicKeyResource(Resource):
         {"Cache-Control": "public, max-age=86400"},  # Cache for 24 hours
       )
 
-    except Exception as e:
+    except VAPIDKeyError as e:
       logger.error(f"VAPID key error: {e}")
+      return (
+        {
+          "type": "https://api.baseweb.io/errors/vapid-error",
+          "title": "VAPID Error",
+          "status": 500,
+          "detail": str(e),
+        },
+        500,
+      )
+    except RuntimeError as e:
+      logger.error(f"VAPID runtime error: {e}")
       return (
         {
           "type": "https://api.baseweb.io/errors/vapid-error",
@@ -778,8 +803,8 @@ class PushSubscriptionResource(Resource):
     # Parse request body
     try:
       data = await request.get_json()
-    except Exception as e:
-      logger.error(f"parsing body failed {e}")
+    except json.JSONDecodeError as e:
+      logger.error(f"Invalid JSON in request body: {e}")
       return (
         {
           "type": "https://api.baseweb.io/errors/invalid-json",
@@ -996,7 +1021,8 @@ class PushNotificationResource(Resource):
     # Parse request body
     try:
       data = await request.get_json()
-    except Exception:
+    except json.JSONDecodeError as e:
+      logger.error(f"Invalid JSON in request body: {e}")
       return (
         {
           "type": "https://api.baseweb.io/errors/invalid-json",

@@ -12,13 +12,12 @@ import base64
 import logging
 import os
 
+from cryptography.exceptions import InvalidKey
+from cryptography.hazmat.primitives import serialization
+
+from baseweb.exceptions import VAPIDKeyError
+
 logger = logging.getLogger("gunicorn.error")
-
-
-class VAPIDKeyError(Exception):
-  """Raised when VAPID key operations fail."""
-
-  pass
 
 
 class VAPIDKeyManager:
@@ -59,7 +58,7 @@ class VAPIDKeyManager:
         self._vapid = Vapid01.from_pem(key_content.encode())
         self._private_key_pem = key_content
         logger.info("VAPID keys loaded successfully from environment")
-      except Exception as e:
+      except (ValueError, InvalidKey) as e:
         logger.error(f"Failed to load VAPID key: {e}")
         raise VAPIDKeyError(f"Invalid VAPID private key: {e}") from None
     else:
@@ -93,14 +92,13 @@ class VAPIDKeyManager:
       if pub_key is None:
         return None
 
-      from cryptography.hazmat.primitives import serialization
-
       pub_bytes = pub_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint,
       )
       return base64.urlsafe_b64encode(pub_bytes).decode("utf-8").rstrip("=")
-    except Exception:
+    except (ValueError, InvalidKey) as e:
+      logger.error(f"Failed to get public key: {e}")
       return None
 
   def get_private_key_pem(self) -> str | None:
@@ -118,7 +116,8 @@ class VAPIDKeyManager:
       if isinstance(pem, bytes):
         return pem.decode()
       return str(pem)
-    except Exception:
+    except (ValueError, InvalidKey) as e:
+      logger.error(f"Failed to get private key PEM: {e}")
       return None
 
   def get_subject(self) -> str:
@@ -259,12 +258,26 @@ def _init_vapid():
       key_content = private_key_pem.strip().strip('"').strip("'")
       _vapid_instance = Vapid01.from_pem(key_content.encode())
       logger.info("VAPID keys loaded successfully from environment")
-    except Exception as e:
+    except (ValueError, InvalidKey) as e:
       logger.error(f"Failed to load VAPID key: {e}")
       logger.warning("Falling back to temporary keys...")
       _vapid_instance = Vapid01()
       _vapid_instance.generate_keys()
   else:
+    # Check if we're in production environment
+    environment = os.environ.get("ENVIRONMENT", "development")
+    baseweb_env = os.environ.get("BASEWEB_ENV", "development")
+    is_production = environment == "production" or baseweb_env == "production"
+
+    if is_production:
+      raise VAPIDKeyError(
+        "VAPID_PRIVATE_KEY environment variable is required in production. "
+        "Generate keys using:\n"
+        '  python -c "from py_vapid import Vapid01; v=Vapid01(); '
+        'v.generate_keys(); print(v.private_pem().decode())"\n'
+        "Then set: export VAPID_PRIVATE_KEY='...' "
+      )
+
     logger.warning("VAPID_PRIVATE_KEY not set - generating temporary keys")
     logger.warning("Set VAPID_PRIVATE_KEY for production use!")
     _vapid_instance = Vapid01()

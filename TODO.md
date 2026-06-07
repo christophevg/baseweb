@@ -36,25 +36,6 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ### Phase 6: PWA and Push Notifications
 
-- [ ] **task-6.4: PWA and push notifications documentation**
-  - Document iOS Safari PWA installation workflow
-  - Document push notification setup for developers
-  - Document user-facing permission flow
-  - Create troubleshooting guide
-  - **iOS-Specific Documentation Requirements**:
-    - Step-by-step user guide: Open Safari → Add to Home Screen → Launch PWA → Subscribe
-    - Developer guide: VAPID key setup, subscription management
-    - Troubleshooting: "Why don't I see notifications?" (not in standalone mode, iOS version too old, wrong browser)
-    - Compatibility matrix: iOS 16.4+ Safari only
-  - **Satisfies**: R88
-  - **Acceptance**:
-    - Documentation covers iOS 16.4+ requirement clearly
-    - Documentation explains Safari-only limitation on iOS
-    - Documentation explains standalone mode requirement
-    - Documentation provides user-facing installation steps
-    - Documentation provides developer-facing API setup
-  - **Requires**: task-6.3
-
 ### Phase 7: CLI and Configuration System
 
 This phase creates a unified configuration system for baseweb using Clevis for configuration loading. All configuration is defined in BasewebConfig dataclasses and loaded via `get_config(BasewebConfig, name="baseweb")`.
@@ -251,6 +232,15 @@ This phase creates a unified configuration system for baseweb using Clevis for c
 ## Done
 
 ### Phase 6: PWA and Push Notifications
+
+- [x] **task-6.4: PWA and push notifications documentation** (2026-06-07)
+  - Created comprehensive documentation in docs/push-notifications.md
+  - Documented iOS Safari PWA installation workflow with step-by-step guide
+  - Documented developer setup (VAPID keys, API endpoints, integration)
+  - Documented user-facing permission flow
+  - Created troubleshooting guide with iOS-specific issues
+  - Included compatibility matrix (iOS 16.4+ Safari only)
+  - **Satisfies**: R88
 
 - [x] **task-6.3: Push notification frontend integration** (2026-05-20)
   - Implemented notification UI component (PushNotificationSettings.js)

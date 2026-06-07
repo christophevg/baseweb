@@ -32,81 +32,7 @@ The [baseweb-demo](../baseweb-demo) project serves as an end-to-end test case an
 
 ## Backlog
 
-### Phase 5: Post-modernization Further Feature Development
-
-### Phase 6: PWA and Push Notifications
-
-### Phase 7: CLI and Configuration System
-
-This phase creates a unified configuration system for baseweb using Clevis for configuration loading. All configuration is defined in BasewebConfig dataclasses and loaded via `get_config(BasewebConfig, name="baseweb")`.
-
-**Priority**: High - Foundation for user experience improvements
-
-**Design Decisions:**
-- No backward compatibility with settings dict (breaking change)
-- Configuration loaded via `get_config()` from Clevis (no `.load()` method)
-- Baseweb.__init__ accepts BasewebConfig directly (no `.from_config()` method)
-- Clevis handles all environment variable mapping automatically
-- TOML structure with nested sections: [branding.*], [features.*], [server], [app.*]
-- Application-specific config via `register_app_config()` pattern
-
-- [ ] **task-7.1: Create configuration module**
-  - Create `src/baseweb/config.py` with BasewebConfig dataclass
-  - Define nested dataclasses: GunicornConfig, BrandingConfig, FeaturesConfig, PWAConfig
-  - Implement `register_app_config(name, config_class)` function for app-specific config
-  - Implement configuration validation (e.g., icons_dir required when style="pwa")
-  - Use Clevis's `get_config(BasewebConfig, name="baseweb")` for loading
-  - Document TOML structure with nested sections:
-    - Root level: app_uri, name, title, short_name, description, author, version, url, main_template, style
-    - [branding.colors]: scheme, primary, primary_name, background
-    - [branding.icons]: app, social
-    - [branding.favicon]: enabled, safari_mask_color, windows_tile_color
-    - [features.socketio]: enabled
-    - [features.pwa]: display, orientation, start_url, theme_color, background_color, icons_dir
-    - [server]: bind, workers, worker_class, timeout, keepalive
-    - [app.**]: Application-specific (via register_app_config())
-    - [plugin.**]: Future plugin namespace
-  - Support environment variable interpolation: ${VAR} and ${VAR:-default}
-  - **Satisfies**: R114, R115, R116
-  - **Acceptance**:
-    - BasewebConfig dataclass with all nested configuration sections
-    - `get_config(BasewebConfig, name="baseweb")` loads from TOML
-    - Clevis handles layered config: defaults < user TOML < project TOML < env vars < CLI args
-    - Clevis handles environment variable mapping automatically (APP_NAME -> name, GUNICORN_BIND -> server.bind)
-    - Configuration validation with clear error messages
-    - Unit tests pass with >= 80% coverage
-    - register_app_config() allows apps to define custom config sections
-
-- [ ] **task-7.2: Integrate configuration with Baseweb class**
-  - Update `__init__` to accept BasewebConfig parameter (required, no settings dict)
-  - Remove environment variable loading from `__init__` (Clevis handles this)
-  - Remove settings dict support (breaking change)
-  - Apply configuration from BasewebConfig to application
-  - **Satisfies**: R117
-  - **Acceptance**:
-    - `Baseweb(get_config(BasewebConfig, name="baseweb"))` creates configured app
-    - No settings dict parameter in __init__
-    - No environment variable loading in __init__
-    - Integration tests pass
-
-- [ ] **task-7.3: Refactor CLI module**
-  - Update `src/baseweb/__main__.py` with argparse-based CLI
-  - Add `baseweb init` command to create default baseweb.toml
-  - Add `baseweb config` command to display current configuration
-  - Add `baseweb version` command
-  - Add `baseweb check` command to validate configuration without running
-  - Improve `baseweb serve` command with better error handling
-  - Add `--app-uri`, `--bind`, `--workers` flags to serve command
-  - CLI uses `get_config(BasewebConfig, name="baseweb")` for configuration loading
-  - **Satisfies**: R118, R119, R120, R121
-  - **Acceptance**:
-    - `baseweb init` creates baseweb.toml with nested TOML structure
-    - `baseweb serve` runs application from TOML config
-    - `baseweb config` displays current configuration
-    - `baseweb version` displays version
-    - `baseweb check` validates configuration without running
-    - CLI arguments override configuration (via Clevis)
-    - Error messages are clear and actionable
+### Phase 8: Plugin System Architecture
 
 
 ### Phase 8: Plugin System Architecture
@@ -182,21 +108,287 @@ This phase creates a unified configuration system for baseweb using Clevis for c
   - **Acceptance**: Bundle size reduced by 30%+, non-bundled option still works
   - **Requires**: Phase 5 complete
 
+### Phase 11: Code Quality Improvements
+
+- [ ] **task-11.1: Fix rate limiter to use monotonic time**
+  - Change `time.time()` to `time.monotonic()` in rate limiter
+  - Ensures accurate time intervals even with system clock changes
+  - **Satisfies**: Code Review M4
+  - **Acceptance**:
+    - Rate limiter uses `time.monotonic()`
+    - Tests pass
+    - No behavior change
+
+- [ ] **task-11.2: Refactor toDict() to use dataclasses.asdict**
+  - Replace manual dict construction with `asdict(self)`
+  - Add post-processing for computed properties
+  - **Satisfies**: Code Review M5
+  - **Acceptance**:
+    - Uses `asdict()` from dataclasses module
+    - All computed properties still included
+    - Tests pass
+
+- [ ] **task-11.3: Add file permissions validation**
+  - Validate that config files with sensitive data are not world-readable
+  - Add warning if permissions are too permissive
+  - **Satisfies**: Code Review M6
+  - **Acceptance**:
+    - `baseweb check` validates file permissions
+    - Warning issued for world-readable config files
+    - Tests pass
+
+- [ ] **task-11.4: Optimize rate limiter data structure**
+  - Replace list with `collections.deque` for O(1) cleanup
+  - Add max size limit to prevent memory issues
+  - **Satisfies**: Code Review M7
+  - **Acceptance**:
+    - Uses `deque` with maxlen
+    - O(1) append and cleanup operations
+    - Tests pass
+
+- [ ] **task-11.5: Remove config mutation in __init__**
+  - Create copy of config instead of mutating passed object
+  - Document immutability expectations
+  - **Satisfies**: Code Review M8
+  - **Acceptance**:
+    - Passed config is not modified
+    - Documentation clarifies immutability
+    - Tests pass
+
+- [ ] **task-11.6: Add module-level exports**
+  - Add `__all__` to all public modules
+  - Document public API explicitly
+  - **Satisfies**: Code Review L7
+  - **Acceptance**:
+    - All public modules have `__all__`
+    - Public API documented
+    - Tests pass
+
+- [ ] **task-11.7: Consolidate module-level constants**
+  - Review usage of `OK` and `HERE` constants
+  - Remove unused or document purpose
+  - **Satisfies**: Code Review L8
+  - **Acceptance**:
+    - Unused constants removed
+    - Used constants documented
+    - Tests pass
+
+### Phase 12: Security Hardening
+
+- [ ] **task-12.1: Add path validation for static files**
+  - Add explicit validation in static file handlers
+  - Reject paths with `..` or starting with `/`
+  - **Satisfies**: Security Review M4
+  - **Acceptance**:
+    - Path traversal attempts logged and rejected
+    - Tests for path traversal prevention
+    - Documentation updated
+
+- [ ] **task-12.2: Make rate limits configurable**
+  - Move hardcoded rate limits to configuration
+  - Allow per-endpoint customization
+  - **Satisfies**: Code Review L1
+  - **Acceptance**:
+    - Rate limits configurable in baseweb.toml
+    - Default values match current behavior
+    - Tests pass
+
+- [ ] **task-12.3: Document service worker cache strategy**
+  - Add documentation for cache invalidation
+  - Explain version-based cache updates
+  - **Satisfies**: Security Review M5
+  - **Acceptance**:
+    - docs/pwa.md created or updated
+    - Cache strategy documented
+    - Version update process explained
+
+- [ ] **task-12.4: Use Enum for style values**
+  - Create `AppStyle` enum for "web" and "pwa" values
+  - Update configuration to use enum
+  - **Satisfies**: Code Review L2
+  - **Acceptance**:
+    - `AppStyle` enum created
+    - Configuration uses enum
+    - Backward compatible with string values
+    - Tests pass
+
+- [ ] **task-12.5: Make known push services configurable**
+  - Move hardcoded `KNOWN_PUSH_SERVICES` to configuration
+  - Allow custom push service endpoints
+  - **Satisfies**: Code Review L3
+  - **Acceptance**:
+    - Push services configurable
+    - Default list provided
+    - Tests pass
+
+### Phase 13: API Enhancements
+
+- [ ] **task-13.1: Add configuration validation**
+  - Implement `validate()` method on BasewebConfig
+  - Validate PWA requirements when style="pwa"
+  - Add `baseweb check --strict` for full validation
+  - **Satisfies**: API Architect Recommendation
+  - **Acceptance**:
+    - `config.validate()` raises `ConfigurationError` for invalid config
+    - PWA icon directory validated when style="pwa"
+    - Tests pass
+
+- [ ] **task-13.2: Document authentication patterns**
+  - Add examples for JWT, OAuth2, Basic Auth
+  - Document scope-based authorization
+  - Add to docs/adding-security.md
+  - **Satisfies**: API Architect Recommendation
+  - **Acceptance**:
+    - Three authentication patterns documented
+    - Code examples for each
+    - Best practices explained
+
+- [ ] **task-13.3: Add OpenAPI schema generation**
+  - Generate OpenAPI 3.0 spec from Resource classes
+  - Expose at `/openapi.json` endpoint
+  - **Satisfies**: API Architect Recommendation
+  - **Acceptance**:
+    - OpenAPI spec generated
+    - Available at `/openapi.json`
+    - Swagger UI at `/docs` (optional)
+
+- [ ] **task-13.4: Implement API versioning**
+  - Document URL path vs header versioning approach
+  - Add version to Resource registration
+  - **Satisfies**: API Architect Recommendation
+  - **Acceptance**:
+    - Versioning strategy documented
+    - Resources can be versioned
+    - Tests pass
+
+- [ ] **task-13.5: Create validation decorators**
+  - Add `@validate_body(schema)` decorator
+  - Add `@validate_query(schema)` decorator
+  - Integrate with pydantic or similar
+  - **Satisfies**: API Architect Recommendation
+  - **Acceptance**:
+    - Decorators work with Resource classes
+    - Validation errors return proper HTTP responses
+    - Tests pass
+
+### Phase 14: Documentation Improvements
+
+- [ ] **task-14.1: Fix version inconsistency**
+  - Update README.md to reflect current version
+  - Ensure all docs reference correct version
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - Version consistent across all docs
+    - Badge shows current version
+
+- [ ] **task-14.2: Update async patterns in tutorials**
+  - Update building-your-first-baseweb-app.md
+  - Ensure all code examples use async patterns
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - All examples use `async`/`await`
+    - No Flask-style sync code
+
+- [ ] **task-14.3: Create deployment guide**
+  - Create docs/deployment.md
+  - Cover Docker, Kubernetes, Nginx setups
+  - Add production checklist
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - Deployment guide created
+    - Docker example provided
+    - Kubernetes example provided
+    - Production checklist included
+
+- [ ] **task-14.4: Create general troubleshooting guide**
+  - Create docs/troubleshooting.md
+  - Cover common issues across all features
+  - Link from other docs
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - Troubleshooting guide created
+    - Common issues documented
+    - Cross-references added
+
+- [ ] **task-14.5: Expand architecture overview**
+  - Expand docs/whats-in-the-box.md
+  - Add architecture diagram
+  - Explain component relationships
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - Architecture diagram included
+    - Component relationships explained
+    - Request lifecycle documented
+
+- [ ] **task-14.6: Create API reference**
+  - Create docs/api.md
+  - Document all public classes and functions
+  - Include examples
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - API reference created
+    - All public API documented
+    - Code examples included
+
+- [ ] **task-14.7: Add PWA setup guide**
+  - Add icon generation guide to configuration.md
+  - Document manifest customization
+  - Explain theme colors
+  - **Satisfies**: Documentation Review
+  - **Acceptance**:
+    - Icon generation documented
+    - Manifest customization explained
+    - Theme colors documented
+
 ---
 
 ## Done
 
-### Phase 7: CLI and Configuration System
+### Phase 7: CLI and Configuration System (COMPLETE - 2026-06-07)
 
-- [x] **task-7.6: Create CLI documentation** (2026-06-07)
-  - Created docs/cli.md with complete CLI reference
-  - Documented all CLI commands: init, check, config, serve, version
-  - Added usage examples for each command
-  - Added common workflows section
-  - Added troubleshooting guide
-  - Updated README.md with Quick Start section
-  - Created docs/end-user/DOCUMENTATION.md summary
-  - **Satisfies**: R124
+**Design Decisions:**
+- No backward compatibility with settings dict (breaking change)
+- Configuration loaded via `get_config()` from Clevis (no `.load()` method)
+- Baseweb.__init__ accepts BasewebConfig directly (no `.from_config()` method)
+- Clevis handles all environment variable mapping automatically
+- TOML structure with nested sections: [branding.*], [features.*], [server], [app.*]
+- Application-specific config via `register_app_config()` pattern
+
+- [x] **task-7.1: Create configuration module** (2026-06-07)
+  - Created `src/baseweb/config.py` with BasewebConfig dataclass
+  - Defined nested dataclasses: BrandingConfig, FeaturesConfig, ServerConfig
+  - Implemented `register_app_config(name, config_class)` function
+  - Implemented configuration validation (icons_dir required when style="pwa")
+  - **Satisfies**: R114, R115, R116
+
+- [x] **task-7.2: Integrate configuration with Baseweb class** (2026-06-07)
+  - Updated `__init__` to accept BasewebConfig parameter (required, no settings dict)
+  - Removed environment variable loading from `__init__` (Clevis handles this)
+  - Removed settings dict support (breaking change)
+  - Applied configuration from BasewebConfig to application
+  - **Satisfies**: R117
+
+- [x] **task-7.3: Implement CLI module** (2026-06-07)
+  - Created `src/baseweb/__main__.py` with Clevis command pattern
+  - Added `baseweb init` command to create default baseweb.toml
+  - Added `baseweb serve` command to run applications via Gunicorn
+  - Added `baseweb config` command to display configuration (table or TOML format)
+  - Added `baseweb version` command
+  - Added `baseweb check` command to validate configuration without running
+  - CLI uses `get_config(BasewebConfig, name="baseweb")` for configuration loading
+  - All CLI arguments override configuration via Clevis
+  - **Satisfies**: R118, R119, R120, R121
+
+- [x] **task-7.4: Add CLI tests** (2026-06-07)
+  - Created tests/test_cli.py with 93 comprehensive tests
+  - Tested all CLI commands: init, check, config, serve, version
+  - Tested argument parsing and command dispatch
+  - Tested error handling with clear error messages
+  - Tested configuration override via CLI args
+  - Tested helper functions: import_app, config_to_toml, print_config_table
+  - Tested Gunicorn integration: StandaloneApplication
+  - Achieved 94% test coverage for CLI module
+  - **Satisfies**: R122
 
 - [x] **task-7.5: Create configuration documentation** (2026-06-07)
   - Created docs/configuration.md with comprehensive configuration reference
@@ -211,18 +403,17 @@ This phase creates a unified configuration system for baseweb using Clevis for c
   - Updated docs/index.md with link to configuration documentation
   - **Satisfies**: R123
 
-- [x] **task-7.4: Add CLI tests** (2026-06-07)
-  - Created tests/test_cli.py with 93 comprehensive tests
-  - Tested all CLI commands: init, check, config, serve, version
-  - Tested argument parsing and command dispatch
-  - Tested error handling with clear error messages
-  - Tested configuration override via CLI args
-  - Tested helper functions: import_app, config_to_toml, print_config_table
-  - Tested Gunicorn integration: StandaloneApplication
-  - Achieved 94% test coverage for CLI module
-  - **Satisfies**: R122
+- [x] **task-7.6: Create CLI documentation** (2026-06-07)
+  - Created docs/cli.md with complete CLI reference
+  - Documented all CLI commands: init, check, config, serve, version
+  - Added usage examples for each command
+  - Added common workflows section
+  - Added troubleshooting guide
+  - Updated README.md with Quick Start section
+  - Created docs/end-user/DOCUMENTATION.md summary
+  - **Satisfies**: R124
 
-### Phase 6: PWA and Push Notifications
+### Phase 6: PWA and Push Notifications (COMPLETE - 2026-06-07)
 
 - [x] **task-6.4: PWA and push notifications documentation** (2026-06-07)
   - Created comprehensive documentation in docs/push-notifications.md
@@ -277,7 +468,7 @@ This phase creates a unified configuration system for baseweb using Clevis for c
   - Files: examples/hello-world/app/__init__.py, examples/hello-world/pyproject.toml
   - **Satisfies**: R79, R80, R83
 
-### Phase 5: Post-modernization Further Feature Development
+### Phase 5: Post-modernization Further Feature Development (COMPLETE - 2026-05-18)
 
 - [x] **task-5.2: Unify special page components** (2026-05-18)
   - Created unified `Page` component with props: `banner`, `status`, `statusTimeout`

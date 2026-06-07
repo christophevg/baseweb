@@ -27,5 +27,6 @@ whats-in-the-box.md
 getting-started.md
 building-your-first-baseweb-app.md
 adding-security.md
+push-notifications.md
 contributing.md
 ```

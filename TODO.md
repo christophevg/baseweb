@@ -109,19 +109,6 @@ This phase creates a unified configuration system for baseweb using Clevis for c
     - Error messages are clear and actionable
 
 
-- [ ] **task-7.6: Create CLI documentation**
-  - Create `docs/cli.md` with CLI command reference
-  - Document all CLI commands with examples
-  - Add usage examples for common workflows
-  - Add troubleshooting guide
-  - Update README.md with quick start
-  - **Satisfies**: R124
-  - **Acceptance**:
-    - All CLI commands documented
-    - Usage examples for each command
-    - Quick start section in README
-    - Troubleshooting guide
-
 ### Phase 8: Plugin System Architecture
 
 - [ ] **task-8.1: Design plugin namespace system**
@@ -200,6 +187,16 @@ This phase creates a unified configuration system for baseweb using Clevis for c
 ## Done
 
 ### Phase 7: CLI and Configuration System
+
+- [x] **task-7.6: Create CLI documentation** (2026-06-07)
+  - Created docs/cli.md with complete CLI reference
+  - Documented all CLI commands: init, check, config, serve, version
+  - Added usage examples for each command
+  - Added common workflows section
+  - Added troubleshooting guide
+  - Updated README.md with Quick Start section
+  - Created docs/end-user/DOCUMENTATION.md summary
+  - **Satisfies**: R124
 
 - [x] **task-7.5: Create configuration documentation** (2026-06-07)
   - Created docs/configuration.md with comprehensive configuration reference

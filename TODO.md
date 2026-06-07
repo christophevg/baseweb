@@ -108,22 +108,6 @@ This phase creates a unified configuration system for baseweb using Clevis for c
     - CLI arguments override configuration (via Clevis)
     - Error messages are clear and actionable
 
-- [ ] **task-7.5: Create configuration documentation**
-  - Create `docs/configuration.md` with full configuration reference
-  - Document TOML structure with nested sections
-  - Document all configuration options with examples
-  - Document configuration priority order (Clevis layered config)
-  - Document environment variables (APP_*, GUNICORN_*)
-  - Document environment variable interpolation (${VAR:-default})
-  - Document register_app_config() pattern for app-specific config
-  - Add migration guide from environment variables to TOML
-  - **Satisfies**: R123
-  - **Acceptance**:
-    - All configuration options documented
-    - Nested TOML structure documented with examples
-    - Examples for common use cases
-    - Migration guide from environment variables
-    - Troubleshooting section
 
 - [ ] **task-7.6: Create CLI documentation**
   - Create `docs/cli.md` with CLI command reference
@@ -216,6 +200,19 @@ This phase creates a unified configuration system for baseweb using Clevis for c
 ## Done
 
 ### Phase 7: CLI and Configuration System
+
+- [x] **task-7.5: Create configuration documentation** (2026-06-07)
+  - Created docs/configuration.md with comprehensive configuration reference
+  - Documented all configuration options: root, branding, features, server
+  - Documented TOML structure with nested sections
+  - Documented configuration priority order (defaults < user TOML < project TOML < env vars < CLI args)
+  - Documented environment variables (APP_*, GUNICORN_*)
+  - Documented environment variable interpolation (${VAR:-default})
+  - Documented register_app_config() pattern for app-specific config
+  - Added migration guide from environment variables to TOML
+  - Added troubleshooting section
+  - Updated docs/index.md with link to configuration documentation
+  - **Satisfies**: R123
 
 - [x] **task-7.4: Add CLI tests** (2026-06-07)
   - Created tests/test_cli.py with 93 comprehensive tests

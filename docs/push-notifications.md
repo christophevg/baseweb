@@ -8,6 +8,16 @@ Complete guide for implementing and using push notifications in Baseweb Progress
 2. [Compatibility Matrix](#compatibility-matrix)
 3. [User Guide: iOS Safari PWA Installation](#user-guide-ios-safari-pwa-installation)
 4. [Developer Guide: Push Notification Setup](#developer-guide-push-notification-setup)
+   - [Prerequisites](#prerequisites)
+   - [Step 1: Install Dependencies](#step-1-install-dependencies)
+   - [Step 2: Generate VAPID Keys](#step-2-generate-vapid-keys)
+   - [Step 3: Configure Baseweb Application](#step-3-configure-baseweb-application)
+   - [Step 4: Verify VAPID Configuration](#step-4-verify-vapid-configuration)
+   - [Step 5: Set Up Authentication](#step-5-set-up-authentication)
+   - [Step 6: Frontend Integration](#step-6-frontend-integration)
+   - [Step 7: Send Notifications from Backend](#step-7-send-notifications-from-backend)
+   - [Step 8: Test Push Notifications](#step-8-test-push-notifications)
+   - [Production Considerations](#production-considerations)
 5. [API Reference](#api-reference)
 6. [Troubleshooting Guide](#troubleshooting-guide)
 
@@ -484,6 +494,63 @@ curl -X POST https://your-ngrok-url.ngrok.io/api/push-notifications \
   }'
 ```
 
+### Production Considerations
+
+> **Warning:** The default subscription storage uses in-memory storage, which is suitable
+> for development and single-worker deployments only. In production with multiple workers:
+
+#### Limitations of In-Memory Storage
+
+- **Subscriptions lost on restart:** All push subscriptions are lost when the server restarts
+- **No worker sharing:** Each worker process has its own subscription storage
+- **Not scalable:** Cannot be shared across multiple servers
+
+#### Production Solution
+
+For production deployments, implement a database-backed subscription storage:
+
+```python
+# Example: Custom storage backend
+from baseweb.push import SubscriptionStorage
+
+class DatabaseSubscriptionStorage(SubscriptionStorage):
+    def create(self, subscription: PushSubscription) -> PushSubscription:
+        # Store in database
+        ...
+
+    def get(self, subscription_id: str) -> PushSubscription | None:
+        # Retrieve from database
+        ...
+
+    def get_by_user(self, user_id: str) -> list[PushSubscription]:
+        # Query by user
+        ...
+
+    def delete(self, subscription_id: str) -> bool:
+        # Remove from database
+        ...
+
+# Set custom storage (in your app initialization)
+from baseweb.push import set_subscription_storage
+set_subscription_storage(DatabaseSubscriptionStorage())
+```
+
+#### Environment Variables for Production
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VAPID_PRIVATE_KEY` | Yes | VAPID private key for push notifications |
+| `IP_HASH_SALT` | Yes | Salt for IP address hashing (32+ hex characters) |
+| `ENVIRONMENT` | Recommended | Set to `production` to enable validation |
+
+```bash
+# Generate VAPID keys
+python -c "from py_vapid import Vapid01; v=Vapid01(); v.generate_keys(); print(v.private_pem().decode())"
+
+# Generate IP hash salt
+python -c "import secrets; print(secrets.token_hex(16))"
+```
+
 ---
 
 ## API Reference
@@ -802,6 +869,27 @@ if (existing) {
    - Check firewall rules for `web.push.apple.com`
 
 #### Server Issues
+
+##### "Subscriptions lost after server restart"
+
+**Symptoms:** Users need to re-subscribe after server restart.
+
+**Cause:** In-memory storage is used by default. Subscriptions are not persisted.
+
+**Solution:**
+1. Use database-backed storage in production (see Production Considerations)
+2. Implement `DatabaseSubscriptionStorage` as shown in the Developer Guide
+
+##### "Subscriptions not shared across workers"
+
+**Symptoms:** Notifications work intermittently, only reaching some users.
+
+**Cause:** Multiple worker processes each have their own in-memory storage.
+
+**Solution:**
+1. Implement database-backed subscription storage
+2. Ensure all workers use the same database
+3. Consider using Redis for high-scale deployments
 
 ##### "Server returns 401 Unauthorized"
 

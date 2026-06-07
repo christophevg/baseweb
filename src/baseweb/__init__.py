@@ -90,7 +90,9 @@ class Baseweb(Quart):
 
     # Initialize Socket.IO in ASGI mode for Quart compatibility
     if self._config.features.socketio.enabled:
-      self._sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+      # Use CORS origins from security configuration
+      allowed_origins = self._config.security.cors_origins
+      self._sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=allowed_origins)
       self._asgi_app = socketio.ASGIApp(self._sio, self)
       self.socketio = self._sio
     else:

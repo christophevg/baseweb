@@ -137,6 +137,20 @@ class FeaturesConfig:
 
 
 @dataclass
+class SecurityConfig:
+  """Security configuration.
+
+  Contains security-related settings for the application.
+
+  Attributes:
+    cors_origins: List of allowed CORS origins for WebSocket connections.
+                 Defaults to localhost for development.
+  """
+
+  cors_origins: list[str] = field(default_factory=lambda: ["http://localhost:8000"])
+
+
+@dataclass
 class ServerConfig:
   """Server configuration.
 
@@ -224,6 +238,7 @@ class BasewebConfig:
   # Nested configuration sections
   branding: BrandingConfig = field(default_factory=BrandingConfig)
   features: FeaturesConfig = field(default_factory=FeaturesConfig)
+  security: SecurityConfig = field(default_factory=SecurityConfig)
   server: ServerConfig = field(default_factory=ServerConfig)
 
   # Flattened access properties for template compatibility
@@ -329,6 +344,9 @@ class BasewebConfig:
           "background_color": self.features.pwa.background_color,
           "icons_dir": self.features.pwa.icons_dir,
         },
+      },
+      "security": {
+        "cors_origins": self.security.cors_origins,
       },
       "server": {
         "bind": self.server.bind,

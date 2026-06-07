@@ -108,22 +108,6 @@ This phase creates a unified configuration system for baseweb using Clevis for c
     - CLI arguments override configuration (via Clevis)
     - Error messages are clear and actionable
 
-- [ ] **task-7.4: Add CLI tests**
-  - Create `tests/test_cli.py` for CLI command tests
-  - Add tests for `init` command
-  - Add tests for `serve` command
-  - Add tests for `config` command
-  - Add tests for `version` command
-  - Add tests for argument parsing
-  - Add tests for error handling
-  - Add tests for register_app_config() pattern
-  - **Satisfies**: R122
-  - **Acceptance**:
-    - All CLI commands tested
-    - Edge cases covered (missing config, invalid args)
-    - Error messages verified
-    - Test coverage >= 80%
-
 - [ ] **task-7.5: Create configuration documentation**
   - Create `docs/configuration.md` with full configuration reference
   - Document TOML structure with nested sections
@@ -230,6 +214,19 @@ This phase creates a unified configuration system for baseweb using Clevis for c
 ---
 
 ## Done
+
+### Phase 7: CLI and Configuration System
+
+- [x] **task-7.4: Add CLI tests** (2026-06-07)
+  - Created tests/test_cli.py with 93 comprehensive tests
+  - Tested all CLI commands: init, check, config, serve, version
+  - Tested argument parsing and command dispatch
+  - Tested error handling with clear error messages
+  - Tested configuration override via CLI args
+  - Tested helper functions: import_app, config_to_toml, print_config_table
+  - Tested Gunicorn integration: StandaloneApplication
+  - Achieved 94% test coverage for CLI module
+  - **Satisfies**: R122
 
 ### Phase 6: PWA and Push Notifications
 

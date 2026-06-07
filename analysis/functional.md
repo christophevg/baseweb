@@ -1,8 +1,8 @@
 # Baseweb Functional Analysis
 
 **Created:** 2026-04-29
-**Status:** Draft
-**Version:** 0.4.3 (current) -> 1.0.0 (target)
+**Status:** Active
+**Version:** 0.5.1 (current) -> 1.0.0 (target)
 
 ---
 
@@ -233,25 +233,148 @@ baseweb/
 
 ---
 
-### Phase 5: Component Consolidation (Old Backlog)
+### Phase 5: Post-modernization Further Feature Development (COMPLETE)
 
-#### 5.1 Unify Special Page Components
+#### 5.1 Create Minimal Hello World Example
+
+**Rationale:** A minimal example application demonstrates core baseweb functionality and serves as validation for the Quart migration approach.
+
+**Implementation:**
+- Created `examples/hello-world/` with minimal baseweb application
+- Uses `uv` for dependency management
+- Single page, no authentication, no REST API, no WebSocket
+- Validates Quart async patterns work correctly
+
+**Completion Date:** 2026-05-04
+
+**Acceptance Criteria:**
+- [x] Minimal Hello World example created
+- [x] Uses `uv` for dependency management
+- [x] Single page, no authentication, no REST API, no WebSocket
+- [x] App starts, HTML served, component registered, Vue 3 initializes
+
+**Dependencies:** Phase 3 (Quart migration)
+
+#### 5.2 Unify Special Page Components
 
 **Rationale:** Multiple page components exist (Page, PageWithBanner, PageWithStatus) with overlapping functionality. A unified component with properties would reduce code duplication and improve maintainability.
 
-**Scope:**
-- Create a unified `Page` component with configurable slots/props
-- Support: with_banner, with_status, with_navigation, with_google_login
-- Maintain backward compatibility during transition
+**Implementation:**
+- Created unified `Page` component with props: `banner`, `status`, `statusTimeout`
+- Added slots: default, header, footer
+- Registered namespaced Vuex store module `page` with `banner` and `status` state
+- **Breaking change**: Removed `PageWithBanner.js` and `PageWithStatus.js`
+- Migration: `<PageWithBanner>` → `<Page banner>`, `<PageWithStatus>` → `<Page status>`
+
+**Completion Date:** 2026-05-18
 
 **Acceptance Criteria:**
-- [ ] Unified `Page` component created
-- [ ] All existing functionality supported via props/slots
-- [ ] Migration guide for existing usage
-- [ ] Existing components deprecated (not removed immediately)
-- [ ] Tests for new component
+- [x] Unified `Page` component created
+- [x] Support for banner, status props (navigation deferred by design)
+- [x] Existing components removed (breaking change, migration guide provided)
+- [x] Migration guide for existing usage
+- [x] Tests for new component
+- [x] Full-page layouts deferred (R78)
 
-**Dependencies:** Phase 3 (Quart migration should not be blocked by this)
+**Dependencies:** Phase 3 (Quart migration)
+
+### Phase 6: PWA and Push Notifications (COMPLETE)
+
+#### 6.1 PWA Manifest and Service Worker Foundation
+
+**Rationale:** Progressive Web App support enables offline functionality and mobile app-like experience, critical for modern web applications.
+
+**Implementation:**
+- Enhanced manifest.json with 180x180 icon, description, scope fields
+- Added iOS Safari meta tags (apple-mobile-web-app-capable, status-bar-style, title, touch-icon)
+- Created Service Worker (sw.js) with cache-first strategy for static assets
+- Added Service Worker route with correct headers (Service-Worker-Allowed: /)
+- Registered Service Worker on window.load when APP_STYLE=pwa
+- Generated 9 placeholder icons (72x72 to 512x512)
+- Added offline UX indicator (isOnline state, offline badge in app bar)
+- Added python-dotenv to hello-world example for .env file loading
+
+**Completion Date:** 2026-05-19
+
+**Acceptance Criteria:**
+- [x] PWA manifest enhanced for iOS compatibility
+- [x] Service Worker implementation for offline support
+- [x] iOS Safari standalone mode support (iOS 16.4+)
+- [x] Icon generation and proper paths
+
+**Dependencies:** Phase 5
+
+#### 6.2 Push Notification Backend Infrastructure
+
+**Rationale:** Push notifications enable real-time user engagement, essential for modern web applications.
+
+**Implementation:**
+- Implemented VAPID key generation and management (src/baseweb/vapid.py)
+- Created push subscription storage with CRUD operations
+- Created GET /api/vapid-public-key endpoint (unauthenticated)
+- Created POST/GET/DELETE /api/push-subscriptions endpoints (authenticated)
+- Created POST /api/push-notifications endpoint (admin only)
+- Added rate limiting (10/hour, 50/day per user, 100/min global)
+- Added input validation (endpoint URL, keys, payload)
+- Added known push service validation (FCM, Mozilla, Apple)
+- iOS Safari compatible (VAPID claims with subject and audience)
+
+**Completion Date:** 2026-05-19
+
+**Acceptance Criteria:**
+- [x] Backend VAPID key generation and management
+- [x] Push subscription storage and retrieval
+- [x] Push notification sending functionality
+- [x] Security features (VAPID private key from env, subscription validation)
+
+**Dependencies:** 6.1
+
+#### 6.3 Push Notification Frontend Integration
+
+**Rationale:** Frontend integration completes the push notification workflow for end users.
+
+**Implementation:**
+- Implemented notification UI component (PushNotificationSettings.js)
+- Added standalone PWA mode detection for iOS Safari
+- Added HTTPS/localhost security check for Push API
+- Pre-fetched VAPID key on page load for Safari user gesture requirement
+- Implemented subscribe/unsubscribe flow with permission handling
+- Synced subscription state with backend via POST/DELETE endpoints
+- Added iOS-specific guidance for non-PWA users
+- Service Worker already handles push events (from task-6.1)
+- Created testing documentation for ngrok + real iPhone testing
+
+**Completion Date:** 2026-05-20
+
+**Acceptance Criteria:**
+- [x] Push API integration with VAPID key support
+- [x] Notifications API integration
+- [x] User permission prompt triggered by user action
+- [x] iOS Safari compatibility documented
+
+**Dependencies:** 6.2
+
+#### 6.4 PWA and Push Notifications Documentation
+
+**Rationale:** Users need comprehensive documentation for PWA installation and push notification setup.
+
+**Implementation:**
+- Created comprehensive documentation in docs/push-notifications.md
+- Documented iOS Safari PWA installation workflow with step-by-step guide
+- Documented developer setup (VAPID keys, API endpoints, integration)
+- Documented user-facing permission flow
+- Created troubleshooting guide with iOS-specific issues
+- Included compatibility matrix (iOS 16.4+ Safari only)
+
+**Completion Date:** 2026-06-07
+
+**Acceptance Criteria:**
+- [x] PWA installation workflow documented
+- [x] Push notification setup documented
+- [x] iOS-specific requirements documented
+- [x] Troubleshooting guide included
+
+**Dependencies:** 6.3
 
 ---
 
@@ -288,42 +411,47 @@ baseweb/
 
 ## Timeline Estimate
 
-| Phase | Duration | Dependencies |
-|-------|----------|--------------|
-| Phase 1: Project Cleanup | 1-2 weeks | None |
-| Phase 2: Architecture Decision | 1-2 days | None |
-| Phase 3: Quart Migration | 2-4 weeks | Phase 1, 2 |
-| Phase 4: hosted-quarts Coordination | 1 week | Phase 2 |
-| Phase 5: Component Consolidation | 1 week | Phase 3 |
-| Phase 6: PWA and Push Notifications | 1-2 weeks | Phase 5 |
-| Phase 7: CLI and Configuration | 1-2 weeks | Phase 5 |
+| Phase | Status | Duration | Completion |
+|-------|--------|----------|------------|
+| Phase 1: Project Cleanup | COMPLETE | 1-2 weeks | 2026-04-29 |
+| Phase 2: Architecture Decision | COMPLETE | 1-2 days | 2026-04-30 |
+| Phase 3: Quart Migration | COMPLETE | 2-4 weeks | 2026-05-04 |
+| Phase 4: hosted-quarts Coordination | COMPLETE | 1 week | 2026-04-30 |
+| Phase 5: Post-modernization | COMPLETE | 1 week | 2026-05-18 |
+| Phase 6: PWA and Push Notifications | COMPLETE | 1-2 weeks | 2026-06-07 |
+| Phase 7: CLI and Configuration | COMPLETE | 1-2 weeks | 2026-06-07 |
+| Phase 8: Plugin System Architecture | PLANNED | 2-3 weeks | - |
+| Phase 9: Plugin Implementations | PLANNED | 2-3 weeks | - |
+| Phase 10: Performance Optimization | PLANNED | 1-2 weeks | - |
 
-**Total Estimated Duration:** 6-10 weeks
+**Completed Duration:** ~8 weeks
+**Remaining Duration:** 5-8 weeks
 
 ---
 
 ---
 
-### Phase 7: CLI and Configuration System
+### Phase 7: CLI and Configuration System (COMPLETE)
 
 #### 7.1 Configuration Infrastructure
 
-**Rationale:** Baseweb currently relies solely on environment variables for configuration (APP_NAME, APP_TITLE, etc.). A modern configuration system using TOML files with Clevis provides better developer experience and aligns with Python packaging standards.
+**Rationale:** Baseweb relied solely on environment variables for configuration. A modern configuration system using TOML files with Clevis provides better developer experience and aligns with Python packaging standards.
 
-**Scope:**
-- Create `src/baseweb/config.py` with BasewebConfig dataclass
-- Implement TOML configuration file loading
-- Support layered configuration (defaults < user-level < project-level < CLI args)
-- Integrate with existing Baseweb class
-- Maintain backward compatibility with environment variables
+**Implementation:**
+- Created `src/baseweb/config.py` with BasewebConfig dataclass
+- Implemented TOML configuration file loading via Clevis
+- Supported layered configuration (defaults < user-level < project-level < env vars < CLI args)
+- Integrated with Baseweb class via constructor parameter
+- **Breaking change**: Removed settings dict parameter, now requires BasewebConfig
+
+**Completion Date:** 2026-06-07
 
 **Acceptance Criteria:**
-- [ ] Configuration loads from TOML files (project and user level)
-- [ ] Environment variables override TOML configuration
-- [ ] CLI arguments override environment variables
-- [ ] `Baseweb.from_config()` creates configured app
-- [ ] Existing `Baseweb(settings={...})` still works
-- [ ] Clear error messages for all failure cases
+- [x] Configuration loads from TOML files (project and user level)
+- [x] Environment variables override TOML configuration (APP_*, GUNICORN_*)
+- [x] CLI arguments override environment variables
+- [x] `Baseweb(config)` accepts BasewebConfig directly (no .from_config() method)
+- [x] Clear error messages for all failure cases
 
 **Dependencies:** Phase 5 (Hello World example validates approach)
 
@@ -331,21 +459,26 @@ baseweb/
 
 **Rationale:** A CLI entry point allows users to run baseweb applications without writing Python code, enabling `baseweb serve` workflows and improving developer experience.
 
-**Scope:**
-- Add `baseweb init` command to create default configuration
-- Add `baseweb serve` command to run applications
-- Add `baseweb config` command to display configuration
-- Add `baseweb version` command
-- Integrate with Gunicorn for ASGI server
-- Support CLI argument overrides
+**Implementation:**
+- Created `src/baseweb/__main__.py` with Clevis command pattern
+- Added `baseweb init` command to create default baseweb.toml
+- Added `baseweb serve` command to run applications via Gunicorn
+- Added `baseweb config` command to display configuration (table or TOML format)
+- Added `baseweb version` command
+- Added `baseweb check` command to validate configuration without running
+- Integrated with Gunicorn via StandaloneApplication wrapper
+- Support CLI argument overrides for all configuration fields
+
+**Completion Date:** 2026-06-07
 
 **Acceptance Criteria:**
-- [ ] `baseweb init` creates baseweb.toml with sensible defaults
-- [ ] `baseweb serve` runs application from TOML config
-- [ ] `baseweb config` displays current configuration
-- [ ] `baseweb version` displays version
-- [ ] CLI arguments override configuration
-- [ ] Error messages are clear and actionable
+- [x] `baseweb init` creates baseweb.toml with sensible defaults
+- [x] `baseweb serve` runs application from TOML config
+- [x] `baseweb config` displays current configuration
+- [x] `baseweb version` displays version
+- [x] `baseweb check` validates configuration without running
+- [x] CLI arguments override configuration (via Clevis)
+- [x] Error messages are clear and actionable
 
 **Dependencies:** 7.1 (configuration infrastructure)
 
@@ -353,16 +486,22 @@ baseweb/
 
 **Rationale:** Users need clear documentation for the new configuration system and CLI commands.
 
-**Scope:**
-- Create `docs/configuration.md` with full configuration reference
-- Create `docs/cli.md` with CLI command reference
-- Update README.md with quick start
+**Implementation:**
+- Created `docs/configuration.md` with comprehensive configuration reference
+- Created `docs/cli.md` with complete CLI command reference
+- Updated README.md with Quick Start section
+- Documented all configuration options with examples
+- Documented configuration priority order
+- Documented environment variable mapping
+- Documented app-specific configuration via register_app_config()
+
+**Completion Date:** 2026-06-07
 
 **Acceptance Criteria:**
-- [ ] All configuration options documented
-- [ ] CLI commands documented with examples
-- [ ] Migration guide from environment variables
-- [ ] Troubleshooting section
+- [x] All configuration options documented
+- [x] CLI commands documented with examples
+- [x] Migration guide from environment variables to TOML
+- [x] Troubleshooting section
 
 **Dependencies:** 7.2 (CLI commands)
 

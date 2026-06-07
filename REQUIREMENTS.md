@@ -142,21 +142,21 @@ This document tracks all functional and non-functional requirements for the base
 ### Phase 7: CLI and Configuration System
 
 #### Configuration Infrastructure
-- [ ] R114: Configuration module with dataclass-based schema
-- [ ] R115: TOML configuration file loading
-- [ ] R116: Environment variable override support
-- [ ] R117: Baseweb.from_config() class method
+- [x] R114: Configuration module with dataclass-based schema
+- [x] R115: TOML configuration file loading
+- [x] R116: Environment variable override support
+- [x] R117: Baseweb class accepts BasewebConfig parameter (breaking change, no .from_config() method)
 
 #### CLI Commands
-- [ ] R118: `baseweb init` command for creating configuration files
-- [ ] R119: `baseweb serve` command for running applications
-- [ ] R120: `baseweb config` command for displaying configuration
-- [ ] R121: `baseweb version` command for version information
-- [ ] R122: CLI test coverage
+- [x] R118: `baseweb init` command for creating configuration files
+- [x] R119: `baseweb serve` command for running applications
+- [x] R120: `baseweb config` command for displaying configuration
+- [x] R121: `baseweb version` command for version information
+- [x] R122: CLI test coverage (94%)
 
 #### Documentation
-- [ ] R123: Configuration documentation
-- [ ] R124: CLI documentation
+- [x] R123: Configuration documentation (docs/configuration.md)
+- [x] R124: CLI documentation (docs/cli.md)
 
 ### Phase 8: Plugin System Architecture
 
@@ -233,10 +233,10 @@ This document tracks all functional and non-functional requirements for the base
 | Phase 3 | 35 | 35 |
 | Phase 4 | 5 | 5 |
 | Phase 5 | 10 | 9 |
-| Phase 6 | 10 | 9 |
-| Phase 7 | 11 | 0 |
+| Phase 6 | 10 | 10 |
+| Phase 7 | 11 | 11 |
 | Phase 8 | 8 | 0 |
 | Phase 9 | 12 | 0 |
 | Phase 10 | 5 | 0 |
 
-**Total: 86 completed, 38 remaining**
+**Total: 97 completed, 27 remaining**

@@ -798,7 +798,7 @@ class PushSubscriptionResource(Resource):
         {
           "type": "https://api.baseweb.io/errors/invalid-subscription",
           "title": "Invalid Subscription",
-          " la-detail": error,
+          "detail": error,
         },
         400,
       )

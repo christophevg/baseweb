@@ -22,9 +22,10 @@ Example:
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Dict, List  # noqa: UP035 - Required for Clevis compatibility
 
 # Registry for application-specific configuration
-_app_configs: dict[str, type] = {}
+_app_configs: Dict[str, type] = {}  # noqa: UP006 - Required for Clevis compatibility
 
 
 @dataclass
@@ -147,7 +148,7 @@ class SecurityConfig:
                  Defaults to localhost for development.
   """
 
-  cors_origins: list[str] = field(default_factory=lambda: ["http://localhost:8000"])
+  cors_origins: List[str] | None = field(default_factory=lambda: ["http://localhost:8000"])  # noqa: UP006 - Required for Clevis compatibility
 
 
 @dataclass
@@ -398,3 +399,4 @@ def get_registered_configs() -> dict[str, type]:
     Dictionary mapping configuration names to their dataclass types
   """
   return _app_configs.copy()
+
